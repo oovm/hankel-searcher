@@ -6,5 +6,7 @@
 
 mod errors;
 mod square;
+mod cell;
 
 pub use crate::errors::{Error, Result};
+pub use crate::cell::Cell;

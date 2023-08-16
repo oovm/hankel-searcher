@@ -12,6 +12,8 @@ edition = "2021"
 exclude = ["package.json", "tests/**"]
 
 [dependencies]
+rand = { version = "0.8.5", features = ["small_rng"] }
+ndarray = "0.15.6"
 
 [dev-dependencies]
 

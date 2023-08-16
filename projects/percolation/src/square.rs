@@ -1,18 +1,42 @@
-pub struct Cell {
-    repr: [u8; 4],
+use std::collections::HashSet;
+use ndarray::Array2;
+use rand::{Rng, RngCore, SeedableRng, thread_rng};
+use rand::distributions::{Distribution, Uniform};
+use rand::prelude::SmallRng;
+use crate::Cell;
+
+pub struct SquareSite<D = Uniform<u8>> where D: Distribution<u8> {
+    width: usize,
+    current: Vec<Cell>,
+    rng: SmallRng,
+    dist: D,
 }
 
-impl Cell {
-    pub fn get_color(&self) -> u8 {
-        self.repr[0]
+pub enum MCState {
+    Empty,
+    Occupied,
+    Complete,
+}
+
+
+impl SquareSite {
+    pub fn new(width: usize, height: usize) -> Self {
+        Self {
+            state: MCState::Empty,
+            cells: Array2::default((width, height)),
+            rng: SmallRng::from_rng(thread_rng()).unwrap(),
+        }
     }
-    pub fn set_color(&mut self, color: u8) {
-        self.repr[0] = color;
+    pub fn dye(&mut self, colors: u8, dist: impl Distribution<u8>) {
+        for cell in self.cells.iter_mut() {
+            let next = dist.sample(&mut self.rng);
+            cell.set_color(next % colors);
+        }
+        self.state = MCState::Occupied;
     }
-    pub fn get_id(&self) -> u32 {
-        u32::from_be_bytes([self.repr[1], self.repr[2], self.repr[3], 0])
+    pub fn dye_uniform(&mut self, colors: u8) {
+        self.dye(colors, Uniform::new(0, colors));
     }
-    pub fn set_id(&mut self, id: u32) {
-        self.repr[1..4].copy_from_slice(&id.to_be_bytes());
-    }
+    /// Write the same id to connected regions
+    pub fn distinguish(&mut self) {}
 }
