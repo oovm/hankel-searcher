@@ -1,4 +1,4 @@
-use crate::Cell;
+use crate::{Cell, MergeList};
 use rand::{
     distributions::{Distribution, Uniform},
     prelude::SmallRng,
@@ -12,14 +12,9 @@ pub struct SquareSite<D = Uniform<u8>> {
     width: u32,
     lines: u32,
     last: Vec<Cell>,
-    group: MergeGroup,
+    groups: MergeList<(u32, u32)>,
     rng: SmallRng,
     dist: D,
-}
-
-pub struct MergeGroup {
-    next_id: u32,
-    groups: BTreeMap<u32, Vec<(u32, u32)>>,
 }
 
 pub enum MCState {
@@ -34,15 +29,7 @@ where
 {
     pub fn new(width: usize, dist: D) -> Self {
         let rng = SmallRng::from_rng(thread_rng()).expect("Failed to create rng");
-        Self {
-            width: width as u32,
-            lines: 0,
-            next_id: 1,
-            last: vec![Cell::default(); width],
-            groups: BTreeMap::default(),
-            rng,
-            dist,
-        }
+        Self { width: width as u32, lines: 0, last: vec![Cell::default(); width], groups: Default::default(), rng, dist }
     }
     pub fn scan(&mut self, lines: usize) {
         for _ in 0..lines {
@@ -112,10 +99,14 @@ where
         self.try_merge_group(left.get_id(), up.get_id(), column).expect("Failed to merge groups")
     }
     fn try_merge_group(&mut self, left_id: u32, up_id: u32, column: u32) -> Option<u32> {
-        // update group
-        let left = self.groups.remove(&left_id)?;
-        let up = self.groups.get_mut(&up_id)?;
-        up.extend(left);
+        match self.groups.merge_group(left_id, up_id) {
+            Some(_) => {}
+            None => {
+                unreachable!()
+                // panic!("Failed to merge group {:?} and {:?}", up_id, left_id)
+            }
+        };
+
         // update new cell
         up.push((self.lines, column));
         // update record

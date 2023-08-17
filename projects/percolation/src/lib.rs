@@ -4,10 +4,15 @@
 #![doc(html_logo_url = "https://raw.githubusercontent.com/oovm/shape-rs/dev/projects/images/Trapezohedron.svg")]
 #![doc(html_favicon_url = "https://raw.githubusercontent.com/oovm/shape-rs/dev/projects/images/Trapezohedron.svg")]
 
+mod cell;
 mod errors;
 mod square;
-mod cell;
 
-pub use crate::errors::{Error, Result};
-pub use crate::cell::Cell;
-pub use crate::square::SquareSite;
+mod helpers;
+
+pub use crate::{
+    cell::Cell,
+    errors::{Error, Result},
+    helpers::group::MergeList,
+    square::SquareSite,
+};
