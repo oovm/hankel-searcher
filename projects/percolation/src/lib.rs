@@ -10,9 +10,4 @@ mod square;
 
 mod helpers;
 
-pub use crate::{
-    cell::Cell,
-    errors::{Error, Result},
-    helpers::group::MergeList,
-    square::SquareSite,
-};
+pub use crate::{cell::Cell, errors::PercolationError, helpers::group::MergeList, square::SquareSite};

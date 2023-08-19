@@ -1,4 +1,4 @@
-use percolation::SquareSite;
+use percolation::{Cell, SquareSite};
 
 #[test]
 fn ready() {
@@ -8,6 +8,13 @@ fn ready() {
 #[test]
 fn test() {
     let mut ss = SquareSite::uniform(10, 2);
-    ss.scan(5);
+    ss.scan(10);
+    println!("{:#?}", ss);
+}
+#[test]
+fn test2() {
+    let mut ss = Cell::new(1);
+    ss.set_id(6);
+    ss.replace_id(6, 5);
     println!("{:#?}", ss);
 }

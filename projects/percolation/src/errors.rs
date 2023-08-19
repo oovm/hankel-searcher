@@ -1,6 +1,6 @@
+/// Error type for percolation progress
 #[derive(Debug, Copy, Clone)]
-pub enum Error {
-    UnknownError
+pub enum PercolationError {
+    /// The cell is not white
+    UnknownError,
 }
-
-pub type Result<T> = std::result::Result<T, Error>;
