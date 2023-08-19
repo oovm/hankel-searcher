@@ -1,3 +1,6 @@
-use std::{collections::BTreeMap, fmt::Debug};
+use std::{
+    collections::BTreeMap,
+    fmt::{Debug, Formatter},
+};
 
 pub mod group;

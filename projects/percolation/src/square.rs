@@ -1,4 +1,5 @@
 use crate::{Cell, MergeList};
+use itertools::Itertools;
 use rand::{
     distributions::{Distribution, Uniform},
     prelude::SmallRng,
@@ -20,11 +21,11 @@ impl<'i, D> Iterator for &'i mut SquareSite<D>
 where
     D: Distribution<u8>,
 {
-    type Item = Vec<u32>;
+    type Item = Vec<usize>;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.scan_line();
-        Some(self.groups)
+        Some(self.groups.into_iter().map(|v| v.1.len()).sorted().rev().collect())
     }
 }
 

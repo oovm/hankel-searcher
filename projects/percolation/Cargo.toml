@@ -6,14 +6,16 @@ authors = ["Aster <192607617@qq.com>"]
 description = "..."
 repository = "https://github.com/oovm/sub_projects"
 documentation = "https://docs.rs/sub_projects"
-readme = "Readme.md"
+readme = "readme.md"
 license = "MPL-2.0"
 edition = "2021"
 exclude = ["package.json", "tests/**"]
 
 [dependencies]
+itertools = "0.13.0"
 rand = { version = "0.8.5", features = ["small_rng"] }
 ndarray = "0.15.6"
+#wolfram-library-link = "0.2.9"
 
 [dev-dependencies]
 

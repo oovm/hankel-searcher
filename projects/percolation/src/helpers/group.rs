@@ -1,5 +1,3 @@
-use std::collections::btree_map::Values;
-use std::iter::Enumerate;
 use super::*;
 
 /// A list of groups, each group has a unique id
@@ -9,28 +7,37 @@ pub struct MergeList<T> {
     groups: BTreeMap<u32, Vec<T>>,
 }
 
-impl<T> IntoIterator for MergeList<T> {
-    type Item = ();
-    type IntoIter = ();
+impl<'i, T> IntoIterator for &'i MergeList<T> {
+    type Item = (usize, &'i [T]);
+    type IntoIter = MergeListView<'i, T>;
 
     fn into_iter(self) -> Self::IntoIter {
-        let i: Enumerate<Values<u32, Vec<T>>> = self.groups.values().enumerate()
+        MergeListView { index: 0, view: self }
     }
 }
 
-pub struct MergeListIter<'i>{
+/// A view of the merge list
+pub struct MergeListView<'i, T> {
     index: usize,
-    iter: &'i MergeList<T>,
+    view: &'i MergeList<T>,
 }
 
-impl Iterator for MergeListIter {
-    type Item = ();
-
-    fn next(&mut self) -> Option<Self::Item> {
+impl<'i, T> Debug for MergeListView<'i, T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         todo!()
     }
 }
 
+impl<'i, T> Iterator for MergeListView<'i, T> {
+    type Item = (usize, &'i [T]);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let id = self.index;
+        self.index += 1;
+        let (_, value) = self.view.groups.range(..).nth(id)?;
+        Some((id, value))
+    }
+}
 
 impl<T> Default for MergeList<T> {
     fn default() -> Self {
