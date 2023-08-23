@@ -2,7 +2,9 @@
 resolver = "2"
 members = ["projects/*"]
 default-members = [
-    "projects/percolation",
+    "projects/hs-types",
+    "projects/hs-moments",
+    "projects/hs-benchmark",
 ]
 exclude = [
     "projects/.DS_Store",
