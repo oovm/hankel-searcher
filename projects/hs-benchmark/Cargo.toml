@@ -1,0 +1,26 @@
+[package]
+name = "hs-benchmark"
+publish = false
+version = "0.0.0"
+authors = ["Aster <192607617@qq.com>"]
+description = "Benchmarks and Ferguson regression tables for hankel-searcher"
+readme = "readme.md"
+license = "MPL-2.0"
+edition = "2021"
+exclude = ["package.json"]
+
+[dependencies]
+hs-types = { path = "../hs-types" }
+hs-moments = { path = "../hs-moments" }
+num-rational = "0.4.2"
+num-traits = "0.2.19"
+
+[dev-dependencies]
+criterion = { version = "0.5.1", features = ["html_reports"] }
+
+[[bench]]
+name = "ferguson_tables"
+harness = false
+
+[features]
+default = []
