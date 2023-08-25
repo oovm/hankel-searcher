@@ -4,6 +4,7 @@ members = ["projects/*"]
 default-members = [
     "projects/hs-types",
     "projects/hs-moments",
+    "projects/hs-lean-helper",
     "projects/hs-benchmark",
 ]
 exclude = [
