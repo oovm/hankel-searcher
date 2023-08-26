@@ -5,6 +5,7 @@ use std::fmt::Write as _;
 
 /// Render a Lean module containing certificate data.
 pub fn render_certificates(config: &CertificateExport, rows: &[FergusonCertificate]) -> String {
+    // 输出模块供 Lean 侧 `norm_num`/`decide` 与 Rust 证书对齐
     let mut out = String::new();
     writeln!(
         out,
@@ -20,7 +21,7 @@ pub fn render_certificates(config: &CertificateExport, rows: &[FergusonCertifica
     writeln!(out, "structure {} where", config.structure_name).expect("write structure");
     writeln!(out, "  n : ℕ").expect("write field");
     writeln!(out, "  pNum pDen qNum qDen scale intP intQ : ℤ").expect("write fields");
-    writeln!(out, "  deriving Repr").expect("write deriving");
+    writeln!(out, "  deriving Repr, DecidableEq").expect("write deriving");
     writeln!(out).expect("write blank");
     writeln!(out, "def {} : List {} := [", config.list_name, config.structure_name)
         .expect("write list");

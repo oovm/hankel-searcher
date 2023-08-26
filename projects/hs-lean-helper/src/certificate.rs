@@ -30,6 +30,7 @@ pub struct FergusonCertificate {
 impl FergusonCertificate {
     /// Build a certificate from a Ferguson approximant.
     pub fn from_approximant(approx: &Approximant<Ratio<BigInt>>) -> Self {
+        // 用 P/Q 分母的最小公倍数清分母，供 Lean 整数线性型使用
         let scale = lcm_ratio_denoms(&approx.p, &approx.q);
         let int_p = (&approx.p * Ratio::from_integer(scale.clone())).numer().clone();
         let int_q = (&approx.q * Ratio::from_integer(scale.clone())).numer().clone();
@@ -52,6 +53,7 @@ pub fn certificates_from_range(
     start: usize,
     end: usize,
 ) -> Result<Vec<FergusonCertificate>, hs_types::HankelError> {
+    // 与 `ferguson_pair_at` 对 `n=end` 的矩长度要求一致
     let need = 2 * (end + 2);
     if moments.len() < need {
         return Err(hs_types::HankelError::SequenceTooShort {

@@ -28,9 +28,22 @@ impl CertificateExport {
     pub fn zeta2_default() -> Self {
         Self {
             generator: "export-lean-certificates".into(),
-            regenerate_cmd: "cargo run --release -p zeta-2 --bin export-lean-certificates".into(),
+            regenerate_cmd: "cargo run --release -p zeta-2 --bin export-zeta2-certificates".into(),
             namespace: "Zeta2".into(),
             import_module: "Zeta2.Ferguson".into(),
+            open_namespaces: "Hankel Ferguson".into(),
+            structure_name: "Certificate".into(),
+            list_name: "certificates".into(),
+        }
+    }
+
+    /// Default export settings for the `zeta-3` Lean project.
+    pub fn zeta3_default() -> Self {
+        Self {
+            generator: "export-lean-certificates".into(),
+            regenerate_cmd: "cargo run --release -p zeta-3 --bin export-zeta3-certificates".into(),
+            namespace: "Zeta3".into(),
+            import_module: "Zeta3.Ferguson".into(),
             open_namespaces: "Hankel Ferguson".into(),
             structure_name: "Certificate".into(),
             list_name: "certificates".into(),

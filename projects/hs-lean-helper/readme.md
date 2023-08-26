@@ -1,14 +1,14 @@
 # hs-lean-helper
 
-Rust → Lean 4 证书导出辅助库，服务于 Hankel-Ferguson 无理性验证链。
+Rust → Lean 4 certificate export helpers for the Hankel-Ferguson irrationality pipeline.
 
-## 能力
+## Features
 
-- 从 `hs-types` 的 Ferguson `(P_n, Q_n)` 构造整数缩放证书
-- 渲染 `Certificates.lean` 供 `norm_num` / `decide` 校验
-- 通用 API，供 `zeta-2` 等下游 crate 复用
+- Build integer-scaled certificates from Ferguson `(P_n, Q_n)` in `hs-types`
+- Render `Certificates.lean` for `norm_num` / `decide` checking in Lean
+- Generic API reusable by downstream crates such as `zeta-2`
 
-## 用法
+## Usage
 
 ```rust,no_run
 use hs_lean_helper::{CertificateExport, certificates_from_range, write_certificates};
