@@ -8,6 +8,7 @@ use crate::Zeta2Result;
 
 /// Write `lean/Zeta2/Certificates.lean` for the bundled Lean project.
 pub fn export_lean_certificates(max_n: usize) -> Zeta2Result<PathBuf> {
+    // Ferguson 在 index `n` 处需要 `2*(n+2)` 个正矩
     let moment_count = 2 * (max_n + 2);
     let moments = zeta_moments(2, moment_count);
     let rows = certificates_from_range(&moments, 0, max_n)?;

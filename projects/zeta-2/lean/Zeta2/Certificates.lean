@@ -15,7 +15,7 @@ open Hankel Ferguson
 structure Certificate where
   n : ℕ
   pNum pDen qNum qDen scale intP intQ : ℤ
-  deriving Repr
+  deriving Repr, DecidableEq
 
 def certificates : List Certificate := [
   ⟨0, 1, 1, 3, 4, 4, 4, 3⟩,

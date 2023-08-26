@@ -21,6 +21,7 @@ pub fn zeta2_moments(count: usize) -> RationalMomentSequence {
 
 /// Compute `(P_n, Q_n)` for `ζ(2)` at index `n`.
 pub fn ferguson_approximant(n: usize, moment_count: usize) -> Result<Zeta2Approximant, hs_types::HankelError> {
+    // `ζ(2)` 矩序列来自 Ferguson 例中的 Bose 核权重 `k=2`
     let moments = zeta2_moments(moment_count);
     let pair = ferguson_pair_at(&moments, n)?;
     Ok(Zeta2Approximant {

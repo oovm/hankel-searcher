@@ -19,7 +19,7 @@ num-traits = "0.2.19"
 thiserror = "2.0.12"
 
 [[bin]]
-name = "export-lean-certificates"
+name = "export-zeta2-certificates"
 path = "src/bin/export_lean_certificates.rs"
 
 [dev-dependencies]
