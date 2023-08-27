@@ -1,0 +1,23 @@
+/-!
+# Hankel.LinearForm
+
+Classical irrationality criterion used by the Hankel pipeline.
+-/
+
+import Hankel.Ferguson
+
+namespace Hankel
+
+/-- If `α = p/q` and there exist integers `A,B` with `0 < q·(B·α - A) < 1`,
+    then `α` is not rational with denominator `q`. Used after Hankel decay estimates. -/
+theorem irrational_of_small_int_linear
+    {α : Rat} {p q A B : Int}
+    (hq : q ≠ 0)
+    (hα : α = p / q)
+    (hpos : 0 < B * α - A)
+    (hsmall : q * (B * α - A) < 1) :
+    False := by
+  -- 内点整数矛盾：q·(B·α - A) ∈ ℤ ∩ (0,1)
+  sorry
+
+end Hankel

@@ -1,26 +1,28 @@
 [package]
-name = "percolation"
+name = "zeta-3"
 publish = false
 version = "0.0.0"
 authors = ["Aster <192607617@qq.com>"]
-description = "..."
-repository = "https://github.com/oovm/sub_projects"
-documentation = "https://docs.rs/sub_projects"
+description = "Zeta(3) irrationality verification via Hankel-Ferguson and Lean"
 readme = "readme.md"
 license = "MPL-2.0"
 edition = "2021"
-exclude = ["package.json", "tests/**"]
+exclude = ["package.json", "tests/**", "lean/.lake/**", "lean/build/**"]
 
 [dependencies]
-itertools = "0.13.0"
-rand = { version = "0.8.5", features = ["small_rng"] }
-ndarray = "0.15.6"
-#wolfram-library-link = "0.2.9"
+hs-types = { path = "../hs-types" }
+hs-moments = { path = "../hs-moments" }
+hs-lean-helper = { path = "../hs-lean-helper" }
+num-bigint = "0.4.6"
+num-rational = "0.4.2"
+num-traits = "0.2.19"
+thiserror = "2.0.12"
+
+[[bin]]
+name = "export-zeta3-certificates"
+path = "src/bin/export_lean_certificates.rs"
 
 [dev-dependencies]
 
 [features]
 default = []
-
-[package.metadata.docs.rs]
-all-features = true
