@@ -3,6 +3,8 @@ hankel-searcher
 
 Hankel-determinant rational approximation experiments for constants related to irrationality search.
 
+Public `readme.md` files in this repository are written in English. Source-level internal comments (`//`) are written in Chinese.
+
 ## Crates
 
 | Crate          | Role                                                               |
@@ -11,6 +13,7 @@ Hankel-determinant rational approximation experiments for constants related to i
 | `hs-moments`   | Moment sequences for `δ`, `γ`, `ζ(k)`, experimental Catalan kernel |
 | `hs-lean-helper` | Lean 4 certificate export for Ferguson approximants              |
 | `hs-benchmark` | Ferguson table regression and Criterion micro-benchmarks           |
+| `zeta-2` / `zeta-3` | Lean-backed `ζ(2)` / `ζ(3)` Hankel irrationality verification crates |
 
 ## Build
 
