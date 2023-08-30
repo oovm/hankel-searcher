@@ -8,6 +8,8 @@ pub enum WeightFamily {
     Zeta2,
     /// `W_{3,n}(t) = t / (t + (n+1)^2)` for ζ(3).
     Zeta3,
+    /// `W_{5,n}(t) = t^2 / (t + (n+1)^4)` — exploratory ζ(5) search pole (Ball–Rivoal / Zudilin route).
+    Zeta5,
 }
 
 /// A single pole weight evaluated at `t`.
@@ -34,6 +36,10 @@ impl PrevostWeight {
                 let pole = (self.n + 1).pow(2) as f64;
                 t / (t + pole)
             }
+            WeightFamily::Zeta5 => {
+                let pole = (self.n + 1).pow(4) as f64;
+                t * t / (t + pole)
+            }
         }
     }
 
@@ -42,6 +48,7 @@ impl PrevostWeight {
         match self.family {
             WeightFamily::Zeta2 => (2 * self.n + 1).pow(2) as f64,
             WeightFamily::Zeta3 => (self.n + 1).pow(2) as f64,
+            WeightFamily::Zeta5 => (self.n + 1).pow(4) as f64,
         }
     }
 }
