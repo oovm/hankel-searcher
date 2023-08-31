@@ -22,5 +22,9 @@ criterion = { version = "0.5.1", features = ["html_reports"] }
 name = "ferguson_tables"
 harness = false
 
+[[example]]
+name = "zeta5_search"
+path = "examples/zeta5_search.rs"
+
 [features]
 default = []
