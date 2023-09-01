@@ -49,6 +49,19 @@ impl CertificateExport {
             list_name: "certificates".into(),
         }
     }
+
+    /// Default export settings for the `zeta-5` Lean project.
+    pub fn zeta5_default() -> Self {
+        Self {
+            generator: "export-lean-certificates".into(),
+            regenerate_cmd: "cargo run --release -p zeta-5 --bin export-zeta5-certificates".into(),
+            namespace: "Zeta5".into(),
+            import_module: "Zeta5.Ferguson".into(),
+            open_namespaces: "Hankel Ferguson".into(),
+            structure_name: "Certificate".into(),
+            list_name: "certificates".into(),
+        }
+    }
 }
 
 /// Write rendered Lean certificate source to `path`.
