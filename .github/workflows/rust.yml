@@ -25,3 +25,5 @@ jobs:
         run: cargo build --release
       - name: Tests
         run: cargo test --release
+      - name: Check Hankel checkpoint
+        run: cargo run --release -p hs-tools -- check zeta-3
