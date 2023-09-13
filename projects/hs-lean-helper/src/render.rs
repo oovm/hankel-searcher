@@ -5,7 +5,6 @@ use std::fmt::Write as _;
 
 /// Render a Lean module containing certificate data.
 pub fn render_certificates(config: &CertificateExport, rows: &[FergusonCertificate]) -> String {
-    // 输出模块供 Lean 侧 `norm_num`/`decide` 与 Rust 证书对齐
     let mut out = String::new();
     writeln!(
         out,
@@ -13,18 +12,18 @@ pub fn render_certificates(config: &CertificateExport, rows: &[FergusonCertifica
         config.generator, config.regenerate_cmd
     )
     .expect("write header");
-    writeln!(out, "import {}", config.import_module).expect("write import");
+    writeln!(out, "import {}", config.certificate_module).expect("write import");
+    writeln!(out, "import {}", config.ferguson_module).expect("write ferguson import");
     writeln!(out).expect("write blank");
     writeln!(out, "namespace {}", config.namespace).expect("write namespace");
     writeln!(out, "open {}", config.open_namespaces).expect("write open");
     writeln!(out).expect("write blank");
-    writeln!(out, "structure {} where", config.structure_name).expect("write structure");
-    writeln!(out, "  n : ℕ").expect("write field");
-    writeln!(out, "  pNum pDen qNum qDen scale intP intQ : ℤ").expect("write fields");
-    writeln!(out, "  deriving Repr, DecidableEq").expect("write deriving");
-    writeln!(out).expect("write blank");
-    writeln!(out, "def {} : List {} := [", config.list_name, config.structure_name)
-        .expect("write list");
+    writeln!(
+        out,
+        "def {} : List {} := [",
+        config.list_name, config.certificate_type
+    )
+    .expect("write list");
     for row in rows {
         write_row(&mut out, row);
     }
@@ -33,7 +32,7 @@ pub fn render_certificates(config: &CertificateExport, rows: &[FergusonCertifica
     writeln!(
         out,
         "def certificate (n : ℕ) : Option {} :=\n  {}.find? (·.n = n)",
-        config.structure_name, config.list_name
+        config.certificate_type, config.list_name
     )
     .expect("write lookup");
     writeln!(out).expect("write blank");

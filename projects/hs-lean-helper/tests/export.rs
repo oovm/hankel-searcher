@@ -32,6 +32,9 @@ fn render_contains_namespace_and_rows() {
     let rows = certificates_from_range(&moments, 0, 0).unwrap();
     let rendered = render_certificates(&CertificateExport::zeta2_default(), &rows);
     assert!(rendered.contains("namespace Zeta2"));
+    assert!(rendered.contains("import LeanProve.Certificate"));
+    assert!(rendered.contains("import Zeta2.Ferguson"));
+    assert!(rendered.contains("List LeanProve.FergusonCertificate"));
     assert!(rendered.contains("4"));
     assert!(rendered.contains("theorem certificates_nonempty"));
 }

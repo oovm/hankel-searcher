@@ -5,17 +5,20 @@ Rust → Lean 4 certificate export helpers for the Hankel-Ferguson irrationality
 ## Features
 
 - Build integer-scaled certificates from Ferguson `(P_n, Q_n)` in `hs-types`
-- Render `Certificates.lean` for `norm_num` / `decide` checking in Lean
-- Generic API reusable by downstream crates such as `zeta-2`
+- Render data-only `Certificates.lean` using shared `LeanProve.FergusonCertificate`
+- Generic API reusable by downstream crates such as `zeta-2`, `zeta-3`, `zeta-5`
+
+Exported files land in `projects/lean-prove/problems/<Problem>/Certificates.lean`.
 
 ## Usage
 
 ```rust,no_run
-use hs_lean_helper::{CertificateExport, certificates_from_range, write_certificates};
+use hs_lean_helper::{
+    CertificateExport, certificates_from_range, lean_prove_certificates_path, write_certificates,
+};
 use hs_types::RationalMomentSequence;
 use num_bigint::BigInt;
 use num_rational::Ratio;
-use std::path::Path;
 
 # fn main() -> Result<(), Box<dyn std::error::Error>> {
 let moments = RationalMomentSequence::from_positive_moments(vec![
@@ -26,7 +29,7 @@ let moments = RationalMomentSequence::from_positive_moments(vec![
 ]);
 let rows = certificates_from_range(&moments, 0, 0)?;
 let config = CertificateExport::zeta2_default();
-write_certificates(Path::new("Certificates.lean"), &config, &rows)?;
+write_certificates(&lean_prove_certificates_path("Zeta2"), &config, &rows)?;
 # Ok(())
 # }
 ```

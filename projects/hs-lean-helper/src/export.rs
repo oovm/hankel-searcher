@@ -13,55 +13,63 @@ pub struct CertificateExport {
     pub regenerate_cmd: String,
     /// Top-level Lean namespace.
     pub namespace: String,
-    /// `import` target for the generated module.
-    pub import_module: String,
+    /// Shared certificate structure module.
+    pub certificate_module: String,
+    /// Problem-local Ferguson marker module.
+    pub ferguson_module: String,
     /// Names opened inside the namespace.
     pub open_namespaces: String,
-    /// Certificate structure name.
-    pub structure_name: String,
+    /// Certificate structure type (usually `LeanProve.FergusonCertificate`).
+    pub certificate_type: String,
     /// List definition name.
     pub list_name: String,
 }
 
 impl CertificateExport {
-    /// Default export settings for the `zeta-2` Lean project.
+    fn problem_defaults(namespace: &str, regenerate_cmd: &str) -> Self {
+        Self {
+            generator: "export-lean-certificates".into(),
+            regenerate_cmd: regenerate_cmd.into(),
+            namespace: namespace.into(),
+            certificate_module: "LeanProve.Certificate".into(),
+            ferguson_module: format!("{}.Ferguson", namespace),
+            open_namespaces: "Hankel Ferguson".into(),
+            certificate_type: "LeanProve.FergusonCertificate".into(),
+            list_name: "certificates".into(),
+        }
+    }
+
+    /// Default export settings for the `zeta-2` problem.
     pub fn zeta2_default() -> Self {
-        Self {
-            generator: "export-lean-certificates".into(),
-            regenerate_cmd: "cargo run --release -p zeta-2 --bin export-zeta2-certificates".into(),
-            namespace: "Zeta2".into(),
-            import_module: "Zeta2.Ferguson".into(),
-            open_namespaces: "Hankel Ferguson".into(),
-            structure_name: "Certificate".into(),
-            list_name: "certificates".into(),
-        }
+        Self::problem_defaults(
+            "Zeta2",
+            "cargo run --release -p zeta-2 --bin export-zeta2-certificates",
+        )
     }
 
-    /// Default export settings for the `zeta-3` Lean project.
+    /// Default export settings for the `zeta-3` problem.
     pub fn zeta3_default() -> Self {
-        Self {
-            generator: "export-lean-certificates".into(),
-            regenerate_cmd: "cargo run --release -p zeta-3 --bin export-zeta3-certificates".into(),
-            namespace: "Zeta3".into(),
-            import_module: "Zeta3.Ferguson".into(),
-            open_namespaces: "Hankel Ferguson".into(),
-            structure_name: "Certificate".into(),
-            list_name: "certificates".into(),
-        }
+        Self::problem_defaults(
+            "Zeta3",
+            "cargo run --release -p zeta-3 --bin export-zeta3-certificates",
+        )
     }
 
-    /// Default export settings for the `zeta-5` Lean project.
+    /// Default export settings for the `zeta-5` problem.
     pub fn zeta5_default() -> Self {
-        Self {
-            generator: "export-lean-certificates".into(),
-            regenerate_cmd: "cargo run --release -p zeta-5 --bin export-zeta5-certificates".into(),
-            namespace: "Zeta5".into(),
-            import_module: "Zeta5.Ferguson".into(),
-            open_namespaces: "Hankel Ferguson".into(),
-            structure_name: "Certificate".into(),
-            list_name: "certificates".into(),
-        }
+        Self::problem_defaults(
+            "Zeta5",
+            "cargo run --release -p zeta-5 --bin export-zeta5-certificates",
+        )
     }
+}
+
+/// Path to `lean-prove/problems/<Problem>/Certificates.lean` from this crate layout.
+pub fn lean_prove_certificates_path(problem: &str) -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../lean-prove/problems")
+        .join(problem)
+        .join("Certificates.lean")
 }
 
 /// Write rendered Lean certificate source to `path`.

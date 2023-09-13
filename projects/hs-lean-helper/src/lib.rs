@@ -11,7 +11,9 @@ mod render;
 pub use crate::{
     certificate::{certificates_from_range, FergusonCertificate, ScaledIntegers},
     error::LeanHelperError,
-    export::{CertificateExport, export_range, write_certificates},
+    export::{
+        CertificateExport, export_range, lean_prove_certificates_path, write_certificates,
+    },
     rational::{lcm_bigint, lcm_ratio_denoms, ratio_to_lean_ints},
     render::render_certificates,
 };
