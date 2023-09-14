@@ -1,0 +1,25 @@
+name = "lean-prove"
+version = "0.1.0"
+defaultTargets = ["Hankel", "LeanProve", "Zeta2", "Zeta3", "Zeta5"]
+
+[leanOptions]
+autoImplicit = false
+relaxedAutoImplicit = false
+
+[[lean_lib]]
+name = "Hankel"
+
+[[lean_lib]]
+name = "LeanProve"
+
+[[lean_lib]]
+name = "Zeta2"
+srcDir = "problems/Zeta2"
+
+[[lean_lib]]
+name = "Zeta3"
+srcDir = "problems/Zeta3"
+
+[[lean_lib]]
+name = "Zeta5"
+srcDir = "problems/Zeta5"
