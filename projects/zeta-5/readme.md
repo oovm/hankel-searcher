@@ -5,7 +5,7 @@
 ## Architecture
 
 ```text
-hs-moments (ζ(5) moments) → hs-types (Ferguson P/Q) → zeta-5 (export) → lean/Zeta5/
+hs-moments (ζ(5) moments) → hs-types (Ferguson P/Q) → zeta-5 (export) → lean-prove/problems/Zeta5/
 ```
 
 ## Rust
@@ -17,10 +17,10 @@ cargo test --release -p zeta-5
 
 ## Lean
 
-Toolchain: `v4.16.0` (see `lean/lean-toolchain`). With elan on `PATH`:
+Shared project `projects/lean-prove` (toolchain `v4.16.0`). With elan on `PATH`:
 
 ```bash
-cd projects/zeta-5/lean
+cd projects/lean-prove
 lake build
 ```
 
