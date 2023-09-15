@@ -9,12 +9,19 @@ lean-prove/
   Hankel/           Ferguson markers, linear-form criterion
   LeanProve/        Shared Ferguson certificate structure
   problems/
-    Zeta2/          ζ(2) certificates + irrationality scaffold
+    Zeta2/          ζ(2)
     Zeta3/          ζ(3)
     Zeta5/          ζ(5)
+    Delta/          Euler-Gompertz δ
+    Gamma/          Euler-Mascheroni γ
+    Catalan/        G = β(2)
+    L2ChiMinus3/    L(2, χ_{-3}) scaffold (certificates pending)
 ```
 
-Rust crates (`zeta-2`, `zeta-3`, `zeta-5`) export `Certificates.lean` into the matching `problems/` folder.
+| Problem | Rust export |
+|---------|-------------|
+| `Zeta2` / `Zeta3` / `Zeta5` | `zeta-*` crates |
+| `Delta` / `Gamma` / `Catalan` | `hs-problems` bins |
 
 ## Build
 
