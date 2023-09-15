@@ -9,6 +9,7 @@ default-members = [
 ]
 exclude = [
     "projects/.DS_Store",
+    "projects/lean-prove",
 ]
 
 [profile.release]

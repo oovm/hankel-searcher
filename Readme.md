@@ -12,6 +12,7 @@ Public `readme.md` files in this repository are written in English. Source-level
 | `hs-types`     | Ferguson `P_n/Q_n` construction and exact Hankel determinants      |
 | `hs-moments`   | Moment sequences for `δ`, `γ`, `ζ(k)`, `β(k)` / Catalan, Prevost weights |
 | `hs-lean-helper` | Lean 4 certificate export for Ferguson approximants              |
+| `lean-prove`     | Shared Lean library (`Hankel/`, `problems/Zeta2|3|5/`)           |
 | `hs-benchmark` | Ferguson table regression and Criterion micro-benchmarks           |
 | `zeta-2` / `zeta-3` | Ferguson examples and Lean certificate experiments |
 | `zeta-5` | Ferguson certificates and incomplete Lean formalization |
@@ -59,4 +60,4 @@ cargo bench -p hs-benchmark
 
 **Experimental `ζ(5)` target:** Ferguson approximants via `hs-benchmark` (`cargo test -p hs-benchmark zeta5`, `cargo run -p hs-benchmark --example zeta5_search`). Its current gap uses an approximate reference constant.
 
-**Lean `ζ(5)`:** `projects/zeta-5/lean` contains Ferguson certificates and in-progress formalization. Run `scripts/setup-lean.ps1` on Windows, then `cd projects/zeta-5/lean && lake build`. A successful build does not establish the target irrationality theorem.
+**Lean:** `projects/lean-prove` holds shared `Hankel/` definitions and per-problem folders under `problems/`. Run `scripts/setup-lean.ps1` on Windows, then `cd projects/lean-prove && lake build`. A successful build does not establish any irrationality theorem.

@@ -8,7 +8,14 @@ time-travel.*
 .vs/
 .idea/
 *.iml
+*.log
+*.txt
 
 # Rust
 target/
 Cargo.lock
+
+# Lean
+**/.lake/
+**/lake-packages/
+**/build/
