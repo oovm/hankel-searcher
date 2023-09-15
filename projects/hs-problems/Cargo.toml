@@ -1,0 +1,31 @@
+[package]
+name = "hs-problems"
+description = "Ferguson certificate export for non-zeta Hankel targets"
+readme = "src/readme.md"
+exclude = ["package.json", "tests/**"]
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+hs-types = { workspace = true }
+hs-moments = { workspace = true }
+hs-lean-helper = { workspace = true }
+thiserror = { workspace = true }
+
+[[bin]]
+name = "export-delta-certificates"
+path = "src/bin/export_delta_certificates.rs"
+
+[[bin]]
+name = "export-gamma-certificates"
+path = "src/bin/export_gamma_certificates.rs"
+
+[[bin]]
+name = "export-catalan-certificates"
+path = "src/bin/export_catalan_certificates.rs"
+
+[features]
+default = []

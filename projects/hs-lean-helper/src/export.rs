@@ -62,6 +62,30 @@ impl CertificateExport {
             "cargo run --release -p zeta-5 --bin export-zeta5-certificates",
         )
     }
+
+    /// Default export settings for the Euler-Gompertz `δ` problem.
+    pub fn delta_default() -> Self {
+        Self::problem_defaults(
+            "Delta",
+            "cargo run --release -p hs-problems --bin export-delta-certificates",
+        )
+    }
+
+    /// Default export settings for the Euler-Mascheroni `γ` problem.
+    pub fn gamma_default() -> Self {
+        Self::problem_defaults(
+            "Gamma",
+            "cargo run --release -p hs-problems --bin export-gamma-certificates",
+        )
+    }
+
+    /// Default export settings for the Catalan constant `G = β(2)`.
+    pub fn catalan_default() -> Self {
+        Self::problem_defaults(
+            "Catalan",
+            "cargo run --release -p hs-problems --bin export-catalan-certificates",
+        )
+    }
 }
 
 /// Path to `lean-prove/problems/<Problem>/Certificates.lean` from this crate layout.
