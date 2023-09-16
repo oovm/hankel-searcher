@@ -1,23 +1,21 @@
 [package]
 name = "hs-lean-helper"
-publish = false
-version = "0.0.0"
-authors = ["Aster <192607617@qq.com>"]
 description = "Lean certificate export helpers for the Hankel-Ferguson stack"
-readme = "readme.md"
-license = "MPL-2.0"
-edition = "2021"
+readme = "src/readme.md"
 exclude = ["package.json"]
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+edition.workspace = true
+publish.workspace = true
 
 [dependencies]
-hs-types = { path = "../hs-types" }
-num-bigint = "0.4.6"
-num-integer = "0.1.46"
-num-rational = "0.4.2"
-num-traits = "0.2.19"
-thiserror = "2.0.12"
-
-[dev-dependencies]
+hs-types = { workspace = true }
+num-bigint = { workspace = true }
+num-integer = { workspace = true }
+num-rational = { workspace = true }
+num-traits = { workspace = true }
+thiserror = { workspace = true }
 
 [features]
 default = []

@@ -12,6 +12,32 @@ exclude = [
     "projects/lean-prove",
 ]
 
+[workspace.package]
+version = "0.0.0"
+authors = ["Aster <192607617@qq.com>"]
+license = "MPL-2.0"
+edition = "2021"
+publish = false
+
+[workspace.dependencies]
+hs-types = { path = "projects/hs-types" }
+hs-moments = { path = "projects/hs-moments" }
+hs-lean-helper = { path = "projects/hs-lean-helper" }
+hs-problems = { path = "projects/hs-problems" }
+zeta-2 = { path = "projects/zeta-2" }
+zeta-3 = { path = "projects/zeta-3" }
+zeta-5 = { path = "projects/zeta-5" }
+num-bigint = "0.4.6"
+num-integer = "0.1.46"
+num-rational = "0.4.2"
+num-traits = "0.2.19"
+thiserror = "2.0.12"
+clap = { version = "4.6.7", features = ["derive"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+criterion = { version = "0.5.1", features = ["html_reports"] }
+
 [profile.release]
 lto = true
 panic = "abort"

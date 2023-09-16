@@ -1,28 +1,26 @@
 [package]
 name = "zeta-5"
-publish = false
-version = "0.0.0"
-authors = ["Aster <192607617@qq.com>"]
 description = "Zeta(5) Ferguson certificates and Lean irrationality formalization"
-readme = "readme.md"
-license = "MPL-2.0"
-edition = "2021"
+readme = "src/readme.md"
 exclude = ["package.json", "tests/**"]
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+edition.workspace = true
+publish.workspace = true
 
 [dependencies]
-hs-types = { path = "../hs-types" }
-hs-moments = { path = "../hs-moments" }
-hs-lean-helper = { path = "../hs-lean-helper" }
-num-bigint = "0.4.6"
-num-rational = "0.4.2"
-num-traits = "0.2.19"
-thiserror = "2.0.12"
+hs-types = { workspace = true }
+hs-moments = { workspace = true }
+hs-lean-helper = { workspace = true }
+num-bigint = { workspace = true }
+num-rational = { workspace = true }
+num-traits = { workspace = true }
+thiserror = { workspace = true }
 
 [[bin]]
 name = "export-zeta5-certificates"
 path = "src/bin/export_lean_certificates.rs"
-
-[dev-dependencies]
 
 [features]
 default = []
