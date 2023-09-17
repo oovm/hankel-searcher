@@ -10,12 +10,21 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: projects/lean-prove
     steps:
       - uses: actions/checkout@v4
-      - uses: leanprover/lean-action@v1
-        with:
-          lake-package-directory: projects/lean-prove
-          auto-config: false
-          build: true
-          test: false
-          lint: false
+      - name: Install elan
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Build lean-prove
+        shell: bash
+        run: |
+          set -euo pipefail
+          elan toolchain install leanprover/lean4:v4.16.0
+          lake update
+          lake build
