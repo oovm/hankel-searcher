@@ -1,10 +1,10 @@
+import Hankel.Ferguson
+
 /-!
 # Hankel.LinearForm
 
 Classical irrationality criterion used after Hankel decay estimates.
 -/
-
-import Hankel.Ferguson
 
 namespace Hankel
 

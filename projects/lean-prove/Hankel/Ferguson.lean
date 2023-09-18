@@ -1,14 +1,9 @@
-/-!
-# Hankel.Ferguson
-
-Shared namespace for Ferguson certificate exports.
--/
-
 namespace Hankel
 
 namespace Ferguson
 
-/-- Marker namespace for Rust-generated certificate tables. -/
+/-- Marker for Rust-exported Ferguson certificate tables. -/
+abbrev FergusonMarker := Unit
 
 end Ferguson
 

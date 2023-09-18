@@ -8,8 +8,8 @@ namespace LeanProve
 
 /-- One scaled Ferguson certificate `(P_n, Q_n)` at index `n`. -/
 structure FergusonCertificate where
-  n : ℕ
-  pNum pDen qNum qDen scale intP intQ : ℤ
+  n : Nat
+  pNum pDen qNum qDen scale intP intQ : Int
   deriving Repr, DecidableEq
 
 end LeanProve
