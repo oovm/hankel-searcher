@@ -12,9 +12,9 @@ namespace Hankel
 theorem irrational_of_small_int_linear
     {α : Rat} {p q A B : Int}
     (hq : q ≠ 0)
-    (hα : α = p / q)
-    (hpos : 0 < B * α - A)
-    (hsmall : q * (B * α - A) < 1) :
+    (hα : α = (p : Rat) / q)
+    (hpos : 0 < (B : Rat) * α - A)
+    (hsmall : (q : Rat) * ((B : Rat) * α - A) < 1) :
     False := by
   sorry
 
