@@ -7,7 +7,7 @@ use std::path::PathBuf;
 
 use crate::Zeta5Result;
 
-/// Write `lean-prove/problems/Zeta5/Certificates.lean`.
+/// Write `lean-prove/Zeta5/Certificates.lean`.
 pub fn export_lean_certificates(max_n: usize) -> Zeta5Result<PathBuf> {
     let moment_count = 2 * (max_n + 2);
     let moments = zeta_moments(5, moment_count);

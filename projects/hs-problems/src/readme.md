@@ -8,4 +8,4 @@ Rust Ferguson certificate export for Hankel targets that are not tied to a dedic
 | `Gamma` | Euler-Mascheroni `γ` | `cargo run --release -p hs-problems --bin export-gamma-certificates` |
 | `Catalan` | `G = β(2)` | `cargo run --release -p hs-problems --bin export-catalan-certificates` |
 
-Output lands in `projects/lean-prove/problems/<Problem>/Certificates.lean`.
+Output lands in `projects/lean-prove/<Problem>/Certificates.lean`.

@@ -88,10 +88,10 @@ impl CertificateExport {
     }
 }
 
-/// Path to `lean-prove/problems/<Problem>/Certificates.lean` from this crate layout.
+/// Path to `lean-prove/<Problem>/Certificates.lean` from this crate layout.
 pub fn lean_prove_certificates_path(problem: &str) -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../lean-prove/problems")
+        .join("../lean-prove")
         .join(problem)
         .join("Certificates.lean")
 }
