@@ -5,7 +5,7 @@
 ## Architecture
 
 ```text
-hs-moments (ζ(5) moments) → hs-types (Ferguson P/Q) → zeta-5 (export) → lean-prove/Zeta5/
+hs-moments (ζ(5) moments) → hs-types (Ferguson P/Q) → zeta-5 (export) → lean-prove/problems/Zeta5/
 ```
 
 ## Rust
@@ -23,8 +23,6 @@ Shared project `projects/lean-prove` (toolchain `v4.16.0`). With elan on `PATH`:
 cd projects/lean-prove
 lake build
 ```
-
-On Windows: `scripts/setup-lean.ps1` for the current shell.
 
 ## Literature
 
