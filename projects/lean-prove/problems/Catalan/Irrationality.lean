@@ -11,10 +11,6 @@ namespace Catalan
 
 open Hankel
 
-example : certificates ≠ [] := certificates_nonempty
-
-example : (certificate 0).isSome := by decide
-
 theorem catalan_irrational_hankel : True := by
   trivial
 

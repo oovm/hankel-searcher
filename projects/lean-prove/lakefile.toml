@@ -24,28 +24,28 @@ name = "LeanProve"
 
 [[lean_lib]]
 name = "Zeta2"
-srcDir = "problems/Zeta2"
+srcDir = "problems"
 
 [[lean_lib]]
 name = "Zeta3"
-srcDir = "problems/Zeta3"
+srcDir = "problems"
 
 [[lean_lib]]
 name = "Zeta5"
-srcDir = "problems/Zeta5"
+srcDir = "problems"
 
 [[lean_lib]]
 name = "Delta"
-srcDir = "problems/Delta"
+srcDir = "problems"
 
 [[lean_lib]]
 name = "Gamma"
-srcDir = "problems/Gamma"
+srcDir = "problems"
 
 [[lean_lib]]
 name = "Catalan"
-srcDir = "problems/Catalan"
+srcDir = "problems"
 
 [[lean_lib]]
 name = "L2ChiMinus3"
-srcDir = "problems/L2ChiMinus3"
+srcDir = "problems"

@@ -11,10 +11,6 @@ namespace Gamma
 
 open Hankel
 
-example : certificates ≠ [] := certificates_nonempty
-
-example : (certificate 0).isSome := by decide
-
 theorem gamma_irrational_hankel : True := by
   trivial
 

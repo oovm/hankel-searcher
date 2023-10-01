@@ -1,6 +1,6 @@
 # lean-prove
 
-Shared Lean 4 library for Hankel irrationality formalization. Shared definitions live in `Hankel/` and `LeanProve/`; each constant is a Lake library under `problems/<Name>/`.
+Shared Lean 4 library for Hankel irrationality formalization. Shared definitions live in `Hankel/` and `LeanProve/`; each constant is a Lake library under `problems/`.
 
 ## Layout
 
@@ -9,11 +9,11 @@ lean-prove/
   Hankel/                 Ferguson markers, linear-form criterion
   LeanProve/              Shared Ferguson certificate structure
   problems/
+    Zeta2.lean            root import for the `Zeta2` library
     Zeta2/
-      Zeta2.lean          root import for the `Zeta2` library
       Ferguson.lean
       Certificates.lean   auto-generated from Rust
-      Irrationality.lean
+      Irrationality.lean  constant-specific proof obligations
     Zeta3/                ζ(3)
     Zeta5/                ζ(5)
     Delta/                Euler-Gompertz δ
@@ -22,7 +22,7 @@ lean-prove/
     L2ChiMinus3/          L(2, χ_{-3}) scaffold (certificates pending)
 ```
 
-Lake expects each problem library root at `problems/<Name>/<Name>.lean` when `srcDir = "problems/<Name>"`.
+Lake maps each problem library with `srcDir = "problems"`: root at `problems/<Name>.lean`, modules in `problems/<Name>/`.
 
 | Problem | Rust export |
 |---------|-------------|
@@ -32,6 +32,12 @@ Lake expects each problem library root at `problems/<Name>/<Name>.lean` when `sr
 ## Build
 
 Requires [elan](https://github.com/leanprover/elan) on `PATH` (toolchain pinned by `lean-toolchain`).
+
+If `elan toolchain install` times out (common when `releases.lean-lang.org` is slow), download `lean-4.16.0-windows.tar.zst` manually and register it:
+
+```powershell
+.\scripts\setup-lean.ps1 -InstallFromArchive "$env:USERPROFILE\Downloads\lean-4.16.0-windows.tar.zst" -Version v4.16.0
+```
 
 ```bash
 cd projects/lean-prove
