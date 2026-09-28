@@ -1,0 +1,17 @@
+[package]
+name = "hs-searcher"
+description = "Candidate enumeration, budgets, and search coordination for Hankel checkpoints"
+readme = "readme.md"
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+hs-checkpoint = { workspace = true }
+
+[dev-dependencies]
+num-bigint = { workspace = true }
+num-rational = { workspace = true }
+tempfile = "3.23.0"
