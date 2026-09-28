@@ -109,6 +109,47 @@ fn integer_linear_form_regression_fixture_verifies_mu_upper_bound() {
 }
 
 #[test]
+fn integer_linear_form_accepts_matching_mu_record() {
+    let proof = ProofRecord {
+        kind: "integer_linear_form".into(),
+        verifier_id: Some("integer-linear-form-v1".into()),
+        payload: serde_json::json!({
+            "linear_form_id": "regression-v1",
+            "start_index": "1",
+            "tau": { "num": "1", "den": "10" },
+            "sigma": { "num": "1", "den": "5" }
+        }),
+    };
+    let mut cp = sample_checkpoint(ProofStatus::Irrational, Some(proof));
+    cp.objective.linear_form_id = "regression-v1".into();
+    cp.mu.status = hs_checkpoint::MuStatus::UpperBound;
+    cp.mu.upper_bound = Some(hs_checkpoint::RationalData { num: "3".into(), den: "1".into() });
+    cp.mu.verifier_id = Some("integer-linear-form-v1".into());
+    let report = verify_checkpoint(&cp).unwrap();
+    assert_eq!(report.verdict, VerifyVerdict::Verified);
+}
+
+#[test]
+fn integer_linear_form_rejects_mismatched_mu_record() {
+    let proof = ProofRecord {
+        kind: "integer_linear_form".into(),
+        verifier_id: Some("integer-linear-form-v1".into()),
+        payload: serde_json::json!({
+            "linear_form_id": "regression-v1",
+            "start_index": "1",
+            "tau": { "num": "1", "den": "10" },
+            "sigma": { "num": "1", "den": "5" }
+        }),
+    };
+    let mut cp = sample_checkpoint(ProofStatus::Irrational, Some(proof));
+    cp.objective.linear_form_id = "regression-v1".into();
+    cp.mu.status = hs_checkpoint::MuStatus::UpperBound;
+    cp.mu.upper_bound = Some(hs_checkpoint::RationalData { num: "2".into(), den: "1".into() });
+    let err = verify_checkpoint(&cp).unwrap_err();
+    assert!(err.contains("does not match"));
+}
+
+#[test]
 fn project_zeta3_checkpoint_has_no_proof() {
     let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
     let path = default_checkpoint_path("zeta-3").unwrap();

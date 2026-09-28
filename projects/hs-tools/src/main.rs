@@ -117,6 +117,22 @@ fn status(path: &PathBuf, target: &str) -> Result<(), String> {
     }
     println!("certified_best: {}", if cp.best.is_some() { "present" } else { "null" });
     println!("mu_status: {}", mu_status_label(&cp.mu.status));
+    match cp.mu.status {
+        hs_checkpoint::MuStatus::Exact => {
+            if let Some(exact) = &cp.mu.exact {
+                println!("mu_exact: {}/{}", exact.num, exact.den);
+            }
+        }
+        hs_checkpoint::MuStatus::UpperBound => {
+            if let Some(bound) = &cp.mu.upper_bound {
+                println!("mu_upper_bound: {}/{}", bound.num, bound.den);
+            }
+            if let Some(verifier) = &cp.mu.verifier_id {
+                println!("mu_verifier_id: {verifier}");
+            }
+        }
+        hs_checkpoint::MuStatus::Unavailable => {}
+    }
     println!("proof_record: {}", if cp.proof.is_some() { "present" } else { "null" });
     println!("time_to_proof_from_scratch: unknown (no completeness guarantee)");
     println!("workload_eta: {}", workload_eta_label(&cp));

@@ -52,6 +52,7 @@ fn verify_integer_linear_form(cp: &Checkpoint, proof: &ProofRecord) -> Result<Ve
     }
     let mu_upper = Ratio::from_integer(BigInt::one()) + sigma / tau;
     let mu = RationalData::from_ratio(&mu_upper);
+    validate_mu_for_integer_linear_form(cp, verifier, &mu)?;
     Ok(VerifyReport {
         verdict: VerifyVerdict::Verified,
         message: format!(
@@ -61,6 +62,37 @@ fn verify_integer_linear_form(cp: &Checkpoint, proof: &ProofRecord) -> Result<Ve
             mu.den
         ),
     })
+}
+
+fn validate_mu_for_integer_linear_form(
+    cp: &Checkpoint,
+    verifier: &str,
+    mu_upper: &RationalData,
+) -> Result<(), String> {
+    match cp.mu.status {
+        hs_checkpoint::MuStatus::Unavailable => Ok(()),
+        hs_checkpoint::MuStatus::Exact => {
+            Err("integer_linear_form proof cannot verify checkpoint with mu status exact".into())
+        }
+        hs_checkpoint::MuStatus::UpperBound => {
+            let bound = cp
+                .mu
+                .upper_bound
+                .as_ref()
+                .ok_or("checkpoint mu upper_bound status requires upper_bound field")?;
+            if bound.num != mu_upper.num || bound.den != mu_upper.den {
+                return Err("checkpoint mu upper_bound does not match proof-derived bound".into());
+            }
+            if let Some(record_verifier) = &cp.mu.verifier_id {
+                if record_verifier != verifier {
+                    return Err(format!(
+                        "checkpoint mu verifier_id `{record_verifier}` does not match proof verifier `{verifier}`"
+                    ));
+                }
+            }
+            Ok(())
+        }
+    }
 }
 
 fn payload_usize(payload: &Value, key: &str) -> Result<usize, String> {
