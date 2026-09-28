@@ -9,17 +9,7 @@ use num_traits::{Signed, Zero};
 use std::time::Duration;
 
 pub fn zeta_interval(order: u32, terms: usize) -> Result<(Ratio<BigInt>, Ratio<BigInt>), String> {
-    if terms == 0 {
-        return Err("series_terms must be positive".into());
-    }
-    let mut lower = Ratio::from_integer(BigInt::zero());
-    for index in 1..=terms {
-        let index = BigInt::from(index);
-        lower += Ratio::new(BigInt::from(1), index.pow(order));
-    }
-    let m = BigInt::from(terms);
-    let upper = &lower + Ratio::new(BigInt::from(1), BigInt::from(2) * m.pow(2));
-    Ok((lower, upper))
+    hs_checkpoint::zeta_series_bounds(order, terms)
 }
 
 fn ferguson_pair(order: u32, n: usize, count: usize) -> Result<(Ratio<BigInt>, Ratio<BigInt>), String> {
