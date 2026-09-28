@@ -25,6 +25,7 @@ hs-moments = { path = "projects/hs-moments" }
 hs-lean-helper = { path = "projects/hs-lean-helper" }
 hs-problems = { path = "projects/hs-problems" }
 hs-checkpoint = { path = "projects/hs-checkpoint" }
+hs-verify = { path = "projects/hs-verify" }
 zeta-2 = { path = "projects/zeta-2" }
 zeta-3 = { path = "projects/zeta-3" }
 zeta-5 = { path = "projects/zeta-5" }
