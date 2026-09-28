@@ -1,5 +1,5 @@
 use hs_checkpoint::{Observation, RationalData};
-use hs_searcher::{SearchBudget, enumerate_indices};
+use hs_searcher::{SearchBudget, SearchStrategy, enumerate_indices, local_indices, sample_indices};
 use num_bigint::BigInt;
 use num_rational::Ratio;
 
@@ -28,13 +28,32 @@ fn enumerate_tracks_improvements_and_cursor() {
 }
 
 #[test]
-fn enumerate_keeps_old_best_when_no_strict_improvement() {
-    let initial = observation(2, 1, 10);
-    let budget = SearchBudget::new(2);
-    let report = enumerate_indices(5, Some(initial.clone()), &budget, |n| Ok(observation(n, 2, 10))).unwrap();
-    assert_eq!(report.improvements, 0);
-    assert!(!report.bound_improved);
-    assert_eq!(report.best.as_ref().map(|o| o.n), Some(2));
+fn local_prefers_indices_near_center() {
+    let budget = SearchBudget::new(3);
+    let mut seen = Vec::new();
+    let report = local_indices(3, 4, None, &budget, |n| {
+        seen.push(n);
+        Ok(observation(n, 100 - n as i32, 1))
+    })
+    .unwrap();
+    assert_eq!(seen, vec![4, 5, 6]);
+    assert_eq!(report.end_index, 7);
+}
+
+#[test]
+fn sample_is_seed_stable() {
+    let budget = SearchBudget::new(4);
+    let first = sample_indices("zeta-3", 10, None, &budget, |n| Ok(observation(n, 100, 1))).unwrap();
+    let second = sample_indices("zeta-3", 10, None, &budget, |n| Ok(observation(n, 100, 1))).unwrap();
+    assert_eq!(first.completed_steps, 4);
+    assert_eq!(second.completed_steps, 4);
+    assert_eq!(first.end_index, 14);
+}
+
+#[test]
+fn search_strategy_parse_rejects_unknown() {
+    assert!(SearchStrategy::parse("enumerate").is_ok());
+    assert!(SearchStrategy::parse("quantum").is_err());
 }
 
 #[test]

@@ -2,8 +2,9 @@ use crate::budget::SearchBudget;
 use crate::report::{SearchReport, run_ordered};
 use hs_checkpoint::Observation;
 
-/// Evaluate consecutive indices `[start_index, ..)` until the budget is exhausted.
-pub fn enumerate_indices<E>(
+/// Evaluate the forward window `[start_index, start_index + steps)` ordered by distance to `center`.
+pub fn local_indices<E>(
+    center: usize,
     start_index: usize,
     initial_best: Option<Observation>,
     budget: &SearchBudget,
@@ -15,16 +16,7 @@ where
     if budget.max_steps == 0 {
         return Err("max_steps must be positive".into());
     }
-    let mut order = Vec::with_capacity(budget.max_steps);
-    let mut index = start_index;
-    let mut completed = 0usize;
-    while budget.allows_more(completed) {
-        order.push(index);
-        index += 1;
-        completed += 1;
-    }
+    let mut order: Vec<usize> = (start_index..start_index + budget.max_steps).collect();
+    order.sort_by_key(|index| (index.abs_diff(center), *index));
     run_ordered(start_index, initial_best, &order, evaluate)
 }
-
-/// Backward-compatible alias for the first search strategy.
-pub type EnumerateReport = SearchReport;

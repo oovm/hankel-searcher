@@ -1,9 +1,11 @@
 use crate::budget::SearchBudget;
 use crate::report::{SearchReport, run_ordered};
+use crate::rng::shuffle_indices;
 use hs_checkpoint::Observation;
 
-/// Evaluate consecutive indices `[start_index, ..)` until the budget is exhausted.
-pub fn enumerate_indices<E>(
+/// Evaluate a deterministic pseudo-random permutation of the forward window.
+pub fn sample_indices<E>(
+    seed: &str,
     start_index: usize,
     initial_best: Option<Observation>,
     budget: &SearchBudget,
@@ -15,16 +17,7 @@ where
     if budget.max_steps == 0 {
         return Err("max_steps must be positive".into());
     }
-    let mut order = Vec::with_capacity(budget.max_steps);
-    let mut index = start_index;
-    let mut completed = 0usize;
-    while budget.allows_more(completed) {
-        order.push(index);
-        index += 1;
-        completed += 1;
-    }
+    let indices: Vec<usize> = (start_index..start_index + budget.max_steps).collect();
+    let order = shuffle_indices(seed, indices);
     run_ordered(start_index, initial_best, &order, evaluate)
 }
-
-/// Backward-compatible alias for the first search strategy.
-pub type EnumerateReport = SearchReport;
