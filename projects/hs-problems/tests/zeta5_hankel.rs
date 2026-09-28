@@ -1,0 +1,45 @@
+use hs_problems::zeta5_hankel::{
+    zeta5_delta_degree, zeta5_delta_leading_coeff, zeta5_delta_polynomial, zeta5_entries, zeta5_hankel_a,
+    zeta5_hankel_b,
+};
+use num_traits::Zero;
+
+#[test]
+fn entries_length_matches_paper_scaling() {
+    let entries = zeta5_entries(1);
+    assert_eq!(entries.params.k, 40);
+    assert_eq!(entries.params.capital_n, 3);
+    assert_eq!(entries.params.h, 37);
+    assert_eq!(entries.a.len(), 2 * entries.params.h - 1);
+    assert_eq!(entries.b.len(), entries.a.len());
+}
+
+#[test]
+fn hankel_matrices_have_paper_dimensions_for_n1() {
+    let entries = zeta5_entries(1);
+    let h = entries.params.h;
+    let a = zeta5_hankel_a(&entries);
+    let b = zeta5_hankel_b(&entries);
+    assert_eq!(a.len(), h);
+    assert_eq!(a[0].len(), h);
+    assert_eq!(b.len(), h);
+    assert_eq!(b[0].len(), h);
+}
+
+#[test]
+fn leading_coeff_formula_is_nonzero_for_n1() {
+    let entries = zeta5_entries(1);
+    assert_eq!(zeta5_delta_degree(&entries), entries.params.h);
+    assert!(!zeta5_delta_leading_coeff(&entries).is_zero());
+}
+
+/// Full `Δ_K` uses exact `37×37` rational linear algebra and is **not** a CI gate.
+/// Run manually when needed: `cargo test -p hs-problems --test zeta5_hankel delta_full -- --ignored`
+#[test]
+#[ignore = "exact rational Δ_K at n=1 is minutes of CPU, not a default test"]
+fn delta_polynomial_full_pipeline_n1() {
+    let entries = zeta5_entries(1);
+    let delta = zeta5_delta_polynomial(&entries);
+    assert_eq!(delta.len(), entries.params.h + 1);
+    assert_eq!(delta[entries.params.h], zeta5_delta_leading_coeff(&entries));
+}
