@@ -27,6 +27,7 @@ fn sample_checkpoint() -> Checkpoint {
             seed: "0".into(),
             next_candidate: "2".into(),
             series_terms: Some(64),
+            benchmark: None,
         },
         proof: None,
         mu: MuRecord::default(),
@@ -95,6 +96,26 @@ fn rejects_noncanonical_rational() {
 fn default_path_for_zeta3() {
     let path = default_checkpoint_path("zeta-3").unwrap();
     assert!(path.ends_with("projects/hs-problems/checkpoints/zeta-3/checkpoint.json"));
+}
+
+#[test]
+fn round_trip_search_benchmark() {
+    let dir = tempdir().unwrap();
+    let path = dir.path().join("checkpoint.json");
+    let mut cp = sample_checkpoint();
+    cp.search.benchmark = Some(hs_checkpoint::SearchBenchmark {
+        steps: 4,
+        elapsed_ms: 1200,
+        jobs: 2,
+        strategy: "enumerate".into(),
+        recorded_at: "2026-01-01T00:00:00Z".into(),
+    });
+    write_checkpoint(&path, &cp).unwrap();
+    let loaded = read_checkpoint(&path).unwrap();
+    let benchmark = loaded.search.benchmark.expect("benchmark");
+    assert_eq!(benchmark.steps, 4);
+    assert_eq!(benchmark.elapsed_ms, 1200);
+    assert_eq!(benchmark.jobs, 2);
 }
 
 #[test]

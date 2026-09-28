@@ -64,6 +64,16 @@ pub struct Objective {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct SearchBenchmark {
+    pub steps: usize,
+    pub elapsed_ms: u64,
+    pub jobs: usize,
+    pub strategy: String,
+    pub recorded_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Search {
     pub generator_id: String,
     pub parameter_space_id: String,
@@ -71,6 +81,8 @@ pub struct Search {
     pub next_candidate: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub series_terms: Option<usize>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub benchmark: Option<SearchBenchmark>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -186,6 +198,17 @@ pub fn validate_checkpoint(cp: &Checkpoint) -> Result<(), CheckpointError> {
         return Err(CheckpointError::Invalid(format!("unsupported checkpoint target `{}`", cp.target)));
     }
     validate_known_search_contract(&cp.search.generator_id, &cp.search.parameter_space_id)?;
+    if let Some(benchmark) = &cp.search.benchmark {
+        if benchmark.steps == 0 {
+            return Err(CheckpointError::Invalid("search benchmark steps must be positive".into()));
+        }
+        if benchmark.jobs == 0 {
+            return Err(CheckpointError::Invalid("search benchmark jobs must be positive".into()));
+        }
+        if benchmark.strategy.is_empty() {
+            return Err(CheckpointError::Invalid("search benchmark strategy must not be empty".into()));
+        }
+    }
     match cp.proof_status {
         ProofStatus::Unknown => {}
         ProofStatus::Rational | ProofStatus::Irrational => {

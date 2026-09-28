@@ -23,6 +23,7 @@ fn sample_checkpoint(proof_status: ProofStatus, proof: Option<ProofRecord>) -> C
             seed: "0".into(),
             next_candidate: "1".into(),
             series_terms: Some(64),
+            benchmark: None,
         },
         proof,
         mu: MuRecord::default(),
