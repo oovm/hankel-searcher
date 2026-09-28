@@ -14,10 +14,14 @@ path = "src/main.rs"
 
 [dependencies]
 clap = { workspace = true }
-serde = { workspace = true }
-serde_json = { workspace = true }
+hs-checkpoint = { workspace = true }
+hs-verify = { workspace = true }
 num-bigint = { workspace = true }
 num-rational = { workspace = true }
 num-traits = { workspace = true }
 zeta-3 = { workspace = true }
 chrono = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+tempfile = "3.23.0"

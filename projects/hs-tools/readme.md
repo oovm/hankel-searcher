@@ -1,8 +1,20 @@
 # hs-tools
 
-Install from the repository root with `cargo install --path projects/hs-tools`.
-The installed command is `hs`.
+Installable `hs` command for Hankel search checkpoints.
 
-Run `hs improve zeta-3` from the repository root to evaluate the next Ferguson approximant and update `projects/zeta-3/checkpoint.json`. The reported bound is a rigorous finite-index approximation-error bound obtained from a rational interval for `ζ(3)`. It is an observation, not a uniform irrationality proof.
+```bash
+cargo install --path projects/hs-tools
+hs doctor
+hs targets
+hs status zeta-3
+hs improve zeta-3 --steps 3 --series-terms 256
+hs improve zeta-3 --time 30m --write-on-improvement
+hs check zeta-3
+hs verify zeta-3
+```
 
-Use `hs check zeta-3` to recompute the saved observation before submitting the JSON change in a pull request.
+`improve` and `check` operate on finite-index Ferguson bounds in `projects/zeta-3/checkpoint.json`.
+`--time` accepts suffixes `s`, `m`, and `h`. `--jobs` above `1` is rejected until parallel search exists.
+`--write-on-improvement` skips writing the JSON when only coverage advances without a bound improvement.
+`verify` validates registered `rational_equality` proofs and exits with code `2` when no verifier is registered.
+`doctor` reports repository root, checkpoint readability, and toolchain availability.
