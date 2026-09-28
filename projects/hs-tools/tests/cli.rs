@@ -336,6 +336,7 @@ fn targets_mentions_polynomial_improve_for_zeta5() {
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("zeta-5"));
     assert!(stdout.contains("--polynomial"));
+    assert!(stdout.contains("offline-golden"));
 }
 
 #[test]

@@ -193,7 +193,9 @@ fn targets() {
         println!("  path: projects/hs-problems/checkpoints/{target}/checkpoint.json");
         if hs_checkpoint::has_polynomial_hankel(target) {
             println!("  improve: Ferguson finite-index, or `--polynomial` for paper Hankel construction");
-            println!("  check: `--polynomial-golden` (fast, CI-safe) or add `--full-delta` offline");
+            println!("  check: `hs check {target} --polynomial-golden` (fast, in cargo test)");
+            println!("  offline full Δ_K: `hs check {target} --polynomial-golden --full-delta`");
+            println!("  offline bin: cargo run --release -p hs-problems --features offline-golden --bin zeta5-hankel-golden");
             println!("  verify: polynomial_irrationality when proof_status is irrational");
         }
         if hs_checkpoint::has_ferguson_search(target) {
@@ -235,6 +237,19 @@ fn improve_polynomial(
     }
     println!("searched: n={}..{}", report.start_n, report.end_n);
     println!("completed construction indices: {}", report.completed_steps);
+    if let Some(observation) = &cp.polynomial_observed_best {
+        println!(
+            "polynomial_observed_best: n={} log_s_k={:.3}",
+            observation.n,
+            observation.log_s_k
+        );
+        if let Some(log_primitive) = observation.log_primitive_at_zeta5 {
+            println!(
+                "polynomial_observed_best.log_primitive / n^2: {:.3}",
+                log_primitive / (observation.n * observation.n) as f64
+            );
+        }
+    }
     if !should_write {
         println!("checkpoint: not written (--write-on-improvement and no polynomial observation update)");
     } else {
