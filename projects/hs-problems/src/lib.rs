@@ -9,6 +9,8 @@ mod ferguson;
 pub mod zeta5_polynomial;
 /// Gram/Hankel determinant pipeline for `ζ(5)`.
 pub mod zeta5_hankel;
+/// Energy logs at `ζ(5)` for polynomial Hankel diagnostics.
+pub mod zeta5_energy;
 /// Ferguson approximants and moments for `ζ(2)`.
 pub mod zeta2;
 /// Ferguson approximants and moments for `ζ(3)`.
@@ -24,6 +26,9 @@ pub use crate::zeta5_polynomial::{Zeta5PaperParams, d_polynomial, d_polynomial_d
 pub use crate::zeta5_hankel::{
     Zeta5Entries, zeta5_delta_degree, zeta5_delta_leading_coeff, zeta5_delta_polynomial, zeta5_entries,
     zeta5_hankel_a, zeta5_hankel_b,
+};
+pub use crate::zeta5_energy::{
+    Zeta5DeltaPrimitive, Zeta5EnergyReport, zeta5_delta_primitive, zeta5_energy_report, zeta5_log_s_k,
 };
 pub use crate::export::{
     export_catalan_certificates, export_delta_certificates, export_gamma_certificates, export_zeta2_certificates,
