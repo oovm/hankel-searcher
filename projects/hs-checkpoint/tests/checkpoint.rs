@@ -99,6 +99,14 @@ fn default_path_for_zeta3() {
 }
 
 #[test]
+fn mu_upper_bound_requires_value() {
+    let mut cp = sample_checkpoint();
+    cp.mu.status = MuStatus::UpperBound;
+    let err = hs_checkpoint::validate_checkpoint(&cp).unwrap_err().to_string();
+    assert!(err.contains("upper_bound"));
+}
+
+#[test]
 fn round_trip_search_benchmark() {
     let dir = tempdir().unwrap();
     let path = dir.path().join("checkpoint.json");

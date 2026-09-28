@@ -227,6 +227,35 @@ pub fn validate_checkpoint(cp: &Checkpoint) -> Result<(), CheckpointError> {
     if cp.best.is_some() {
         return Err(CheckpointError::Invalid("certified best records are not validated by this release".into()));
     }
+    validate_mu_record(&cp.mu)?;
+    Ok(())
+}
+
+fn validate_mu_record(mu: &MuRecord) -> Result<(), CheckpointError> {
+    match mu.status {
+        MuStatus::Unavailable => {
+            if mu.exact.is_some() || mu.upper_bound.is_some() {
+                return Err(CheckpointError::Invalid("mu unavailable must not carry exact or upper_bound".into()));
+            }
+        }
+        MuStatus::Exact => {
+            let exact = mu.exact.as_ref().ok_or_else(|| CheckpointError::Invalid("mu exact requires exact field".into()))?;
+            exact.ratio().map_err(CheckpointError::Invalid)?;
+            if mu.upper_bound.is_some() {
+                return Err(CheckpointError::Invalid("mu exact must not carry upper_bound".into()));
+            }
+        }
+        MuStatus::UpperBound => {
+            let upper = mu
+                .upper_bound
+                .as_ref()
+                .ok_or_else(|| CheckpointError::Invalid("mu upper_bound requires upper_bound field".into()))?;
+            upper.ratio().map_err(CheckpointError::Invalid)?;
+            if mu.exact.is_some() {
+                return Err(CheckpointError::Invalid("mu upper_bound must not carry exact".into()));
+            }
+        }
+    }
     Ok(())
 }
 
