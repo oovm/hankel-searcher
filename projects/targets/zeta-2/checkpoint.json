@@ -1,0 +1,37 @@
+{
+  "schema_version": 2,
+  "status": "draft",
+  "target": "zeta-2",
+  "proof_status": "unknown",
+  "objective": {
+    "linear_form_id": "unassigned",
+    "normalization_id": "unassigned",
+    "bound_kind": "certified_margin_lower_bound",
+    "direction": "maximize"
+  },
+  "search": {
+    "generator_id": "ferguson-index-v1",
+    "parameter_space_id": "nonnegative-index-v1",
+    "seed": "0",
+    "next_candidate": "4",
+    "series_terms": 128
+  },
+  "mu": {
+    "status": "unavailable"
+  },
+  "best": null,
+  "observed_best": {
+    "kind": "finite_approximation_error_upper",
+    "n": 3,
+    "series_terms": 128,
+    "approximant": {
+      "num": "1337517425",
+      "den": "835187004"
+    },
+    "error_upper": {
+      "num": "98527115838913745254381187144726716096040216236653831817767434813011708184684494659117051827880775421821354074553951",
+      "den": "2758016417191135693419104577215519881673093625761994197960773008483146751411779767736859445670613892448777808384000000"
+    }
+  },
+  "updated_at": "2026-09-28T06:58:30Z"
+}
