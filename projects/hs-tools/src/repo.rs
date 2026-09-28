@@ -4,9 +4,11 @@ use std::path::{Path, PathBuf};
 pub fn find_repo_root(start: &Path) -> Option<PathBuf> {
     let mut current = start.canonicalize().ok()?;
     while current.parent().is_some() {
-        let marker = current.join("projects").join("targets").join("zeta-3").join("checkpoint.json");
-        if marker.is_file() {
-            return Some(current);
+        for target in hs_checkpoint::CHECKPOINT_TARGETS {
+            let marker = current.join("projects").join("targets").join(target).join("checkpoint.json");
+            if marker.is_file() {
+                return Some(current);
+            }
         }
         current = current.parent()?.to_path_buf();
     }

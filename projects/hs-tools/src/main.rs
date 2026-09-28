@@ -236,16 +236,24 @@ fn doctor(repo_root: &PathBuf) -> Result<(), String> {
         "lean-prove: {}",
         if lean_prove.is_file() { "present" } else { "missing lakefile" }
     );
-    let checkpoint = repo::resolve_checkpoint(repo_root, "zeta-3", None)?;
-    match read_checkpoint(&checkpoint) {
-        Ok(cp) => println!(
-            "zeta-3 checkpoint: readable (schema_version={}, proof_status={})",
-            cp.schema_version,
-            proof_status_label(&cp.proof_status)
-        ),
-        Err(error) => println!("zeta-3 checkpoint: invalid ({error})"),
+    println!("checkpoint targets:");
+    for target in hs_checkpoint::CHECKPOINT_TARGETS {
+        match repo::resolve_checkpoint(repo_root, target, None) {
+            Ok(path) => match read_checkpoint(&path) {
+                Ok(cp) => {
+                    let ferguson = if hs_checkpoint::has_ferguson_search(target) { "yes" } else { "no" };
+                    println!(
+                        "  {target}: readable (schema_version={}, proof_status={}, ferguson={ferguson}, path={})",
+                        cp.schema_version,
+                        proof_status_label(&cp.proof_status),
+                        path.display()
+                    );
+                }
+                Err(error) => println!("  {target}: invalid ({error})"),
+            },
+            Err(error) => println!("  {target}: missing ({error})"),
+        }
     }
-    println!("checkpoint path: {}", checkpoint.display());
     println!("cargo: {}", if which_cargo() { "available" } else { "not found in PATH" });
     Ok(())
 }

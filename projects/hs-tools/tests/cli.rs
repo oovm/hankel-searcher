@@ -37,12 +37,16 @@ fn status_reads_project_checkpoint() {
 }
 
 #[test]
-fn doctor_finds_repo_root() {
+fn doctor_reports_all_checkpoint_targets() {
     let output = Command::new(hs_bin()).current_dir(repo_root()).arg("doctor").output().expect("spawn hs");
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("repo_root:"));
-    assert!(stdout.contains("zeta-3 checkpoint: readable"));
+    assert!(stdout.contains("checkpoint targets:"));
+    assert!(stdout.contains("zeta-2: readable"));
+    assert!(stdout.contains("zeta-3: readable"));
+    assert!(stdout.contains("zeta-5: readable"));
+    assert!(stdout.contains("zeta-7: readable"));
 }
 
 #[test]
