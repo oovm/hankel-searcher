@@ -2,7 +2,8 @@ use hs_checkpoint::{
     Checkpoint, POLYNOMIAL_HANKEL_GENERATOR, SearchBenchmark, ZETA5_PAPER_PARAMETER_SPACE,
 };
 use hs_problems::{
-    zeta5_delta_degree, zeta5_delta_leading_coeff, zeta5_delta_polynomial, zeta5_entries, zeta5_paper_params,
+    zeta5_delta_degree, zeta5_delta_leading_coeff, zeta5_delta_polynomial, zeta5_energy_report, zeta5_entries,
+    zeta5_log_s_k, zeta5_paper_params,
 };
 use num_traits::Zero;
 use std::time::{Duration, Instant};
@@ -76,6 +77,7 @@ pub fn improve_polynomial(
         let entries_ms = entries_started.elapsed().as_millis();
 
         let lead = zeta5_delta_leading_coeff(&entries);
+        let log_s = zeta5_log_s_k(&params);
         let mut delta_ms = None;
         let mut leading_match = None;
         if full_delta {
@@ -94,6 +96,8 @@ pub fn improve_polynomial(
                 return Err(format!("Δ_K leading coefficient vanished at n={current}"));
             }
             leading_match = Some(delta[degree] == lead);
+            let energy = zeta5_energy_report(&params, &delta)?;
+            print_energy_report(&params, &energy);
         }
 
         println!(
@@ -103,6 +107,7 @@ pub fn improve_polynomial(
         if let Some(ms) = delta_ms {
             println!("  delta_ms={ms}");
         }
+        println!("  log S_K: {log_s:.3}");
         println!("  leading_coeff (2.9): {}/{}", lead.numer(), lead.denom());
         if let Some(matches) = leading_match {
             println!("  leading_coeff matches Δ_K: {matches}");
@@ -124,6 +129,31 @@ pub fn improve_polynomial(
         completed_steps: completed,
         full_delta,
     })
+}
+
+fn print_energy_report(params: &hs_problems::Zeta5PaperParams, energy: &hs_problems::Zeta5EnergyReport) {
+    let k = params.k;
+    let n = params.n;
+    let k2 = (k * k) as f64;
+    let n2 = (n * n) as f64;
+    println!("  log Delta_K(zeta5): {:.3}", energy.log_delta_at_zeta5);
+    println!("  log F_K(zeta5): {:.3}    /K^2 = {:.5}", energy.log_f_k, energy.log_f_k / k2);
+    println!(
+        "  log content(F_K): {:.3}    -log content /K^2 = {:.5}",
+        energy.log_content_f_k,
+        -energy.log_content_f_k / k2
+    );
+    println!(
+        "  log P_K(zeta5) primitive: {:.3}    /K^2 = {:.5}    /n^2 = {:.3}",
+        energy.log_primitive_at_zeta5,
+        energy.log_primitive_at_zeta5 / k2,
+        energy.log_primitive_at_zeta5 / n2
+    );
+    println!(
+        "  max |coeff P_K| bits = {}, log H(P_K)/K^2 = {:.4}",
+        energy.max_primitive_coeff_bits,
+        energy.max_primitive_coeff_bits as f64 * std::f64::consts::LN_2 / k2
+    );
 }
 
 pub fn record_benchmark(cp: &mut Checkpoint, report: &PolynomialImproveReport, elapsed_ms: u64, jobs: usize) {
