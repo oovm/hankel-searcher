@@ -76,6 +76,19 @@ fn rational_certificate_cannot_support_irrational_status() {
 }
 
 #[test]
+fn integer_linear_form_is_unsupported_until_verifier_lands() {
+    let proof = ProofRecord {
+        kind: "integer_linear_form".into(),
+        verifier_id: Some("integer-linear-form-v1".into()),
+        payload: serde_json::json!({ "linear_form_id": "unassigned" }),
+    };
+    let cp = sample_checkpoint(ProofStatus::Irrational, Some(proof));
+    let report = verify_checkpoint(&cp).unwrap();
+    assert_eq!(report.verdict, VerifyVerdict::Unsupported);
+    assert!(report.message.contains("not implemented"));
+}
+
+#[test]
 fn project_zeta3_checkpoint_has_no_proof() {
     let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
     let path = default_checkpoint_path("zeta-3").unwrap();

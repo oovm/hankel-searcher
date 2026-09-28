@@ -1,5 +1,5 @@
 use hs_checkpoint::{Checkpoint, Observation};
-use hs_searcher::{EnumerateReport, SearchBudget, enumerate_indices};
+use hs_searcher::{SearchBudget, SearchReport, SearchStrategy, enumerate_indices, local_indices, sample_indices};
 use num_bigint::BigInt;
 use num_rational::Ratio;
 use num_traits::{Signed, Zero};
@@ -43,7 +43,8 @@ pub fn improve(
     steps: usize,
     terms: usize,
     time_budget: Option<Duration>,
-) -> Result<EnumerateReport, String> {
+    strategy: SearchStrategy,
+) -> Result<SearchReport, String> {
     if steps == 0 {
         return Err("steps must be positive".into());
     }
@@ -58,7 +59,19 @@ pub fn improve(
         None => SearchBudget::new(steps),
     };
     let interval = zeta3_interval(terms)?;
-    let report = enumerate_indices(start, cp.observed_best.clone(), &budget, |n| observe(n, terms, &interval))?;
+    let initial = cp.observed_best.clone();
+    let report = match strategy {
+        SearchStrategy::Enumerate => {
+            enumerate_indices(start, initial, &budget, |n| observe(n, terms, &interval))?
+        }
+        SearchStrategy::Local => {
+            let center = cp.observed_best.as_ref().map(|o| o.n).unwrap_or(start);
+            local_indices(center, start, initial, &budget, |n| observe(n, terms, &interval))?
+        }
+        SearchStrategy::Sample => {
+            sample_indices(&cp.search.seed, start, initial, &budget, |n| observe(n, terms, &interval))?
+        }
+    };
     cp.observed_best = report.best.clone();
     cp.search.generator_id = "ferguson-index-v1".into();
     cp.search.parameter_space_id = "nonnegative-index-v1".into();

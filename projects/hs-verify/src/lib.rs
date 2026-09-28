@@ -1,3 +1,4 @@
+mod irrational;
 mod rational;
 
 use hs_checkpoint::{Checkpoint, ProofStatus};
@@ -39,17 +40,7 @@ pub fn verify_checkpoint(cp: &Checkpoint) -> Result<VerifyReport, String> {
         }
         ProofStatus::Irrational => {
             let proof = cp.proof.as_ref().ok_or("proof_status irrational requires proof record")?;
-            if proof.kind == "rational_equality" {
-                return Err("rational equality certificate cannot support irrational proof_status".into());
-            }
-            Ok(VerifyReport {
-                verdict: VerifyVerdict::Unsupported,
-                message: format!(
-                    "irrational proof kind `{0}` has no registered verifier for `{1}`",
-                    proof.kind,
-                    cp.target
-                ),
-            })
+            irrational::verify_irrational_proof(cp, proof)
         }
     }
 }

@@ -5,6 +5,8 @@ use num_traits::ToPrimitive;
 use std::path::PathBuf;
 use std::time::Duration;
 
+use hs_searcher::SearchStrategy;
+
 mod duration;
 mod repo;
 mod zeta3;
@@ -41,6 +43,8 @@ enum Command {
         jobs: usize,
         #[arg(long)]
         write_on_improvement: bool,
+        #[arg(long, default_value = "enumerate")]
+        strategy: String,
     },
     /// Recompute and check the observation stored in a checkpoint.
     Check {
@@ -123,6 +127,7 @@ fn improve(
     time_budget: Option<Duration>,
     jobs: usize,
     write_on_improvement: bool,
+    strategy: SearchStrategy,
 ) -> Result<(), String> {
     if jobs > 1 {
         return Err("parallel improve is not implemented yet; use --jobs 1".into());
@@ -133,7 +138,7 @@ fn improve(
     let mut cp = read_checkpoint(path).map_err(map_err)?;
     let before = cp.observed_best.clone();
     let start_index = cp.search.next_candidate.clone();
-    let report = zeta3::improve(&mut cp, steps, terms, time_budget)?;
+    let report = zeta3::improve(&mut cp, steps, terms, time_budget, strategy)?;
     let bound_improved = report.bound_improved;
     let total_improvements = report.improvements;
     let should_write = if write_on_improvement { bound_improved } else { true };
@@ -141,7 +146,7 @@ fn improve(
         write_checkpoint(path, &cp).map_err(map_err)?;
     }
     println!("target: {}", cp.target);
-    println!("level: finite-index bound");
+    println!("level: finite-index bound ({})", strategy.label());
     println!("searched: n={start_index}..{}", cp.search.next_candidate);
     if bound_improved {
         if let (Some(old), Some(new)) = (&before, &cp.observed_best) {
@@ -253,6 +258,7 @@ fn main() {
             time,
             jobs,
             write_on_improvement,
+            strategy,
         } => {
             require_repo_root()
                 .and_then(|root| resolve_path(&root, &target, checkpoint))
@@ -261,7 +267,8 @@ fn main() {
                         Some(value) => Some(duration::parse_duration(&value)?),
                         None => None,
                     };
-                    improve(&path, steps, series_terms, budget, jobs, write_on_improvement)
+                    let strategy = SearchStrategy::parse(&strategy)?;
+                    improve(&path, steps, series_terms, budget, jobs, write_on_improvement, strategy)
                 })
         }
         Command::Check { target, checkpoint } => require_repo_root()
