@@ -1,10 +1,12 @@
 use crate::{
+    bignum::{Rational, One, Zero, is_zero},
     determinant::{bareiss_det, hankel_matrix},
     error::HankelError,
     sequence::MomentSequence,
 };
-use num_rational::Ratio;
-use num_traits::{One, ToPrimitive, Zero};
+use malachite::base::num::conversion::traits::RoundingFrom;
+use malachite::base::rounding_modes::RoundingMode::Nearest;
+use malachite::float::Float;
 
 /// A single Ferguson convergent `P_n / Q_n`.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -17,7 +19,7 @@ pub struct Approximant<T> {
     pub index: usize,
 }
 
-impl<T: Clone + Zero + One + std::ops::Neg<Output = T>> Approximant<T>
+impl<T: Clone + Zero + One + PartialEq + std::ops::Neg<Output = T>> Approximant<T>
 where
     T: std::ops::Div<Output = T>,
     T: std::ops::Mul<Output = T>,
@@ -25,7 +27,7 @@ where
 {
     /// Return the rational value when the denominator is non-zero.
     pub fn value(&self) -> Result<T, HankelError> {
-        if self.q.is_zero() {
+        if is_zero(&self.q) {
             Err(HankelError::ZeroDenominator { index: self.index })
         } else {
             Ok(self.p.clone() / self.q.clone())
@@ -43,7 +45,7 @@ pub struct FergusonPair<T> {
 /// Compute every Ferguson pair up to `max_n`.
 pub fn ferguson_pair<T>(moments: &MomentSequence<T>, max_n: usize) -> Result<FergusonPair<T>, HankelError>
 where
-    T: Clone + Zero + One + std::ops::Neg<Output = T>,
+    T: Clone + Zero + One + PartialEq + std::ops::Neg<Output = T>,
     T: std::ops::Div<Output = T>,
     T: std::ops::Mul<Output = T>,
     T: std::ops::Sub<Output = T>,
@@ -58,7 +60,7 @@ where
 /// Compute the Ferguson pair at a single index `n`.
 pub fn ferguson_pair_at<T>(moments: &MomentSequence<T>, n: usize) -> Result<Approximant<T>, HankelError>
 where
-    T: Clone + Zero + One + std::ops::Neg<Output = T>,
+    T: Clone + Zero + One + PartialEq + std::ops::Neg<Output = T>,
     T: std::ops::Div<Output = T>,
     T: std::ops::Mul<Output = T>,
     T: std::ops::Sub<Output = T>,
@@ -80,7 +82,7 @@ where
     let p_det = bareiss_det(&p_matrix);
     let q_det = bareiss_det(&q_matrix);
 
-    if q_det.is_zero() {
+    if is_zero(&q_det) {
         return Err(HankelError::SingularMinor { index: n });
     }
 
@@ -94,7 +96,7 @@ where
 /// Compute the Ferguson pair at index `n` on moments shifted by `shift`.
 pub fn ferguson_pair_at_shifted<T>(moments: &MomentSequence<T>, shift: usize, n: usize) -> Result<Approximant<T>, HankelError>
 where
-    T: Clone + Zero + One + std::ops::Neg<Output = T>,
+    T: Clone + Zero + One + PartialEq + std::ops::Neg<Output = T>,
     T: std::ops::Div<Output = T>,
     T: std::ops::Mul<Output = T>,
     T: std::ops::Sub<Output = T>,
@@ -117,7 +119,7 @@ where
     let p_det = bareiss_det(&p_matrix);
     let q_det = bareiss_det(&q_matrix);
 
-    if q_det.is_zero() {
+    if is_zero(&q_det) {
         return Err(HankelError::SingularMinor { index: n });
     }
 
@@ -129,9 +131,9 @@ where
 }
 
 /// Convert a rational approximant to `f64`.
-pub fn approximant_to_f64(approx: &Approximant<Ratio<num_bigint::BigInt>>) -> Result<f64, HankelError> {
+pub fn approximant_to_f64(approx: &Approximant<Rational>) -> Result<f64, HankelError> {
     let value = approx.value()?;
-    Ok(value
-        .to_f64()
-        .ok_or(HankelError::SingularMinor { index: approx.index })?)
+    let (head, _) = Float::from_rational_prec(value, 64);
+    let (converted, _) = f64::rounding_from(&head, Nearest);
+    Ok(converted)
 }

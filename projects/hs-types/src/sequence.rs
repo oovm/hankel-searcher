@@ -1,5 +1,5 @@
-use num_rational::Ratio;
-use num_traits::Zero;
+use crate::bignum::Rational;
+use crate::bignum::Zero;
 
 /// A moment sequence `a_n` with the Ferguson convention `a_0 = 0`.
 #[derive(Debug, Clone)]
@@ -22,7 +22,7 @@ impl<T: Clone + Zero> MomentSequence<T> {
     /// Access `a_n` with Ferguson's `a_0 = 0` convention.
     pub fn a(&self, n: usize) -> T {
         if n == 0 {
-            T::zero()
+            T::ZERO
         } else {
             self.moments[n - 1].clone()
         }
@@ -65,4 +65,4 @@ impl<T: Clone + Zero> MomentSequence<T> {
 }
 
 /// Convenience builder for exact rational moment sequences.
-pub type RationalMomentSequence = MomentSequence<Ratio<num_bigint::BigInt>>;
+pub type RationalMomentSequence = MomentSequence<Rational>;

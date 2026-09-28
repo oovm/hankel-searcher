@@ -1,8 +1,10 @@
-use num_rational::Ratio;
-use num_traits::{One, Zero};
+use crate::bignum::{Integer, Natural, Rational, is_zero};
+use crate::bignum::{One, Zero};
+use core::cmp::Ordering;
+use malachite::base::num::arithmetic::traits::{Lcm, PowAssign, Sign};
 
 /// Build the square Hankel matrix `(m_{i+j})` for `0 <= i,j < size`.
-pub fn hankel_matrix<T: Clone + Zero>(moments: &[T], shift: usize, size: usize) -> Vec<Vec<T>> {
+pub fn hankel_matrix<T: Clone>(moments: &[T], shift: usize, size: usize) -> Vec<Vec<T>> {
     let mut matrix = Vec::with_capacity(size);
     for row in 0..size {
         let mut line = Vec::with_capacity(size);
@@ -17,14 +19,14 @@ pub fn hankel_matrix<T: Clone + Zero>(moments: &[T], shift: usize, size: usize) 
 /// Exact determinant via the Bareiss fraction-free elimination algorithm.
 pub fn bareiss_det<T>(matrix: &[Vec<T>]) -> T
 where
-    T: Clone + Zero + One + std::ops::Neg<Output = T>,
+    T: Clone + Zero + One + PartialEq + std::ops::Neg<Output = T>,
     T: std::ops::Div<Output = T>,
     T: std::ops::Mul<Output = T>,
     T: std::ops::Sub<Output = T>,
 {
     let n = matrix.len();
     if n == 0 {
-        return T::one();
+        return T::ONE;
     }
     if n == 1 {
         return matrix[0][0].clone();
@@ -35,17 +37,17 @@ where
         .map(|row| row.iter().cloned().collect::<Vec<_>>())
         .collect::<Vec<_>>();
 
-    let mut pivot = T::one();
-    let mut sign = T::one();
+    let mut pivot = T::ONE;
+    let mut sign = T::ONE;
     for k in 0..n - 1 {
-        if work[k][k].is_zero() {
-            let swap = (k + 1..n).find(|row| !work[*row][k].is_zero());
+        if is_zero(&work[k][k]) {
+            let swap = (k + 1..n).find(|row| !is_zero(&work[*row][k]));
             match swap {
                 Some(row) => {
                     work.swap(k, row);
                     sign = -sign;
                 }
-                None => return T::zero(),
+                None => return T::ZERO,
             }
         }
 
@@ -57,6 +59,88 @@ where
             }
         }
         pivot = work[k][k].clone();
+    }
+
+    sign * work[n - 1][n - 1].clone()
+}
+
+/// Exact rational determinant via integer Bareiss after clearing denominators.
+pub fn bareiss_det_rational(matrix: &[Vec<Rational>]) -> Rational {
+    let n = matrix.len();
+    if n == 0 {
+        return Rational::ONE;
+    }
+    if n == 1 {
+        return matrix[0][0].clone();
+    }
+
+    let mut lcm_denom = Natural::ONE;
+    for row in matrix {
+        for entry in row {
+            lcm_denom = Natural::lcm(lcm_denom, entry.to_denominator());
+        }
+    }
+    let lcm_integer = Integer::from(lcm_denom.clone());
+    let scaled = matrix
+        .iter()
+        .map(|row| {
+            row.iter()
+                .map(|entry| {
+                    if is_zero(entry) {
+                        return Integer::ZERO;
+                    }
+                    let scale = &lcm_denom / entry.to_denominator();
+                    let unsigned = entry.to_numerator().clone() * scale;
+                    match entry.sign() {
+                        Ordering::Greater => Integer::from(unsigned),
+                        Ordering::Less => -Integer::from(unsigned),
+                        Ordering::Equal => Integer::ZERO,
+                    }
+                })
+                .collect::<Vec<_>>()
+        })
+        .collect::<Vec<_>>();
+    let det_int = bareiss_det_integer(&scaled);
+    let mut denominator = lcm_integer;
+    denominator.pow_assign(u64::try_from(n).expect("matrix size fits in u64"));
+    Rational::from_integers(det_int, denominator)
+}
+
+fn bareiss_det_integer(matrix: &[Vec<Integer>]) -> Integer {
+    let n = matrix.len();
+    if n == 0 {
+        return Integer::ONE;
+    }
+    if n == 1 {
+        return matrix[0][0].clone();
+    }
+
+    let mut work = matrix
+        .iter()
+        .map(|row| row.iter().cloned().collect::<Vec<_>>())
+        .collect::<Vec<_>>();
+    let mut prev_pivot = Integer::ONE;
+    let mut sign = Integer::ONE;
+    for k in 0..n - 1 {
+        if is_zero(&work[k][k]) {
+            let swap = (k + 1..n).find(|row| !is_zero(&work[*row][k]));
+            match swap {
+                Some(row) => {
+                    work.swap(k, row);
+                    sign = -sign;
+                }
+                None => return Integer::ZERO,
+            }
+        }
+
+        for i in k + 1..n {
+            for j in k + 1..n {
+                let numerator =
+                    work[i][j].clone() * &work[k][k] - work[i][k].clone() * &work[k][j];
+                work[i][j] = numerator / &prev_pivot;
+            }
+        }
+        prev_pivot = work[k][k].clone();
     }
 
     sign * work[n - 1][n - 1].clone()
@@ -103,7 +187,7 @@ fn shifted_len(total: usize, shift: usize, size: usize) -> bool {
 }
 
 /// Rational Hankel determinant.
-pub fn hankel_det_rational(moments: &[Ratio<num_bigint::BigInt>], shift: usize, size: usize) -> Ratio<num_bigint::BigInt> {
+pub fn hankel_det_rational(moments: &[Rational], shift: usize, size: usize) -> Rational {
     let matrix = hankel_matrix(moments, shift, size);
-    bareiss_det(&matrix)
+    bareiss_det_rational(&matrix)
 }

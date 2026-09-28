@@ -1,19 +1,15 @@
-use num_bigint::BigInt;
-use num_rational::Ratio;
-use num_traits::{One, Zero};
-
-type Rational = Ratio<BigInt>;
-
+use crate::bignum::{Integer, Rational, is_zero};
+use crate::bignum::{One, Zero};
 /// Matrix multiply for square rational matrices.
 pub fn rational_mat_mul(left: &[Vec<Rational>], right: &[Vec<Rational>]) -> Vec<Vec<Rational>> {
     let n = left.len();
     debug_assert_eq!(left[0].len(), n);
     debug_assert_eq!(right.len(), n);
     debug_assert_eq!(right[0].len(), n);
-    let mut out = vec![vec![Rational::zero(); n]; n];
+    let mut out = vec![vec![Rational::ZERO; n]; n];
     for row in 0..n {
         for col in 0..n {
-            let mut acc = Rational::zero();
+            let mut acc = Rational::ZERO;
             for k in 0..n {
                 acc += left[row][k].clone() * right[k][col].clone();
             }
@@ -34,28 +30,28 @@ pub fn rational_mat_inv(matrix: &[Vec<Rational>]) -> Option<Vec<Vec<Rational>>> 
         .iter()
         .map(|row| row.iter().cloned().collect::<Vec<_>>())
         .collect::<Vec<_>>();
-    let mut inv = vec![vec![Rational::zero(); n]; n];
+    let mut inv = vec![vec![Rational::ZERO; n]; n];
     for i in 0..n {
-        inv[i][i] = Rational::one();
+        inv[i][i] = Rational::ONE;
     }
 
     for col in 0..n {
-        let pivot_row = (col..n).find(|row| !work[*row][col].is_zero())?;
+        let pivot_row = (col..n).find(|row| !is_zero(&work[*row][col]))?;
         if pivot_row != col {
             work.swap(col, pivot_row);
             inv.swap(col, pivot_row);
         }
         let pivot = work[col][col].clone();
         for j in 0..n {
-            work[col][j] = work[col][j].clone() / pivot.clone();
-            inv[col][j] = inv[col][j].clone() / pivot.clone();
+            work[col][j] /= pivot.clone();
+            inv[col][j] /= pivot.clone();
         }
         for row in 0..n {
             if row == col {
                 continue;
             }
             let factor = work[row][col].clone();
-            if factor.is_zero() {
+            if is_zero(&factor) {
                 continue;
             }
             let pivot_row = work[col].clone();
@@ -73,7 +69,7 @@ pub fn rational_mat_inv(matrix: &[Vec<Rational>]) -> Option<Vec<Vec<Rational>>> 
 pub fn rational_charpoly(matrix: &[Vec<Rational>]) -> Vec<Rational> {
     let n = matrix.len();
     if n == 0 {
-        return vec![Rational::one()];
+        return vec![Rational::ONE];
     }
     debug_assert!(matrix.iter().all(|row| row.len() == n));
 
@@ -82,27 +78,27 @@ pub fn rational_charpoly(matrix: &[Vec<Rational>]) -> Vec<Rational> {
         powers.push(rational_mat_mul(matrix, &powers[index - 1]));
     }
 
-    let mut coeffs = vec![Rational::zero(); n + 1];
-    coeffs[n] = Rational::one();
+    let mut coeffs = vec![Rational::ZERO; n + 1];
+    coeffs[n] = Rational::ONE;
     for k in 1..=n {
         let pk = matrix_trace(&powers[k]);
         let mut acc = pk;
         for j in 1..k {
             acc += coeffs[n - j].clone() * matrix_trace(&powers[k - j]);
         }
-        coeffs[n - k] = -acc / Rational::from_integer(BigInt::from(k as i64));
+        coeffs[n - k] = -acc / Rational::from(Integer::from(k));
     }
     coeffs
 }
 
 fn matrix_trace(matrix: &[Vec<Rational>]) -> Rational {
-    (0..matrix.len()).fold(Rational::zero(), |acc, i| acc + matrix[i][i].clone())
+    (0..matrix.len()).fold(Rational::ZERO, |acc, i| acc + matrix[i][i].clone())
 }
 
 fn identity_matrix(n: usize) -> Vec<Vec<Rational>> {
-    let mut matrix = vec![vec![Rational::zero(); n]; n];
+    let mut matrix = vec![vec![Rational::ZERO; n]; n];
     for i in 0..n {
-        matrix[i][i] = Rational::one();
+        matrix[i][i] = Rational::ONE;
     }
     matrix
 }
