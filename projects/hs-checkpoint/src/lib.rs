@@ -12,7 +12,7 @@ pub use checkpoint::{
     OBSERVATION_KIND_POLYNOMIAL_HANKEL, default_checkpoint_path, read_checkpoint, validate_checkpoint, write_checkpoint,
 };
 pub use error::CheckpointError;
-pub use rational::ratio_from_data;
+pub use rational::{integer_from_str, natural_from_str, rational_to_f64, ratio_from_data};
 pub use proof::{
     is_known_proof_kind, PROOF_KIND_INTEGER_LINEAR_FORM, PROOF_KIND_POLYNOMIAL_IRRATIONALITY,
     PROOF_KIND_RATIONAL_EQUALITY, VERIFIER_POLYNOMIAL_IRRATIONALITY_V1,

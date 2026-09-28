@@ -3,8 +3,7 @@ use crate::proof::is_known_proof_kind;
 use crate::search::{validate_known_search_contract, RATIONAL_PARAMETER_MAX_SHIFT};
 use crate::targets::{is_known_target, is_project_checkpoint_target};
 use crate::rational::ratio_from_data;
-use num_bigint::BigInt;
-use num_rational::Ratio;
+use hs_types::Rational;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -35,11 +34,14 @@ pub struct RationalData {
 }
 
 impl RationalData {
-    pub fn from_ratio(value: &Ratio<BigInt>) -> Self {
-        Self { num: value.numer().to_string(), den: value.denom().to_string() }
+    pub fn from_ratio(value: &Rational) -> Self {
+        Self {
+            num: value.to_numerator().to_string(),
+            den: value.to_denominator().to_string(),
+        }
     }
 
-    pub fn ratio(&self) -> Result<Ratio<BigInt>, String> {
+    pub fn ratio(&self) -> Result<Rational, String> {
         ratio_from_data(self)
     }
 }

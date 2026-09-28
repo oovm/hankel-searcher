@@ -6,8 +6,8 @@ use hs_checkpoint::{
     has_ferguson_search, has_polynomial_hankel, is_implemented_search_contract, is_known_target, read_checkpoint,
     validate_known_search_contract, write_checkpoint, zeta_order,
 };
-use num_bigint::BigInt;
-use num_rational::Ratio;
+use hs_types::{Integer, Rational};
+use malachite::base::num::basic::traits::One;
 use std::fs;
 use tempfile::tempdir;
 
@@ -90,7 +90,7 @@ fn rejects_noncanonical_rational() {
         shift: None,
         series_terms: 64,
         approximant: RationalData { num: "2".into(), den: "4".into() },
-        error_upper: RationalData::from_ratio(&Ratio::from_integer(BigInt::from(1))),
+        error_upper: RationalData::from_ratio(&Rational::ONE),
     });
     let err = hs_checkpoint::validate_checkpoint(&cp).unwrap_err().to_string();
     assert!(err.contains("canonical"));
