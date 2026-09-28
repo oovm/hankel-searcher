@@ -1,7 +1,9 @@
 use hs_checkpoint::{Checkpoint, Observation};
+use hs_searcher::{EnumerateReport, SearchBudget, enumerate_indices};
 use num_bigint::BigInt;
 use num_rational::Ratio;
 use num_traits::{Signed, Zero};
+use std::time::Duration;
 
 pub fn zeta3_interval(terms: usize) -> Result<(Ratio<BigInt>, Ratio<BigInt>), String> {
     if terms == 0 {
@@ -36,7 +38,12 @@ pub fn observe(n: usize, terms: usize, interval: &(Ratio<BigInt>, Ratio<BigInt>)
     })
 }
 
-pub fn improve(cp: &mut Checkpoint, steps: usize, terms: usize) -> Result<usize, String> {
+pub fn improve(
+    cp: &mut Checkpoint,
+    steps: usize,
+    terms: usize,
+    time_budget: Option<Duration>,
+) -> Result<EnumerateReport, String> {
     if steps == 0 {
         return Err("steps must be positive".into());
     }
@@ -45,28 +52,21 @@ pub fn improve(cp: &mut Checkpoint, steps: usize, terms: usize) -> Result<usize,
             return Err(format!("series_terms must match checkpoint value {saved_terms}"));
         }
     }
-    let next = cp.search.next_candidate.parse::<usize>().map_err(|e| e.to_string())?;
-    let end = next.checked_add(steps).ok_or("candidate index overflow")?;
+    let start = cp.search.next_candidate.parse::<usize>().map_err(|e| e.to_string())?;
+    let budget = match time_budget {
+        Some(limit) => SearchBudget::from_duration(steps, limit),
+        None => SearchBudget::new(steps),
+    };
     let interval = zeta3_interval(terms)?;
-    let mut improvements = 0;
-    for n in next..end {
-        let observation = observe(n, terms, &interval)?;
-        let is_better = match &cp.observed_best {
-            Some(old) => observation.error_upper.ratio()? < old.error_upper.ratio()?,
-            None => true,
-        };
-        if is_better {
-            cp.observed_best = Some(observation);
-            improvements += 1;
-        }
-    }
+    let report = enumerate_indices(start, cp.observed_best.clone(), &budget, |n| observe(n, terms, &interval))?;
+    cp.observed_best = report.best.clone();
     cp.search.generator_id = "ferguson-index-v1".into();
     cp.search.parameter_space_id = "nonnegative-index-v1".into();
-    cp.search.next_candidate = end.to_string();
+    cp.search.next_candidate = report.end_index.to_string();
     cp.search.series_terms = Some(terms);
     cp.status = "draft".into();
     cp.updated_at = chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string();
-    Ok(improvements)
+    Ok(report)
 }
 
 pub fn check_observation(cp: &Checkpoint) -> Result<(), String> {

@@ -16,6 +16,7 @@ Hankel-determinant rational approximation experiments for constants related to i
 | `zeta-2` / `zeta-3` | Ferguson examples and Lean certificate experiments                            |
 | `zeta-5`            | Ferguson certificates and incomplete Lean formalization                       |
 | `hs-checkpoint`     | Checkpoint JSON schema v2, validation, migration, and atomic writes           |
+| `hs-searcher`       | Search budgets and consecutive index enumeration for checkpoint improvement     |
 | `hs-verify`         | Proof verification (`rational_equality` via `exact-rational-v1`)            |
 | `hs-tools`          | Installable `hs` command (`targets`, `status`, `improve`, `check`, `verify`, `doctor`) |
 

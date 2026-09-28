@@ -15,6 +15,7 @@ path = "src/main.rs"
 [dependencies]
 clap = { workspace = true }
 hs-checkpoint = { workspace = true }
+hs-searcher = { workspace = true }
 hs-verify = { workspace = true }
 num-bigint = { workspace = true }
 num-rational = { workspace = true }

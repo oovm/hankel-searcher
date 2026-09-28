@@ -3,7 +3,7 @@ use hs_checkpoint::{CheckpointError, ProofStatus, read_checkpoint, write_checkpo
 use hs_verify::{VerifyVerdict, verify_checkpoint};
 use num_traits::ToPrimitive;
 use std::path::PathBuf;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 mod duration;
 mod repo;
@@ -133,25 +133,9 @@ fn improve(
     let mut cp = read_checkpoint(path).map_err(map_err)?;
     let before = cp.observed_best.clone();
     let start_index = cp.search.next_candidate.clone();
-    let deadline = time_budget.map(|budget| Instant::now() + budget);
-    let mut remaining = steps;
-    let mut total_improvements = 0;
-    while remaining > 0 {
-        if let Some(deadline) = deadline {
-            if Instant::now() >= deadline {
-                break;
-            }
-        }
-        let batch = remaining;
-        let improvements = zeta3::improve(&mut cp, batch, terms)?;
-        total_improvements += improvements;
-        remaining = 0;
-    }
-    let bound_improved = match (&before, &cp.observed_best) {
-        (None, Some(_)) => true,
-        (Some(old), Some(new)) => new.error_upper.ratio()? < old.error_upper.ratio()?,
-        _ => false,
-    };
+    let report = zeta3::improve(&mut cp, steps, terms, time_budget)?;
+    let bound_improved = report.bound_improved;
+    let total_improvements = report.improvements;
     let should_write = if write_on_improvement { bound_improved } else { true };
     if should_write {
         write_checkpoint(path, &cp).map_err(map_err)?;
