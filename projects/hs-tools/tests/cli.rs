@@ -271,6 +271,18 @@ fn improve_polynomial_rejects_non_zeta5_target() {
 }
 
 #[test]
+fn check_polynomial_golden_fast_for_zeta5() {
+    let output = Command::new(hs_bin())
+        .current_dir(repo_root())
+        .args(["check", "zeta-5", "--polynomial-golden"])
+        .output()
+        .expect("spawn hs");
+    assert!(output.status.success(), "stderr={}", String::from_utf8_lossy(&output.stderr));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("polynomial Hankel golden (fast): ok"));
+}
+
+#[test]
 fn targets_mentions_polynomial_improve_for_zeta5() {
     let output = Command::new(hs_bin()).current_dir(repo_root()).arg("targets").output().expect("spawn hs");
     assert!(output.status.success());

@@ -58,9 +58,12 @@ enum Command {
         target: String,
         #[arg(long)]
         checkpoint: Option<PathBuf>,
-        /// Compare `n=1` polynomial Hankel pipeline to embedded `hankel.py` golden (`zeta-5` only).
+        /// Fast `n=1` polynomial Hankel golden (`log S_K`, scaling, leading-coeff formula). CI-safe.
         #[arg(long)]
         polynomial_golden: bool,
+        /// With `--polynomial-golden`, also compute exact `Δ_K` (offline only, tens of minutes).
+        #[arg(long)]
+        full_delta: bool,
     },
     /// Verify a registered rational or irrational proof record.
     Verify {
@@ -171,7 +174,7 @@ fn targets() {
         println!("  path: projects/hs-problems/checkpoints/{target}/checkpoint.json");
         if hs_checkpoint::has_polynomial_hankel(target) {
             println!("  improve: Ferguson finite-index, or `--polynomial` for paper Hankel construction");
-            println!("  check: `--polynomial-golden` for `hankel.py` regression at n=1");
+            println!("  check: `--polynomial-golden` (fast, CI-safe) or add `--full-delta` offline");
             println!("  verify: polynomial_irrationality when proof_status is irrational");
         }
         if hs_checkpoint::has_ferguson_search(target) {
@@ -328,20 +331,30 @@ fn improve(
     Ok(())
 }
 
-fn check_polynomial_golden(target: &str) -> Result<(), String> {
+fn check_polynomial_golden(target: &str, full_delta: bool) -> Result<(), String> {
     if target != "zeta-5" {
         return Err(format!("polynomial golden check is only registered for `zeta-5`, not `{target}`"));
     }
     if !hs_checkpoint::has_polynomial_hankel(target) {
         return Err(format!("polynomial Hankel is not registered for `{target}`"));
     }
-    println!("checking polynomial Hankel golden for {target} (n=1, vs mo271/Zeta5 hankel.py)");
-    let energy = hs_problems::zeta5_polynomial_golden_check()?;
-    println!("polynomial Hankel golden: ok");
-    println!("  max |coeff P_K| bits = {}", energy.max_primitive_coeff_bits);
-    println!("  log S_K = {:.3}", energy.log_s_k);
-    println!("  log Delta_K(zeta5) = {:.3}", energy.log_delta_at_zeta5);
-    println!("  log P_K(zeta5) / n^2 = {:.3}", energy.log_primitive_at_zeta5);
+    if full_delta {
+        eprintln!("warning: full Δ_K golden is offline only — expect tens of minutes, not for CI");
+        println!("checking polynomial Hankel golden for {target} (n=1, full Δ_K vs mo271/Zeta5 hankel.py)");
+        let energy = hs_problems::zeta5_polynomial_golden_full()?;
+        println!("polynomial Hankel golden (full): ok");
+        println!("  max |coeff P_K| bits = {}", energy.max_primitive_coeff_bits);
+        println!("  log S_K = {:.3}", energy.log_s_k);
+        println!("  log Delta_K(zeta5) = {:.3}", energy.log_delta_at_zeta5);
+        println!("  log P_K(zeta5) / n^2 = {:.3}", energy.log_primitive_at_zeta5);
+    } else {
+        println!("checking polynomial Hankel golden for {target} (n=1, fast gate vs mo271/Zeta5 hankel.py)");
+        hs_problems::zeta5_polynomial_golden_fast()?;
+        println!("polynomial Hankel golden (fast): ok");
+        println!("  paper scaling K=40 N=3 h=37");
+        println!("  log S_K and (2.9) leading-coeff formula");
+        println!("  note: pass `--full-delta` for exact Δ_K energy logs (offline only)");
+    }
     Ok(())
 }
 
@@ -506,9 +519,10 @@ fn main() {
             target,
             checkpoint,
             polynomial_golden,
+            full_delta,
         } => {
             if polynomial_golden {
-                require_repo_root().and_then(|_| check_polynomial_golden(&target))
+                require_repo_root().and_then(|_| check_polynomial_golden(&target, full_delta))
             } else {
                 require_repo_root()
                     .and_then(|root| resolve_path(&root, &target, checkpoint))
