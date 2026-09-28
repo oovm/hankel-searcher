@@ -71,7 +71,7 @@ fn check_rejects_tampered_observation() {
 }
 
 #[test]
-fn verify_accepts_rational_proof_record() {
+fn verify_rejects_false_zeta3_rational_proof() {
     let dir = tempdir_in(repo_root()).unwrap();
     let path = dir.path().join("checkpoint.json");
     let source = repo_root().join("projects/hs-problems/checkpoints/zeta-3/checkpoint.json");
@@ -92,6 +92,38 @@ fn verify_accepts_rational_proof_record() {
     let output = Command::new(hs_bin())
         .current_dir(repo_root())
         .args(["verify", "zeta-3", "--checkpoint"])
+        .arg(&path)
+        .output()
+        .expect("spawn hs");
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("outside the rigorous"));
+}
+
+#[test]
+fn verify_accepts_fixture_rational_proof_record() {
+    let dir = tempdir_in(repo_root()).unwrap();
+    let path = dir.path().join("checkpoint.json");
+    let mut cp = read_checkpoint(
+        &repo_root().join("projects/hs-problems/checkpoints/zeta-3/checkpoint.json"),
+    )
+    .unwrap();
+    cp.target = "fixture-half".into();
+    cp.proof_status = ProofStatus::Rational;
+    cp.proof = Some(ProofRecord {
+        kind: "rational_equality".into(),
+        verifier_id: Some("exact-rational-v1".into()),
+        payload: serde_json::json!({ "numerator": "1", "denominator": "2" }),
+    });
+    cp.updated_at = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs()
+        .to_string();
+    write_checkpoint(&path, &cp).unwrap();
+    let output = Command::new(hs_bin())
+        .current_dir(repo_root())
+        .args(["verify", "fixture-half", "--checkpoint"])
         .arg(&path)
         .output()
         .expect("spawn hs");

@@ -122,13 +122,15 @@ fn catalan_odd_denominator_kernel_overshoots_constant() {
 }
 
 #[test]
-fn catalan_beta_kernel_converges_below_constant() {
-    use hs_moments::catalan_beta_moments;
+fn catalan_beta_kernel_tracks_scaled_zeta_not_catalan() {
+    use hs_moments::{catalan_beta_moments, zeta_moments, ZETA_2};
     let max_n = ZETA_REGRESSION_MAX_N;
     let need = 2 * (max_n + 2);
-    let moments = catalan_beta_moments(need);
-    for n in [0, 1, 5, 10, max_n] {
-        let value = approximant_to_f64(&ferguson_pair_at(&moments, n).unwrap()).unwrap();
-        assert!(value < CATALAN_G, "n={}: got {:.12}", n, value);
-    }
+    let beta = catalan_beta_moments(need);
+    let zeta = zeta_moments(2, need);
+    let beta_value = approximant_to_f64(&ferguson_pair_at(&beta, max_n).unwrap()).unwrap();
+    let zeta_value = approximant_to_f64(&ferguson_pair_at(&zeta, max_n).unwrap()).unwrap();
+    assert!((beta_value - zeta_value / 4.0).abs() < 1e-6);
+    assert!(beta_value < CATALAN_G);
+    assert!((beta_value - ZETA_2 / 4.0).abs() < 5e-2);
 }

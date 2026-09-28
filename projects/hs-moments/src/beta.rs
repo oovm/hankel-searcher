@@ -6,6 +6,11 @@ use num_traits::{One, Zero};
 
 /// Dirichlet beta `β(k) = Σ_{n≥0} (-1)^n / (2n+1)^k`；`k=2` 时等于 Catalan 常数 `G`。
 ///
+/// **Normalization warning:** this Ferguson integral kernel satisfies
+/// `beta_moment(k, n) = 2^{1-k} * zeta_moment(k, n)`, so the resulting `P_n/Q_n`
+/// track `2^{1-k} ζ(k)`, not `β(k)` itself. Do not treat `k=2` exports as
+/// approximating `G` without an explicit target rescaling contract.
+///
 /// Ferguson 型 Bose 积分（见 Ferguson arXiv:2003.10616 §2 与 `ζ(k)` 对偶）：
 /// `L_{β,k}(f) = 2/(k-1)! ∫_0^∞ x^{k-1} e^{-x}/(e^x+e^{-x}) f(1-e^{-2x}) dx`，
 /// 故 `L_{β,k}(e_n) = 2 Σ_{i=0}^{n-1} C(n-1,i)(-1)^i / (2(i+1))^k`。
