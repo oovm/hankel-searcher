@@ -2,7 +2,7 @@
 pub const CHECKPOINT_TARGETS: &[&str] = &["zeta-2", "zeta-3", "zeta-5", "zeta-7"];
 
 /// Subset with registered Ferguson finite-index exports in `hs-problems`.
-pub const FERGUSON_ZETA_TARGETS: &[&str] = &["zeta-2", "zeta-3", "zeta-5"];
+pub const FERGUSON_ZETA_TARGETS: &[&str] = &["zeta-2", "zeta-3", "zeta-5", "zeta-7"];
 
 pub fn is_known_target(target: &str) -> bool {
     CHECKPOINT_TARGETS.contains(&target)

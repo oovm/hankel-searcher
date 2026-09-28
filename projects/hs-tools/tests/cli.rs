@@ -95,7 +95,7 @@ fn verify_accepts_rational_proof_record() {
 }
 
 #[test]
-fn targets_lists_all_ferguson_zeta() {
+fn targets_lists_all_checkpoint_zeta() {
     let output = Command::new(hs_bin()).current_dir(repo_root()).arg("targets").output().expect("spawn hs");
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
@@ -103,7 +103,7 @@ fn targets_lists_all_ferguson_zeta() {
     assert!(stdout.contains("zeta-3"));
     assert!(stdout.contains("zeta-5"));
     assert!(stdout.contains("zeta-7"));
-    assert!(stdout.contains("no Ferguson export registered"));
+    assert!(stdout.contains("finite-index Ferguson bounds"));
 }
 
 #[test]
@@ -117,7 +117,6 @@ fn status_reads_zeta7_unknown_proof() {
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("target: zeta-7"));
     assert!(stdout.contains("proof_status: unknown"));
-    assert!(stdout.contains("observed_best: none"));
 }
 
 #[test]
@@ -133,15 +132,11 @@ fn verify_zeta7_exits_unsupported_when_unknown() {
 }
 
 #[test]
-fn improve_rejects_zeta7_without_ferguson_export() {
-    let output = Command::new(hs_bin())
-        .current_dir(repo_root())
-        .args(["improve", "zeta-7", "--steps", "1"])
-        .output()
-        .expect("spawn hs");
-    assert!(!output.status.success());
-    let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(stderr.contains("Ferguson search is not registered"));
+fn check_validates_zeta7_observation() {
+    let output = Command::new(hs_bin()).current_dir(repo_root()).args(["check", "zeta-7"]).output().expect("spawn hs");
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("checked n="));
 }
 
 #[test]

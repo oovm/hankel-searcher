@@ -33,6 +33,10 @@ fn ferguson_pair(order: u32, n: usize, count: usize) -> Result<(Ratio<BigInt>, R
             let pair = hs_problems::zeta5::ferguson_approximant(n, count).map_err(|e| e.to_string())?;
             Ok((pair.p, pair.q))
         }
+        7 => {
+            let pair = hs_problems::zeta7::ferguson_approximant(n, count).map_err(|e| e.to_string())?;
+            Ok((pair.p, pair.q))
+        }
         other => Err(format!("unsupported zeta order `{other}`")),
     }
 }

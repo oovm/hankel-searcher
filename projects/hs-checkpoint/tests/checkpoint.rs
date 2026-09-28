@@ -98,12 +98,12 @@ fn default_path_for_zeta3() {
 #[test]
 fn checkpoint_targets_registry() {
     assert_eq!(CHECKPOINT_TARGETS, &["zeta-2", "zeta-3", "zeta-5", "zeta-7"]);
-    assert_eq!(FERGUSON_ZETA_TARGETS, &["zeta-2", "zeta-3", "zeta-5"]);
+    assert_eq!(FERGUSON_ZETA_TARGETS, &["zeta-2", "zeta-3", "zeta-5", "zeta-7"]);
     assert!(is_known_target("zeta-2"));
     assert!(is_known_target("zeta-7"));
     assert!(!is_known_target("zeta-4"));
     assert!(has_ferguson_search("zeta-3"));
-    assert!(!has_ferguson_search("zeta-7"));
+    assert!(has_ferguson_search("zeta-7"));
     assert_eq!(zeta_order("zeta-7"), Some(7));
     assert_eq!(zeta_order("delta"), None);
     assert!(default_checkpoint_path("zeta-7").unwrap().ends_with("projects/targets/zeta-7/checkpoint.json"));
