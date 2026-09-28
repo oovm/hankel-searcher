@@ -76,7 +76,7 @@ fn rational_certificate_cannot_support_irrational_status() {
 }
 
 #[test]
-fn integer_linear_form_is_unsupported_until_verifier_lands() {
+fn integer_linear_form_unassigned_stays_unsupported() {
     let proof = ProofRecord {
         kind: "integer_linear_form".into(),
         verifier_id: Some("integer-linear-form-v1".into()),
@@ -85,7 +85,26 @@ fn integer_linear_form_is_unsupported_until_verifier_lands() {
     let cp = sample_checkpoint(ProofStatus::Irrational, Some(proof));
     let report = verify_checkpoint(&cp).unwrap();
     assert_eq!(report.verdict, VerifyVerdict::Unsupported);
-    assert!(report.message.contains("not implemented"));
+    assert!(report.message.contains("not registered"));
+}
+
+#[test]
+fn integer_linear_form_regression_fixture_verifies_mu_upper_bound() {
+    let proof = ProofRecord {
+        kind: "integer_linear_form".into(),
+        verifier_id: Some("integer-linear-form-v1".into()),
+        payload: serde_json::json!({
+            "linear_form_id": "regression-v1",
+            "start_index": "1",
+            "tau": { "num": "1", "den": "10" },
+            "sigma": { "num": "1", "den": "5" }
+        }),
+    };
+    let mut cp = sample_checkpoint(ProofStatus::Irrational, Some(proof));
+    cp.objective.linear_form_id = "regression-v1".into();
+    let report = verify_checkpoint(&cp).unwrap();
+    assert_eq!(report.verdict, VerifyVerdict::Verified);
+    assert!(report.message.contains("mu upper bound 3/1"));
 }
 
 #[test]
