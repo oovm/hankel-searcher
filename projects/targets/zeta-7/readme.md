@@ -1,5 +1,9 @@
 # zeta-7 target
 
-Placeholder checkpoint for `ζ(7)` with `proof_status: unknown`.
+Collaborative checkpoint for finite-index Ferguson bounds on `ζ(7)`.
 
-No Ferguson finite-index export is registered yet, so `hs improve` and `hs check` remain unavailable. Use `hs status` and `hs verify` to exercise the unknown proof path.
+- JSON: `checkpoint.json`
+- Math export: `cargo run --release -p hs-problems --bin export-zeta7-certificates`
+- Lean proofs: `projects/lean-prove/Problems/Zeta7/` (certificates only today)
+
+`proof_status` remains `unknown` until a registered rational or irrational proof is attached.

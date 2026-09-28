@@ -7,6 +7,8 @@ import Problems.Zeta3.Irrationality
 import Problems.Zeta5.Ferguson
 import Problems.Zeta5.Certificates
 import Problems.Zeta5.Irrationality
+import Problems.Zeta7.Ferguson
+import Problems.Zeta7.Certificates
 import Problems.Delta.Ferguson
 import Problems.Delta.Certificates
 import Problems.Delta.Irrationality
