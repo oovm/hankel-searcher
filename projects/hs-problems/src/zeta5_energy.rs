@@ -77,10 +77,10 @@ pub fn zeta5_delta_primitive(delta: &[Rational]) -> Zeta5DeltaPrimitive {
 /// Evaluate energy logs for an already computed `Δ_K`.
 pub fn zeta5_energy_report(params: &Zeta5PaperParams, delta: &[Rational]) -> Result<Zeta5EnergyReport, String> {
     let primitive = zeta5_delta_primitive(delta);
-    let zeta5 = zeta5_f64(12_000);
+    let zeta5 = zeta5_bigdecimal(200_000)?;
     let log_s_k = zeta5_log_s_k(params);
-    let delta_value = evaluate_rational_poly_bigdecimal(delta, zeta5)?;
-    let primitive_value = evaluate_integer_poly_bigdecimal(&primitive.coefficients, zeta5)?;
+    let delta_value = evaluate_rational_poly_bigdecimal(delta, &zeta5)?;
+    let primitive_value = evaluate_integer_poly_bigdecimal(&primitive.coefficients, &zeta5)?;
     let log_delta_at_zeta5 = log_positive_bigdecimal(&delta_value)?;
     let log_primitive_at_zeta5 = log_positive_bigdecimal(&primitive_value)?;
     let log_content = log_bigint_ratio(&primitive.content_numerator, &primitive.content_denominator)?;
@@ -110,37 +110,51 @@ fn max_coeff_bits(coefficients: &[BigInt]) -> usize {
         .unwrap_or(0)
 }
 
-fn zeta5_f64(terms: usize) -> f64 {
-    let mut sum = 0.0;
-    for index in 1..=terms {
-        sum += 1.0 / (index as f64).powi(5);
+/// Rigorous partial-sum midpoint for `ζ(5)` as `BigDecimal` (for polynomial evaluation).
+pub fn zeta5_bigdecimal(terms: usize) -> Result<BigDecimal, String> {
+    const ORDER: u32 = 5;
+    if terms == 0 {
+        return Err("series terms must be positive".into());
     }
-    sum + 1.0 / (4.0 * (terms as f64).powi(4))
+    let mut lower = Ratio::<BigInt>::from_integer(BigInt::zero());
+    for index in 1..=terms {
+        lower += Ratio::new(BigInt::one(), BigInt::from(index).pow(ORDER));
+    }
+    let tail_denominator = BigInt::from(ORDER - 1) * BigInt::from(terms).pow(ORDER - 1);
+    let tail = Ratio::new(BigInt::one(), tail_denominator);
+    let midpoint = lower + tail / Ratio::from_integer(BigInt::from(2));
+    rational_to_bigdecimal(&midpoint)
 }
 
-fn evaluate_rational_poly_bigdecimal(coefficients: &[Rational], point: f64) -> Result<BigDecimal, String> {
-    let point = BigDecimal::from_str(&point.to_string()).map_err(|error| error.to_string())?;
+fn evaluate_rational_poly_bigdecimal(coefficients: &[Rational], point: &BigDecimal) -> Result<BigDecimal, String> {
     let mut sum = BigDecimal::zero();
     let mut power = BigDecimal::one();
     for coeff in coefficients {
-        let rational =
-            BigDecimal::from_str(&format!("{}/{}", coeff.numer(), coeff.denom())).map_err(|error| error.to_string())?;
+        let rational = rational_to_bigdecimal(coeff)?;
         sum += rational * &power;
-        power *= &point;
+        power *= point;
     }
     Ok(sum)
 }
 
-fn evaluate_integer_poly_bigdecimal(coefficients: &[BigInt], point: f64) -> Result<BigDecimal, String> {
-    let point = BigDecimal::from_str(&point.to_string()).map_err(|error| error.to_string())?;
+fn evaluate_integer_poly_bigdecimal(coefficients: &[BigInt], point: &BigDecimal) -> Result<BigDecimal, String> {
     let mut sum = BigDecimal::zero();
     let mut power = BigDecimal::one();
     for coeff in coefficients {
         let integer = bigint_to_bigdecimal(coeff)?;
         sum += integer * &power;
-        power *= &point;
+        power *= point;
     }
     Ok(sum)
+}
+
+fn rational_to_bigdecimal(value: &Rational) -> Result<BigDecimal, String> {
+    let numerator = bigint_to_bigdecimal(value.numer())?;
+    let denominator = bigint_to_bigdecimal(value.denom())?;
+    if denominator.is_zero() {
+        return Err("rational denominator is zero".into());
+    }
+    Ok(numerator / denominator)
 }
 
 fn bigint_to_bigdecimal(value: &BigInt) -> Result<BigDecimal, String> {
