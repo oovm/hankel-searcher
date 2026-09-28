@@ -11,10 +11,7 @@ publish.workspace = true
 
 [dependencies]
 hs-types = { workspace = true }
-num-bigint = { workspace = true }
-num-integer = { workspace = true }
-num-rational = { workspace = true }
-num-traits = { workspace = true }
+malachite = { workspace = true }
 thiserror = { workspace = true }
 
 [features]

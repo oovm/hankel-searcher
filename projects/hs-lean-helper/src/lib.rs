@@ -14,6 +14,6 @@ pub use crate::{
     export::{
         CertificateExport, export_range, lean_prove_certificates_path, write_certificates,
     },
-    rational::{lcm_bigint, lcm_ratio_denoms, ratio_to_lean_ints},
+    rational::{lcm_natural, lcm_ratio_denoms, ratio_to_lean_ints},
     render::render_certificates,
 };

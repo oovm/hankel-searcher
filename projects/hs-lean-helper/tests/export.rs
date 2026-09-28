@@ -1,28 +1,27 @@
-use hs_lean_helper::{CertificateExport, certificates_from_range, render_certificates, FergusonCertificate};
-use hs_types::Approximant;
-use num_bigint::BigInt;
-use num_rational::Ratio;
+use hs_lean_helper::{CertificateExport, FergusonCertificate, certificates_from_range, render_certificates};
+use hs_types::{Approximant, Integer, Rational, RationalMomentSequence};
+use malachite::base::num::basic::traits::One;
 
 #[test]
 fn scaled_integers_clear_denominators() {
-    let p = Ratio::new(BigInt::from(4), BigInt::from(1));
-    let q = Ratio::new(BigInt::from(3), BigInt::from(1));
+    let p = Rational::from(Integer::from(4));
+    let q = Rational::from(Integer::from(3));
     let cert = FergusonCertificate::from_approximant(&Approximant {
         p,
         q,
         index: 0,
     });
-    assert_eq!(cert.scaled.int_p, BigInt::from(4));
-    assert_eq!(cert.scaled.int_q, BigInt::from(3));
-    assert_eq!(cert.scaled.scale, BigInt::from(1));
+    assert_eq!(cert.scaled.int_p, Integer::from(4));
+    assert_eq!(cert.scaled.int_q, Integer::from(3));
+    assert_eq!(cert.scaled.scale, Integer::ONE);
 }
 
-fn sample_moments() -> hs_types::RationalMomentSequence {
-    hs_types::RationalMomentSequence::from_positive_moments(vec![
-        Ratio::from_integer(BigInt::from(1)),
-        Ratio::new(BigInt::from(3), BigInt::from(4)),
-        Ratio::new(BigInt::from(11), BigInt::from(18)),
-        Ratio::new(BigInt::from(25), BigInt::from(36)),
+fn sample_moments() -> RationalMomentSequence {
+    RationalMomentSequence::from_positive_moments(vec![
+        Rational::ONE,
+        Rational::from_integers(Integer::from(3), Integer::from(4)),
+        Rational::from_integers(Integer::from(11), Integer::from(18)),
+        Rational::from_integers(Integer::from(25), Integer::from(36)),
     ])
 }
 
