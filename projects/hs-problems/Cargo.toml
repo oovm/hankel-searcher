@@ -52,11 +52,13 @@ path = "src/bin/export_zeta7_certificates.rs"
 [[bin]]
 name = "zeta5-hankel-golden"
 path = "src/bin/zeta5_hankel_golden.rs"
+required-features = ["offline-golden"]
+
+[features]
+default = []
+offline-golden = []
 
 [dev-dependencies]
 hs-checkpoint = { workspace = true }
 num-bigint = { workspace = true }
 num-rational = { workspace = true }
-
-[features]
-default = []

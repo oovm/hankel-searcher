@@ -1,7 +1,7 @@
 //! Offline **full** golden compare for `n=1` against `mo271/Zeta5` `scripts/hankel.py`.
 //!
 //! Not for CI. Expect tens of minutes in release:
-//! `cargo run --release -p hs-problems --bin zeta5-hankel-golden`
+//! `cargo run --release -p hs-problems --features offline-golden --bin zeta5-hankel-golden`
 
 use hs_problems::zeta5_polynomial_golden_full;
 
