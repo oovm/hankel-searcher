@@ -195,6 +195,11 @@ fn verify(path: &PathBuf) -> Result<(), String> {
 fn doctor(repo_root: &PathBuf) -> Result<(), String> {
     println!("repo_root: {}", repo_root.display());
     println!("cwd: {}", std::env::current_dir().map_err(|e| e.to_string())?.display());
+    let lean_prove = repo_root.join("projects/lean-prove/lakefile.toml");
+    println!(
+        "lean-prove: {}",
+        if lean_prove.is_file() { "present" } else { "missing lakefile" }
+    );
     let checkpoint = repo::resolve_checkpoint(repo_root, "zeta-3", None)?;
     match read_checkpoint(&checkpoint) {
         Ok(cp) => println!(
@@ -204,6 +209,7 @@ fn doctor(repo_root: &PathBuf) -> Result<(), String> {
         ),
         Err(error) => println!("zeta-3 checkpoint: invalid ({error})"),
     }
+    println!("checkpoint path: {}", checkpoint.display());
     println!("cargo: {}", if which_cargo() { "available" } else { "not found in PATH" });
     Ok(())
 }

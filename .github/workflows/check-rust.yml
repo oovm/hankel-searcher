@@ -23,7 +23,7 @@ jobs:
       - name: Test workspace
         run: cargo test --release
       - name: Test hs checkpoint tools
-        run: cargo test --release -p hs-checkpoint -p hs-searcher -p hs-verify -p hs-tools
+        run: cargo test --release -p hs-checkpoint -p hs-searcher -p hs-verify -p hs-problems -p hs-tools
       - name: hs doctor
         run: cargo run --release -p hs-tools -- doctor
       - name: Check zeta-3 checkpoint
