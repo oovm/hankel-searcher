@@ -1,6 +1,5 @@
 use hs_problems::zeta5_hankel::{
-    zeta5_delta_degree, zeta5_delta_leading_coeff, zeta5_delta_polynomial, zeta5_entries, zeta5_hankel_a,
-    zeta5_hankel_b,
+    zeta5_delta_degree, zeta5_delta_leading_coeff, zeta5_entries, zeta5_hankel_a, zeta5_hankel_b,
 };
 use num_traits::Zero;
 
@@ -31,16 +30,4 @@ fn leading_coeff_formula_is_nonzero_for_n1() {
     let entries = zeta5_entries(1);
     assert_eq!(zeta5_delta_degree(&entries), entries.params.h);
     assert!(!zeta5_delta_leading_coeff(&entries).is_zero());
-}
-
-/// Leading-coeff only smoke for exact `Δ_K` pipeline (no energy golden).
-///
-/// Full `hankel.py` alignment: `cargo test -p hs-problems polynomial_golden_full --release -- --ignored`
-#[test]
-#[ignore = "exact rational Δ_K at n=1 is offline only, not a default test"]
-fn delta_polynomial_full_pipeline_n1() {
-    let entries = zeta5_entries(1);
-    let delta = zeta5_delta_polynomial(&entries);
-    assert_eq!(delta.len(), entries.params.h + 1);
-    assert_eq!(delta[entries.params.h], zeta5_delta_leading_coeff(&entries));
 }

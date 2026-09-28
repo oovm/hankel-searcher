@@ -2,8 +2,11 @@
 //!
 //! Values captured from `python hankel.py 1` (flint arb), not stored as Python in this repo.
 //!
-//! **CI / default tests:** only [`zeta5_polynomial_golden_fast`].
-//! **Offline:** [`zeta5_polynomial_golden_full`] and `zeta5-hankel-golden` bin (~tens of minutes).
+//! **CI / `cargo test`:** only [`zeta5_polynomial_golden_fast`].
+//!
+//! **Offline (not tests):** [`zeta5_polynomial_golden_full`] via
+//! `cargo run --release -p hs-problems --features offline-golden --bin zeta5-hankel-golden`
+//! or `hs check zeta-5 --polynomial-golden --full-delta`.
 
 use crate::{
     zeta5_delta_leading_coeff, zeta5_delta_polynomial, zeta5_energy_report, zeta5_entries, zeta5_log_s_k,

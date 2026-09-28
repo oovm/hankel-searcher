@@ -76,7 +76,7 @@ pub fn zeta5_hankel_b(entries: &Zeta5Entries) -> Vec<Vec<Rational>> {
 /// Determinant polynomial `Δ_K` with ascending coefficients, matching `hankel.py#det_poly`.
 ///
 /// **Expensive:** at `n=1` this inverts and takes the characteristic polynomial of a
-/// `37×37` rational Hankel matrix. Use for offline checks or benchmarks, not default `cargo test`.
+/// `37×37` rational Hankel matrix. Offline only — not part of `cargo test`.
 pub fn zeta5_delta_polynomial(entries: &Zeta5Entries) -> Vec<Rational> {
     let a_matrix = zeta5_hankel_a(entries);
     let b_matrix = zeta5_hankel_b(entries);
