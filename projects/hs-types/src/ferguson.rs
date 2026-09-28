@@ -91,6 +91,43 @@ where
     })
 }
 
+/// Compute the Ferguson pair at index `n` on moments shifted by `shift`.
+pub fn ferguson_pair_at_shifted<T>(moments: &MomentSequence<T>, shift: usize, n: usize) -> Result<Approximant<T>, HankelError>
+where
+    T: Clone + Zero + One + std::ops::Neg<Output = T>,
+    T: std::ops::Div<Output = T>,
+    T: std::ops::Mul<Output = T>,
+    T: std::ops::Sub<Output = T>,
+{
+    let p_size = n + 2;
+    let need = 2 * p_size;
+    let required = shift + need;
+    if moments.len() < required {
+        return Err(HankelError::SequenceTooShort {
+            need: required,
+            got: moments.len(),
+        });
+    }
+
+    let prefix: Vec<T> = (0..need).map(|i| moments.a(shift + i)).collect();
+    let q_size = n + 1;
+    let p_matrix = hankel_matrix(&prefix, 0, p_size);
+    let q_matrix = hankel_matrix(&prefix, 2, q_size);
+
+    let p_det = bareiss_det(&p_matrix);
+    let q_det = bareiss_det(&q_matrix);
+
+    if q_det.is_zero() {
+        return Err(HankelError::SingularMinor { index: n });
+    }
+
+    Ok(Approximant {
+        p: -p_det,
+        q: q_det,
+        index: n,
+    })
+}
+
 /// Convert a rational approximant to `f64`.
 pub fn approximant_to_f64(approx: &Approximant<Ratio<num_bigint::BigInt>>) -> Result<f64, HankelError> {
     let value = approx.value()?;

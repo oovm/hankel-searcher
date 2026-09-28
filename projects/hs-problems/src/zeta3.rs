@@ -25,3 +25,14 @@ pub fn ferguson_approximant(n: usize, moment_count: usize) -> Result<Zeta3Approx
     let pair = ferguson_pair_at(&moments, n)?;
     Ok(Zeta3Approximant { index: n, p: pair.p, q: pair.q })
 }
+
+/// Compute `(P_n, Q_n)` for `ζ(3)` at index `n` with moment shift `shift`.
+pub fn ferguson_approximant_shifted(
+    n: usize,
+    shift: usize,
+    moment_count: usize,
+) -> Result<Zeta3Approximant, hs_types::HankelError> {
+    let moments = zeta3_moments(moment_count);
+    let pair = hs_types::ferguson_pair_at_shifted(&moments, shift, n)?;
+    Ok(Zeta3Approximant { index: n, p: pair.p, q: pair.q })
+}

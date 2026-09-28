@@ -15,6 +15,21 @@ fn zeta3_n1_matches_ferguson_table() {
 }
 
 #[test]
+fn zeta3_shifted_n0_shift1_differs_from_unshifted() {
+    let base = zeta3::ferguson_approximant(0, 12).unwrap();
+    let shifted = zeta3::ferguson_approximant_shifted(0, 1, 12).unwrap();
+    assert_ne!(base.p / base.q, shifted.p / shifted.q);
+}
+
+#[test]
+fn zeta_ferguson_shifted_matches_module_wrapper() {
+    let direct = hs_problems::zeta_ferguson_shifted(3, 1, 2, 16).unwrap();
+    let wrapped = zeta3::ferguson_approximant_shifted(1, 2, 16).unwrap();
+    assert_eq!(direct.p, wrapped.p);
+    assert_eq!(direct.q, wrapped.q);
+}
+
+#[test]
 fn export_zeta3_certificates_writes_file() {
     let path = export_zeta3_certificates(4).unwrap();
     assert!(path.exists());

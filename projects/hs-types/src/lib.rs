@@ -13,6 +13,8 @@ pub use crate::{
         log_abs_hankel_det,
     },
     error::HankelError,
-    ferguson::{approximant_to_f64, ferguson_pair, ferguson_pair_at, Approximant, FergusonPair},
+    ferguson::{
+        approximant_to_f64, ferguson_pair, ferguson_pair_at, ferguson_pair_at_shifted, Approximant, FergusonPair,
+    },
     sequence::{MomentSequence, RationalMomentSequence, ShiftedMomentSequence},
 };

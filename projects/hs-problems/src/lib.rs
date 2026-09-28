@@ -4,6 +4,7 @@
 
 mod error;
 mod export;
+mod ferguson;
 /// Ferguson approximants and moments for `ζ(2)`.
 pub mod zeta2;
 /// Ferguson approximants and moments for `ζ(3)`.
@@ -14,6 +15,7 @@ pub mod zeta5;
 pub mod zeta7;
 
 pub use crate::error::HsProblemsError;
+pub use crate::ferguson::{ShiftedApproximant, zeta_ferguson_shifted};
 pub use crate::export::{
     export_catalan_certificates, export_delta_certificates, export_gamma_certificates, export_zeta2_certificates,
     export_zeta3_certificates, export_zeta5_certificates, export_zeta7_certificates,
