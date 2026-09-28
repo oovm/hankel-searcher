@@ -5,7 +5,7 @@ Irrationality verification for `ζ(2)`: Rust Hankel pipeline → `hs-lean-helper
 ## Architecture
 
 ```text
-hs-moments (ζ(2) moments) → hs-types (Ferguson P/Q) → zeta-2 (export) → lean-prove/problems/Zeta2/
+hs-moments (ζ(2) moments) → hs-types (Ferguson P/Q) → zeta-2 (export) → lean-prove/Problems/Zeta2/
 ```
 
 The Rust side follows Ferguson (arXiv:2003.10616) and the Prévost Padé/Hankel route. The Lean side formalizes:

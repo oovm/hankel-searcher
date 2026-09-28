@@ -8,7 +8,7 @@ Rust → Lean 4 certificate export helpers for the Hankel-Ferguson irrationality
 - Render data-only `Certificates.lean` using shared `LeanProve.FergusonCertificate`
 - Generic API reusable by downstream crates such as `zeta-2`, `zeta-3`, `zeta-5`
 
-Exported files land in `projects/lean-prove/problems/<Problem>/Certificates.lean`.
+Exported files land in `projects/lean-prove/Problems/<Problem>/Certificates.lean`.
 
 ## Usage
 

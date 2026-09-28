@@ -18,21 +18,21 @@ fn export_moments(
     Ok(path)
 }
 
-/// Write `lean-prove/problems/Delta/Certificates.lean`.
+/// Write `lean-prove/Problems/Delta/Certificates.lean`.
 pub fn export_delta_certificates(max_n: usize) -> Result<PathBuf, HsProblemsError> {
     let moment_count = 2 * (max_n + 2);
     let moments = delta_moments(moment_count);
     export_moments("Delta", CertificateExport::delta_default(), &moments, max_n)
 }
 
-/// Write `lean-prove/problems/Gamma/Certificates.lean`.
+/// Write `lean-prove/Problems/Gamma/Certificates.lean`.
 pub fn export_gamma_certificates(max_n: usize) -> Result<PathBuf, HsProblemsError> {
     let moment_count = 2 * (max_n + 2);
     let moments = gamma_moments(moment_count);
     export_moments("Gamma", CertificateExport::gamma_default(), &moments, max_n)
 }
 
-/// Write `lean-prove/problems/Catalan/Certificates.lean`.
+/// Write `lean-prove/Problems/Catalan/Certificates.lean`.
 pub fn export_catalan_certificates(max_n: usize) -> Result<PathBuf, HsProblemsError> {
     let moment_count = 2 * (max_n + 2);
     let moments = catalan_beta_moments(moment_count);

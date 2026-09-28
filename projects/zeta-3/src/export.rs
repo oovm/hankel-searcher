@@ -7,7 +7,7 @@ use std::path::PathBuf;
 
 use crate::Zeta3Result;
 
-/// Write `lean-prove/problems/Zeta3/Certificates.lean`.
+/// Write `lean-prove/Problems/Zeta3/Certificates.lean`.
 pub fn export_lean_certificates(max_n: usize) -> Zeta3Result<PathBuf> {
     // Ferguson 在 index `n` 处需要 `2*(n+2)` 个正矩
     let moment_count = 2 * (max_n + 2);

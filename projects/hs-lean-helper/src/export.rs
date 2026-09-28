@@ -26,13 +26,14 @@ pub struct CertificateExport {
 }
 
 impl CertificateExport {
-    fn problem_defaults(namespace: &str, regenerate_cmd: &str) -> Self {
+    fn problem_defaults(problem: &str, regenerate_cmd: &str) -> Self {
+        let namespace = format!("Problems.{}", problem);
         Self {
             generator: "export-lean-certificates".into(),
             regenerate_cmd: regenerate_cmd.into(),
-            namespace: namespace.into(),
+            namespace,
             certificate_module: "LeanProve.Certificate".into(),
-            ferguson_module: format!("{}.Ferguson", namespace),
+            ferguson_module: format!("Problems.{}.Ferguson", problem),
             open_namespaces: "Hankel Ferguson".into(),
             certificate_type: "LeanProve.FergusonCertificate".into(),
             list_name: "certificates".into(),
@@ -88,10 +89,10 @@ impl CertificateExport {
     }
 }
 
-/// Path to `lean-prove/problems/<Problem>/Certificates.lean` from this crate layout.
+/// Path to `lean-prove/Problems/<Problem>/Certificates.lean` from this crate layout.
 pub fn lean_prove_certificates_path(problem: &str) -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../lean-prove/problems")
+        .join("../lean-prove/Problems")
         .join(problem)
         .join("Certificates.lean")
 }

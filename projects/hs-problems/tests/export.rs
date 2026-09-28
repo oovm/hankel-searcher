@@ -5,7 +5,7 @@ fn export_delta_certificates_writes_file() {
     let path = export_delta_certificates(4).unwrap();
     assert!(path.exists());
     let text = std::fs::read_to_string(path).unwrap();
-    assert!(text.contains("namespace Delta"));
+    assert!(text.contains("namespace Problems.Delta"));
     assert!(text.contains("def certificates"));
 }
 
@@ -14,7 +14,7 @@ fn export_gamma_certificates_writes_file() {
     let path = export_gamma_certificates(4).unwrap();
     assert!(path.exists());
     let text = std::fs::read_to_string(path).unwrap();
-    assert!(text.contains("namespace Gamma"));
+    assert!(text.contains("namespace Problems.Gamma"));
 }
 
 #[test]
@@ -22,5 +22,5 @@ fn export_catalan_certificates_writes_file() {
     let path = export_catalan_certificates(4).unwrap();
     assert!(path.exists());
     let text = std::fs::read_to_string(path).unwrap();
-    assert!(text.contains("namespace Catalan"));
+    assert!(text.contains("namespace Problems.Catalan"));
 }

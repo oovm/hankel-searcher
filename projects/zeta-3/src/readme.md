@@ -5,7 +5,7 @@ Irrationality verification for `ζ(3)`: Rust Hankel pipeline → `hs-lean-helper
 ## Architecture
 
 ```text
-hs-moments (ζ(3) moments) → hs-types (Ferguson P/Q) → zeta-3 (export) → lean-prove/problems/Zeta3/
+hs-moments (ζ(3) moments) → hs-types (Ferguson P/Q) → zeta-3 (export) → lean-prove/Problems/Zeta3/
 ```
 
 The Rust side follows Ferguson (arXiv:2003.10616) and the Prévost Padé/Hankel route (Apéry-style linear forms). The Lean side formalizes:

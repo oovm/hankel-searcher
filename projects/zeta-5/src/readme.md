@@ -5,7 +5,7 @@
 ## Architecture
 
 ```text
-hs-moments (ζ(5) moments) → hs-types (Ferguson P/Q) → zeta-5 (export) → lean-prove/problems/Zeta5/
+hs-moments (ζ(5) moments) → hs-types (Ferguson P/Q) → zeta-5 (export) → lean-prove/Problems/Zeta5/
 ```
 
 ## Rust
