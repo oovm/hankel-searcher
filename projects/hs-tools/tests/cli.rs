@@ -1,4 +1,6 @@
-use hs_checkpoint::{ProofRecord, ProofStatus, read_checkpoint, write_checkpoint};
+use hs_checkpoint::{
+    FERGUSON_PARAMETER_GENERATOR, ProofRecord, ProofStatus, RATIONAL_PARAMETER_SPACE, read_checkpoint, write_checkpoint,
+};
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tempfile::tempdir_in;
@@ -107,7 +109,9 @@ fn targets_lists_all_checkpoint_zeta() {
     assert!(stdout.contains("zeta-3"));
     assert!(stdout.contains("zeta-5"));
     assert!(stdout.contains("zeta-7"));
-    assert!(stdout.contains("finite-index Ferguson bounds"));
+    assert!(stdout.contains("ferguson-index-v1"));
+    assert!(stdout.contains("ferguson-parameter-v1"));
+    assert!(stdout.contains("planned"));
 }
 
 #[test]
@@ -162,6 +166,27 @@ fn check_validates_zeta5_observation() {
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("checked n="));
+}
+
+#[test]
+fn improve_rejects_planned_parameter_search_contract() {
+    let dir = tempdir_in(repo_root()).unwrap();
+    let path = dir.path().join("checkpoint.json");
+    let source = repo_root().join("projects/hs-problems/checkpoints/zeta-3/checkpoint.json");
+    std::fs::copy(source, &path).expect("copy checkpoint");
+    let mut cp = read_checkpoint(&path).unwrap();
+    cp.search.generator_id = FERGUSON_PARAMETER_GENERATOR.into();
+    cp.search.parameter_space_id = RATIONAL_PARAMETER_SPACE.into();
+    write_checkpoint(&path, &cp).unwrap();
+    let output = Command::new(hs_bin())
+        .current_dir(repo_root())
+        .args(["improve", "zeta-3", "--steps", "1", "--checkpoint"])
+        .arg(&path)
+        .output()
+        .expect("spawn hs");
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("not implemented"));
 }
 
 #[test]

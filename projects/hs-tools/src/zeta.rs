@@ -105,8 +105,8 @@ pub fn improve(
         }
     };
     cp.observed_best = report.best.clone();
-    cp.search.generator_id = "ferguson-index-v1".into();
-    cp.search.parameter_space_id = "nonnegative-index-v1".into();
+    cp.search.generator_id = hs_checkpoint::FERGUSON_INDEX_GENERATOR.into();
+    cp.search.parameter_space_id = hs_checkpoint::NONNEGATIVE_INDEX_SPACE.into();
     cp.search.next_candidate = report.end_index.to_string();
     cp.search.series_terms = Some(terms);
     cp.status = "draft".into();

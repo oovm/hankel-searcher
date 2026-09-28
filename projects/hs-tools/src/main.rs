@@ -124,6 +124,17 @@ fn status(path: &PathBuf, target: &str) -> Result<(), String> {
 }
 
 fn targets() {
+    println!("search contracts:");
+    for contract in hs_checkpoint::SEARCH_CONTRACTS {
+        let status = if contract.implemented { "implemented" } else { "planned" };
+        println!(
+            "  {} + {} ({}) [{status}]",
+            contract.generator_id,
+            contract.parameter_space_id,
+            contract.label
+        );
+    }
+    println!("checkpoint targets:");
     for target in hs_checkpoint::CHECKPOINT_TARGETS {
         println!("{target}");
         println!("  path: projects/hs-problems/checkpoints/{target}/checkpoint.json");
@@ -162,6 +173,11 @@ fn improve(
     }
     let mut cp = read_checkpoint(path).map_err(map_err)?;
     ensure_checkpoint_target(&cp, target)?;
+    if let Some(message) =
+        hs_checkpoint::improve_error_for_search_contract(&cp.search.generator_id, &cp.search.parameter_space_id)
+    {
+        return Err(message);
+    }
     let before = cp.observed_best.clone();
     let start_index = cp.search.next_candidate.clone();
     let report = zeta::improve(&mut cp, steps, terms, time_budget, strategy, jobs)?;
