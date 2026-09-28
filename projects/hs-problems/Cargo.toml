@@ -15,6 +15,7 @@ hs-moments = { workspace = true }
 hs-lean-helper = { workspace = true }
 num-bigint = { workspace = true }
 num-rational = { workspace = true }
+num-traits = { workspace = true }
 thiserror = { workspace = true }
 
 [[bin]]

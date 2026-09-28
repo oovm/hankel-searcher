@@ -5,6 +5,8 @@
 mod error;
 mod export;
 mod ferguson;
+/// Whole-polynomial Hankel construction for `ζ(5)`.
+pub mod zeta5_polynomial;
 /// Ferguson approximants and moments for `ζ(2)`.
 pub mod zeta2;
 /// Ferguson approximants and moments for `ζ(3)`.
@@ -16,6 +18,7 @@ pub mod zeta7;
 
 pub use crate::error::HsProblemsError;
 pub use crate::ferguson::{ShiftedApproximant, zeta_ferguson_shifted};
+pub use crate::zeta5_polynomial::{Zeta5PaperParams, d_polynomial, d_polynomial_degree, evaluate_polynomial, zeta5_paper_params};
 pub use crate::export::{
     export_catalan_certificates, export_delta_certificates, export_gamma_certificates, export_zeta2_certificates,
     export_zeta3_certificates, export_zeta5_certificates, export_zeta7_certificates,
