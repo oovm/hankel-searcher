@@ -77,7 +77,7 @@ pub fn zeta5_delta_primitive(delta: &[Rational]) -> Zeta5DeltaPrimitive {
 /// Evaluate energy logs for an already computed `Δ_K`.
 pub fn zeta5_energy_report(params: &Zeta5PaperParams, delta: &[Rational]) -> Result<Zeta5EnergyReport, String> {
     let primitive = zeta5_delta_primitive(delta);
-    let zeta5 = zeta5_bigdecimal(200_000)?;
+    let zeta5 = zeta5_bigdecimal(50_000)?;
     let log_s_k = zeta5_log_s_k(params);
     let delta_value = evaluate_rational_poly_bigdecimal(delta, &zeta5)?;
     let primitive_value = evaluate_integer_poly_bigdecimal(&primitive.coefficients, &zeta5)?;
@@ -116,14 +116,16 @@ pub fn zeta5_bigdecimal(terms: usize) -> Result<BigDecimal, String> {
     if terms == 0 {
         return Err("series terms must be positive".into());
     }
-    let mut lower = Ratio::<BigInt>::from_integer(BigInt::zero());
+    let mut sum = BigDecimal::zero();
     for index in 1..=terms {
-        lower += Ratio::new(BigInt::one(), BigInt::from(index).pow(ORDER));
+        let denominator = bigint_to_bigdecimal(&BigInt::from(index).pow(ORDER))?;
+        sum += BigDecimal::one() / denominator;
     }
-    let tail_denominator = BigInt::from(ORDER - 1) * BigInt::from(terms).pow(ORDER - 1);
-    let tail = Ratio::new(BigInt::one(), tail_denominator);
-    let midpoint = lower + tail / Ratio::from_integer(BigInt::from(2));
-    rational_to_bigdecimal(&midpoint)
+    let tail_denominator =
+        bigint_to_bigdecimal(&(BigInt::from(ORDER - 1) * BigInt::from(terms).pow(ORDER - 1)))?;
+    let tail = BigDecimal::one() / tail_denominator;
+    let half = bigint_to_bigdecimal(&BigInt::from(2))?;
+    Ok(sum + tail / half)
 }
 
 fn evaluate_rational_poly_bigdecimal(coefficients: &[Rational], point: &BigDecimal) -> Result<BigDecimal, String> {

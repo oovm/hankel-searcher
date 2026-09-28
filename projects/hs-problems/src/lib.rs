@@ -30,7 +30,7 @@ pub use crate::zeta5_hankel::{
     zeta5_hankel_a, zeta5_hankel_b,
 };
 pub use crate::zeta5_energy::{
-    Zeta5DeltaPrimitive, Zeta5EnergyReport, zeta5_delta_primitive, zeta5_energy_report, zeta5_log_s_k,
+    Zeta5DeltaPrimitive, Zeta5EnergyReport, zeta5_bigdecimal, zeta5_delta_primitive, zeta5_energy_report, zeta5_log_s_k,
 };
 pub use crate::zeta5_golden::{Zeta5GoldenN1, zeta5_polynomial_golden_fast, zeta5_polynomial_golden_full};
 pub use crate::export::{

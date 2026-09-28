@@ -54,6 +54,7 @@ name = "zeta5-hankel-golden"
 path = "src/bin/zeta5_hankel_golden.rs"
 
 [dev-dependencies]
+hs-checkpoint = { workspace = true }
 num-bigint = { workspace = true }
 num-rational = { workspace = true }
 
