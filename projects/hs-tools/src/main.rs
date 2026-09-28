@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand};
-use hs_checkpoint::{CheckpointError, ProofStatus, read_checkpoint, write_checkpoint};
+use hs_checkpoint::{CheckpointError, ProofStatus, SearchBenchmark, read_checkpoint, write_checkpoint};
 use hs_verify::{VerifyVerdict, verify_checkpoint};
 use num_traits::ToPrimitive;
 use std::path::PathBuf;
@@ -97,6 +97,8 @@ fn status(path: &PathBuf, target: &str) -> Result<(), String> {
     println!("status: {}", cp.status);
     println!("proof_status: {}", proof_status_label(&cp.proof_status));
     println!("next_candidate: {}", cp.search.next_candidate);
+    println!("generator_id: {}", cp.search.generator_id);
+    println!("parameter_space_id: {}", cp.search.parameter_space_id);
     if let Some(terms) = cp.search.series_terms {
         println!("series_terms: {}", terms);
     }
@@ -117,7 +119,7 @@ fn status(path: &PathBuf, target: &str) -> Result<(), String> {
     println!("mu_status: {}", mu_status_label(&cp.mu.status));
     println!("proof_record: {}", if cp.proof.is_some() { "present" } else { "null" });
     println!("time_to_proof_from_scratch: unknown (no completeness guarantee)");
-    println!("workload_eta: unknown");
+    println!("workload_eta: {}", workload_eta_label(&cp));
     println!("checkpoint: {}", path.display());
     println!("updated_at: {}", cp.updated_at);
     Ok(())
@@ -180,11 +182,20 @@ fn improve(
     }
     let before = cp.observed_best.clone();
     let start_index = cp.search.next_candidate.clone();
+    let started = std::time::Instant::now();
     let report = zeta::improve(&mut cp, steps, terms, time_budget, strategy, jobs)?;
+    let elapsed_ms = started.elapsed().as_millis() as u64;
     let bound_improved = report.bound_improved;
     let total_improvements = report.improvements;
     let should_write = if write_on_improvement { bound_improved } else { true };
     if should_write {
+        cp.search.benchmark = Some(SearchBenchmark {
+            steps: report.completed_steps,
+            elapsed_ms,
+            jobs,
+            strategy: strategy.label().into(),
+            recorded_at: chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
+        });
         write_checkpoint(path, &cp).map_err(map_err)?;
     }
     println!("target: {}", cp.target);
@@ -283,6 +294,19 @@ fn proof_status_label(status: &ProofStatus) -> &'static str {
         ProofStatus::Unknown => "unknown",
         ProofStatus::Rational => "rational",
         ProofStatus::Irrational => "irrational",
+    }
+}
+
+fn workload_eta_label(cp: &hs_checkpoint::Checkpoint) -> String {
+    match &cp.search.benchmark {
+        Some(benchmark) => format!(
+            "~{}ms for last {} candidate(s) at jobs={} ({}) on this machine, not a proof-time estimate",
+            benchmark.elapsed_ms,
+            benchmark.steps,
+            benchmark.jobs,
+            benchmark.strategy
+        ),
+        None => "unknown".into(),
     }
 }
 

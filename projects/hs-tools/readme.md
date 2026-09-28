@@ -20,3 +20,4 @@ hs verify zeta-3
 `--write-on-improvement` skips writing the JSON when only coverage advances without a bound improvement.
 `verify` validates registered `rational_equality` proofs and exits with code `2` when no verifier is registered.
 `doctor` reports repository root, every checkpoint target readability, and toolchain availability.
+`search.benchmark` records the last successful `hs improve` wall time. `hs status` reports it as `workload_eta` and does not treat it as proof discovery time.

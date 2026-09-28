@@ -190,6 +190,35 @@ fn improve_rejects_planned_parameter_search_contract() {
 }
 
 #[test]
+fn improve_records_workload_benchmark() {
+    let dir = tempdir_in(repo_root()).unwrap();
+    let path = dir.path().join("checkpoint.json");
+    let source = repo_root().join("projects/hs-problems/checkpoints/zeta-3/checkpoint.json");
+    std::fs::copy(source, &path).expect("copy checkpoint");
+    let output = Command::new(hs_bin())
+        .current_dir(repo_root())
+        .args(["improve", "zeta-3", "--steps", "1", "--checkpoint"])
+        .arg(&path)
+        .output()
+        .expect("spawn hs");
+    assert!(output.status.success());
+    let cp = read_checkpoint(&path).unwrap();
+    let benchmark = cp.search.benchmark.expect("benchmark");
+    assert_eq!(benchmark.steps, 1);
+    assert!(benchmark.jobs >= 1);
+    assert!(benchmark.elapsed_ms > 0);
+    let status = Command::new(hs_bin())
+        .current_dir(repo_root())
+        .args(["status", "zeta-3", "--checkpoint"])
+        .arg(&path)
+        .output()
+        .expect("spawn hs");
+    assert!(status.status.success());
+    let stdout = String::from_utf8_lossy(&status.stdout);
+    assert!(stdout.contains("not a proof-time estimate"));
+}
+
+#[test]
 fn improve_accepts_parallel_jobs() {
     let output = Command::new(hs_bin())
         .current_dir(repo_root())
