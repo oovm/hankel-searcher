@@ -9,7 +9,11 @@ use crate::{
     zeta5_delta_leading_coeff, zeta5_delta_polynomial, zeta5_energy_report, zeta5_entries, zeta5_log_s_k,
     Zeta5EnergyReport,
 };
+use num_bigint::BigInt;
+use num_rational::Ratio;
 use num_traits::Zero;
+
+type Rational = Ratio<BigInt>;
 
 /// Expected outputs for `n=1`, `K=40`, `N=3`, `h=37`.
 #[derive(Debug, Clone, Copy)]
@@ -93,11 +97,48 @@ pub fn zeta5_polynomial_golden_fast() -> Result<(), String> {
         return Err("moment sequence length mismatch".into());
     }
     Zeta5GoldenN1::default().assert_log_s_k(zeta5_log_s_k(params))?;
+    assert_moment_golden(&entries)?;
     let lead = zeta5_delta_leading_coeff(&entries);
     if lead.is_zero() {
         return Err("(2.9) leading coefficient formula is zero".into());
     }
     Ok(())
+}
+
+/// First moments from `hankel.py#entries(1)` (mo271/Zeta5 @ 7fe7367).
+fn assert_moment_golden(entries: &crate::zeta5_hankel::Zeta5Entries) -> Result<(), String> {
+    const GOLDEN_A: [(&str, &str); 3] = [
+        (
+            "49821462748046694006853561350793143870593179493040606581",
+            "188299614209343116973075133400157932727737142039536050380525012802664911752330958575583675635722426948645617643028480000000000000000000000",
+        ),
+        (
+            "8958568640929906584589777392347266022642533941475983599",
+            "2353745177616788962163439167501974159096714275494200629756562660033311396904136982194795945446530336858070220537856000000000000000000000",
+        ),
+        (
+            "732019960601533841611306270658604877361157281383104997",
+            "11316082584696100779631919074528721918734203247568272258445012788621689408192966260551903583877549696433029906432000000000000000000000",
+        ),
+    ];
+    for (index, (numerator, denominator)) in GOLDEN_A.iter().enumerate() {
+        let expected = parse_golden_rational(numerator, denominator)?;
+        if entries.a[index] != expected {
+            return Err(format!("a[{index}] mismatch vs hankel.py golden"));
+        }
+        if !entries.b[index].is_zero() {
+            return Err(format!("b[{index}] should be zero in hankel.py golden"));
+        }
+    }
+    Ok(())
+}
+
+fn parse_golden_rational(numerator: &str, denominator: &str) -> Result<Rational, String> {
+    let numer = BigInt::parse_bytes(numerator.as_bytes(), 10)
+        .ok_or_else(|| format!("invalid golden numerator `{numerator}`"))?;
+    let denom = BigInt::parse_bytes(denominator.as_bytes(), 10)
+        .ok_or_else(|| format!("invalid golden denominator `{denominator}`"))?;
+    Ok(Ratio::new(numer, denom))
 }
 
 /// Full offline golden: exact `Δ_K`, energy logs, and primitive coefficient bit width.
