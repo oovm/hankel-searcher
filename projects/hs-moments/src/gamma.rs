@@ -1,26 +1,24 @@
 use crate::rational::{binomial, factorial, ratio};
-use hs_types::RationalMomentSequence;
-use num_bigint::BigInt;
-use num_rational::Ratio;
-use num_traits::{One, Zero};
+use hs_types::{Integer, Rational, RationalMomentSequence};
+use malachite::base::num::arithmetic::traits::Pow;
+use malachite::base::num::basic::traits::{One, Zero};
 
 /// Euler-Mascheroni constant.
 pub const EULER_MASCHERONI: f64 = 0.577_215_664_9;
 
 /// `L_γ(e_n)` from Ferguson (2020), Example γ.
-pub fn gamma_moment(n: usize) -> Ratio<BigInt> {
+pub fn gamma_moment(n: usize) -> Rational {
     assert!(n >= 1, "gamma moments are defined for n >= 1");
     let fact = factorial(n - 1);
-    let mut sum = Ratio::from_integer(BigInt::zero());
-    let one = Ratio::from_integer(BigInt::one());
+    let mut sum = Rational::ZERO;
     for i in 0..=n {
-        let inner_sign = if i % 2 == 0 { one.clone() } else { -one.clone() };
-        let coeff = BigInt::from((n as i64) - 2 * (i as i64) - 1);
-        let denom = BigInt::from(i + 1).pow(n as u32 + 1);
-        let term = inner_sign * Ratio::new(binomial(n, i) * coeff, denom);
+        let inner_sign = if i % 2 == 0 { Rational::ONE } else { -Rational::ONE };
+        let coeff = Integer::from((n as i64) - 2 * (i as i64) - 1);
+        let denom = Integer::from(i + 1).pow(u64::from(n as u32 + 1));
+        let term = inner_sign * ratio(binomial(n, i) * coeff, denom);
         sum += term;
     }
-    ratio(fact, BigInt::one()) * sum
+    ratio(fact, Integer::ONE) * sum
 }
 
 /// Build the first `count` Ferguson moments for `γ`.

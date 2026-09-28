@@ -1,21 +1,19 @@
 use crate::rational::{factorial, ratio};
-use hs_types::RationalMomentSequence;
-use num_bigint::BigInt;
-use num_rational::Ratio;
-use num_traits::{One, Zero};
+use hs_types::{Integer, Rational, RationalMomentSequence};
+use malachite::base::num::basic::traits::{One, Zero};
 
 /// Euler-Gompertz constant `δ = ∫_0^∞ e^{-t}/(1+t) dt`.
 pub const EULER_GOMPERTZ: f64 = 0.596_347_362_3;
 
 /// `L_δ(e_n) = Σ_{i=0}^{n-1} (n-1)!/i!` for `n >= 1`.
-pub fn delta_moment(n: usize) -> Ratio<BigInt> {
+pub fn delta_moment(n: usize) -> Rational {
     assert!(n >= 1, "delta moments are defined for n >= 1");
-    let mut sum = BigInt::zero();
+    let mut sum = Integer::ZERO;
     let fact = factorial(n - 1);
     for i in 0..n {
         sum += &fact / factorial(i);
     }
-    ratio(sum, BigInt::one())
+    ratio(sum, Integer::ONE)
 }
 
 /// Build the first `count` Ferguson moments for `δ`.

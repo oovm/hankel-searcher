@@ -1,8 +1,7 @@
-use crate::rational::binomial;
-use hs_types::RationalMomentSequence;
-use num_bigint::BigInt;
-use num_rational::Ratio;
-use num_traits::{One, Zero};
+use crate::rational::{binomial, ratio};
+use hs_types::{Integer, Rational, RationalMomentSequence};
+use malachite::base::num::arithmetic::traits::Pow;
+use malachite::base::num::basic::traits::Zero;
 
 /// Dirichlet beta `β(k) = Σ_{n≥0} (-1)^n / (2n+1)^k`；`k=2` 时等于 Catalan 常数 `G`。
 ///
@@ -14,16 +13,18 @@ use num_traits::{One, Zero};
 /// Ferguson 型 Bose 积分（见 Ferguson arXiv:2003.10616 §2 与 `ζ(k)` 对偶）：
 /// `L_{β,k}(f) = 2/(k-1)! ∫_0^∞ x^{k-1} e^{-x}/(e^x+e^{-x}) f(1-e^{-2x}) dx`，
 /// 故 `L_{β,k}(e_n) = 2 Σ_{i=0}^{n-1} C(n-1,i)(-1)^i / (2(i+1))^k`。
-pub fn beta_moment(k: u32, n: usize) -> Ratio<BigInt> {
+pub fn beta_moment(k: u32, n: usize) -> Rational {
     assert!(k >= 2, "beta moments are defined for k >= 2");
     assert!(n >= 1, "beta moments are defined for n >= 1");
-    let mut sum = Ratio::from_integer(BigInt::zero());
-    let one = Ratio::from_integer(BigInt::one());
-    let two = BigInt::from(2);
+    let mut sum = Rational::ZERO;
+    let two = Integer::from(2);
     for i in 0..n {
-        let sign = if i % 2 == 0 { one.clone() } else { -one.clone() };
-        let denom = (two.clone() * BigInt::from(i + 1)).pow(k);
-        let term = sign * Ratio::new(binomial(n - 1, i), denom);
+        let denom = (two.clone() * Integer::from(i + 1)).pow(u64::from(k));
+        let term = if i % 2 == 0 {
+            ratio(binomial(n - 1, i), denom)
+        } else {
+            -ratio(binomial(n - 1, i), denom)
+        };
         sum += term;
     }
     sum

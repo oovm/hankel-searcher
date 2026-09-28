@@ -1,34 +1,33 @@
-use num_bigint::BigInt;
-use num_rational::Ratio;
-use num_traits::{One, Zero};
+use hs_types::{Integer, Rational};
+use malachite::base::num::basic::traits::{One, Zero};
 
 /// Exact factorial `n!`.
-pub fn factorial(n: usize) -> BigInt {
+pub fn factorial(n: usize) -> Integer {
     if n == 0 {
-        return BigInt::one();
+        return Integer::ONE;
     }
-    (1..=n).fold(BigInt::one(), |acc, k| acc * BigInt::from(k))
+    (1..=n).fold(Integer::ONE, |acc, k| acc * Integer::from(k))
 }
 
 /// Exact binomial coefficient `n choose k`.
-pub fn binomial(n: usize, k: usize) -> BigInt {
+pub fn binomial(n: usize, k: usize) -> Integer {
     if k > n {
-        return BigInt::zero();
+        return Integer::ZERO;
     }
     if k == 0 || k == n {
-        return BigInt::one();
+        return Integer::ONE;
     }
     let k = k.min(n - k);
-    let mut num = BigInt::one();
-    let mut den = BigInt::one();
+    let mut num = Integer::ONE;
+    let mut den = Integer::ONE;
     for i in 0..k {
-        num *= BigInt::from(n - k + i + 1);
-        den *= BigInt::from(i + 1);
+        num *= Integer::from(n - k + i + 1);
+        den *= Integer::from(i + 1);
     }
     num / den
 }
 
 /// Build a reduced rational from integers.
-pub fn ratio(num: impl Into<BigInt>, den: impl Into<BigInt>) -> Ratio<BigInt> {
-    Ratio::new(num.into(), den.into())
+pub fn ratio(num: impl Into<Integer>, den: impl Into<Integer>) -> Rational {
+    Rational::from_integers(num.into(), den.into())
 }

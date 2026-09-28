@@ -1,8 +1,7 @@
-use crate::rational::binomial;
-use hs_types::RationalMomentSequence;
-use num_bigint::BigInt;
-use num_rational::Ratio;
-use num_traits::{One, Zero};
+use crate::rational::{binomial, ratio};
+use hs_types::{Integer, Rational, RationalMomentSequence};
+use malachite::base::num::arithmetic::traits::Pow;
+use malachite::base::num::basic::traits::Zero;
 
 /// Reference value of `ζ(2)` for regression tests.
 pub const ZETA_2: f64 = 1.644_934_066_8;
@@ -12,15 +11,18 @@ pub const ZETA_3: f64 = 1.202_056_903_1;
 pub const ZETA_5: f64 = 1.036_927_755_1;
 
 /// `L_{ζ,k}(e_n) = Σ_{i=0}^{n-1} C(n-1,i) (-1)^i / (i+1)^k`.
-pub fn zeta_moment(k: u32, n: usize) -> Ratio<BigInt> {
+pub fn zeta_moment(k: u32, n: usize) -> Rational {
     assert!(k >= 2, "zeta moments are defined for k >= 2");
     assert!(n >= 1, "zeta moments are defined for n >= 1");
-    let mut sum = Ratio::from_integer(BigInt::zero());
-    let one = Ratio::from_integer(BigInt::one());
+    let mut sum = Rational::ZERO;
     for i in 0..n {
-        let sign = if i % 2 == 0 { one.clone() } else { -one.clone() };
-        let denom = BigInt::from(i + 1).pow(k);
-        let term = sign * Ratio::new(binomial(n - 1, i), denom);
+        let coeff = binomial(n - 1, i);
+        let denom = Integer::from(i + 1).pow(u64::from(k));
+        let term = if i % 2 == 0 {
+            ratio(coeff, denom)
+        } else {
+            -ratio(coeff, denom)
+        };
         sum += term;
     }
     sum
