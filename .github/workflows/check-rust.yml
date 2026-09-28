@@ -26,10 +26,16 @@ jobs:
         run: cargo test --release -p hs-checkpoint -p hs-searcher -p hs-verify -p hs-problems -p hs-tools
       - name: hs doctor
         run: cargo run --release -p hs-tools -- doctor
-      - name: Check zeta-3 checkpoint
-        run: cargo run --release -p hs-tools -- check zeta-3
-      - name: Verify zeta-3 proof record
+      - name: Check Ferguson checkpoint targets
+        run: |
+          for target in zeta-2 zeta-3 zeta-5 zeta-7; do
+            cargo run --release -p hs-tools -- check "$target"
+          done
+        shell: bash
+      - name: Verify unknown proof targets
         run: |
           cargo run --release -p hs-tools -- verify zeta-3
-          if [ $? -ne 2 ]; then exit 1; fi
+          test $? -eq 2
+          cargo run --release -p hs-tools -- verify zeta-7
+          test $? -eq 2
         shell: bash
