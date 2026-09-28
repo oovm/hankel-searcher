@@ -41,6 +41,10 @@ path = "src/bin/export_zeta3_certificates.rs"
 name = "export-zeta5-certificates"
 path = "src/bin/export_zeta5_certificates.rs"
 
+[[bin]]
+name = "export-zeta7-certificates"
+path = "src/bin/export_zeta7_certificates.rs"
+
 [dev-dependencies]
 num-bigint = { workspace = true }
 num-rational = { workspace = true }

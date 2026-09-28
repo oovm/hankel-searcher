@@ -55,6 +55,11 @@ impl CertificateExport {
         Self::problem_defaults("Zeta5", "cargo run --release -p hs-problems --bin export-zeta5-certificates")
     }
 
+    /// Default export settings for the `zeta-7` problem.
+    pub fn zeta7_default() -> Self {
+        Self::problem_defaults("Zeta7", "cargo run --release -p hs-problems --bin export-zeta7-certificates")
+    }
+
     /// Default export settings for the Euler-Gompertz `δ` problem.
     pub fn delta_default() -> Self {
         Self::problem_defaults("Delta", "cargo run --release -p hs-problems --bin export-delta-certificates")

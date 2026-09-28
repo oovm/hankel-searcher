@@ -22,3 +22,11 @@ fn export_zeta3_certificates_writes_file() {
     assert!(text.contains("namespace Problems.Zeta3"));
     assert!(text.contains("4887"));
 }
+
+#[test]
+fn export_zeta7_certificates_writes_file() {
+    let path = hs_problems::export_zeta7_certificates(2).unwrap();
+    assert!(path.exists());
+    let text = std::fs::read_to_string(path).unwrap();
+    assert!(text.contains("namespace Problems.Zeta7"));
+}

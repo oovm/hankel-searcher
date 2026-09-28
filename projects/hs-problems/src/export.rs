@@ -57,3 +57,10 @@ pub fn export_zeta5_certificates(max_n: usize) -> Result<PathBuf, HsProblemsErro
     let moments = hs_moments::zeta_moments(5, moment_count);
     export_moments("Zeta5", CertificateExport::zeta5_default(), &moments, max_n)
 }
+
+/// Write `lean-prove/Problems/Zeta7/Certificates.lean`.
+pub fn export_zeta7_certificates(max_n: usize) -> Result<PathBuf, HsProblemsError> {
+    let moment_count = 2 * (max_n + 2);
+    let moments = hs_moments::zeta_moments(7, moment_count);
+    export_moments("Zeta7", CertificateExport::zeta7_default(), &moments, max_n)
+}
