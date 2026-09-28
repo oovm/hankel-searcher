@@ -1,7 +1,7 @@
 import Hankel.Ferguson
 
-namespace Zeta3
+namespace Problems.Zeta3
 
 open Hankel Ferguson
 
-end Zeta3
+end Problems.Zeta3

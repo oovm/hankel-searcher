@@ -1,4 +1,4 @@
-import Gamma.Certificates
+import Problems.Gamma.Certificates
 import Hankel.LinearForm
 
 /-!
@@ -7,11 +7,11 @@ import Hankel.LinearForm
 Hankel-Ferguson route to irrationality of the Euler-Mascheroni constant `γ` (in progress).
 -/
 
-namespace Gamma
+namespace Problems.Gamma
 
 open Hankel
 
 theorem gamma_irrational_hankel : True := by
   trivial
 
-end Gamma
+end Problems.Gamma

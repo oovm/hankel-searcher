@@ -1,16 +1,6 @@
 name = "lean-prove"
 version = "0.1.0"
-defaultTargets = [
-  "Hankel",
-  "LeanProve",
-  "Zeta2",
-  "Zeta3",
-  "Zeta5",
-  "Delta",
-  "Gamma",
-  "Catalan",
-  "L2ChiMinus3",
-]
+defaultTargets = ["Hankel", "LeanProve", "Problems"]
 
 [leanOptions]
 autoImplicit = false
@@ -23,29 +13,4 @@ name = "Hankel"
 name = "LeanProve"
 
 [[lean_lib]]
-name = "Zeta2"
-srcDir = "problems"
-
-[[lean_lib]]
-name = "Zeta3"
-srcDir = "problems"
-
-[[lean_lib]]
-name = "Zeta5"
-srcDir = "problems"
-
-[[lean_lib]]
-name = "Delta"
-srcDir = "problems"
-
-[[lean_lib]]
-name = "Gamma"
-srcDir = "problems"
-
-[[lean_lib]]
-name = "Catalan"
-srcDir = "problems"
-
-[[lean_lib]]
-name = "L2ChiMinus3"
-srcDir = "problems"
+name = "Problems"

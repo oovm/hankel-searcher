@@ -6,8 +6,8 @@ import Hankel.Ferguson
 Catalan constant `G = β(2)` via Ferguson dual Bose kernel (arXiv:2003.10616).
 -/
 
-namespace Catalan
+namespace Problems.Catalan
 
 open Hankel Ferguson
 
-end Catalan
+end Problems.Catalan

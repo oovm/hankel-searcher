@@ -1,2 +1,0 @@
-import L2ChiMinus3.Ferguson
-import L2ChiMinus3.Irrationality

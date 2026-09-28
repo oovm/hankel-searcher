@@ -1,4 +1,4 @@
-import Zeta5.Certificates
+import Problems.Zeta5.Certificates
 import Hankel.LinearForm
 
 /-!
@@ -7,11 +7,11 @@ import Hankel.LinearForm
 Hankel-Ferguson route to `ζ(5)` irrationality (in progress).
 -/
 
-namespace Zeta5
+namespace Problems.Zeta5
 
 open Hankel
 
 theorem zeta5_irrational_hankel : True := by
   trivial
 
-end Zeta5
+end Problems.Zeta5

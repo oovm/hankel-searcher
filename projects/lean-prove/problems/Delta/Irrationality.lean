@@ -1,4 +1,4 @@
-import Delta.Certificates
+import Problems.Delta.Certificates
 import Hankel.LinearForm
 
 /-!
@@ -7,11 +7,11 @@ import Hankel.LinearForm
 Hankel-Ferguson route to irrationality of the Euler-Gompertz constant `δ` (in progress).
 -/
 
-namespace Delta
+namespace Problems.Delta
 
 open Hankel
 
 theorem delta_irrational_hankel : True := by
   trivial
 
-end Delta
+end Problems.Delta
