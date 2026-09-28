@@ -1,5 +1,5 @@
 use crate::error::CheckpointError;
-use crate::search::validate_known_search_contract;
+use crate::search::{validate_known_search_contract, RATIONAL_PARAMETER_MAX_SHIFT};
 use crate::targets::is_known_target;
 use crate::rational::ratio_from_data;
 use num_bigint::BigInt;
@@ -48,6 +48,8 @@ impl RationalData {
 pub struct Observation {
     pub kind: String,
     pub n: usize,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub shift: Option<usize>,
     pub series_terms: usize,
     pub approximant: RationalData,
     pub error_upper: RationalData,
@@ -220,6 +222,13 @@ pub fn validate_checkpoint(cp: &Checkpoint) -> Result<(), CheckpointError> {
     if let Some(observation) = &cp.observed_best {
         if observation.kind != "finite_approximation_error_upper" {
             return Err(CheckpointError::Invalid("unsupported observation kind".into()));
+        }
+        if let Some(shift) = observation.shift {
+            if shift > RATIONAL_PARAMETER_MAX_SHIFT {
+                return Err(CheckpointError::Invalid(format!(
+                    "observation shift `{shift}` exceeds rational-parameter max `{RATIONAL_PARAMETER_MAX_SHIFT}`"
+                )));
+            }
         }
         observation.approximant.ratio().map_err(CheckpointError::Invalid)?;
         observation.error_upper.ratio().map_err(CheckpointError::Invalid)?;

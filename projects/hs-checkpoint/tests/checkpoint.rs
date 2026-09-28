@@ -1,8 +1,9 @@
 use hs_checkpoint::{
-    Checkpoint, CHECKPOINT_TARGETS, FERGUSON_INDEX_GENERATOR, FERGUSON_PARAMETER_GENERATOR, FERGUSON_ZETA_TARGETS,
-    MuRecord, MuStatus, NONNEGATIVE_INDEX_SPACE, Objective, ProofStatus, RATIONAL_PARAMETER_SPACE, RationalData, Search,
-    default_checkpoint_path, has_ferguson_search, is_implemented_search_contract, is_known_target, read_checkpoint,
-    validate_known_search_contract, write_checkpoint, zeta_order,
+    decode_rational_parameter, rational_parameter_ordinal, Checkpoint, CHECKPOINT_TARGETS, FERGUSON_INDEX_GENERATOR,
+    FERGUSON_PARAMETER_GENERATOR, FERGUSON_ZETA_TARGETS, MuRecord, MuStatus, NONNEGATIVE_INDEX_SPACE, Objective,
+    ProofStatus, RATIONAL_PARAMETER_SPACE, RationalData, Search, default_checkpoint_path, has_ferguson_search,
+    is_implemented_search_contract, is_known_target, read_checkpoint, validate_known_search_contract, write_checkpoint,
+    zeta_order,
 };
 use num_bigint::BigInt;
 use num_rational::Ratio;
@@ -84,6 +85,7 @@ fn rejects_noncanonical_rational() {
     cp.observed_best = Some(hs_checkpoint::Observation {
         kind: "finite_approximation_error_upper".into(),
         n: 0,
+        shift: None,
         series_terms: 64,
         approximant: RationalData { num: "2".into(), den: "4".into() },
         error_upper: RationalData::from_ratio(&Ratio::from_integer(BigInt::from(1))),
@@ -144,9 +146,16 @@ fn checkpoint_targets_registry() {
 #[test]
 fn search_contract_registry() {
     assert!(is_implemented_search_contract(FERGUSON_INDEX_GENERATOR, NONNEGATIVE_INDEX_SPACE));
-    assert!(!is_implemented_search_contract(FERGUSON_PARAMETER_GENERATOR, RATIONAL_PARAMETER_SPACE));
-    assert!(validate_known_search_contract(FERGUSON_PARAMETER_GENERATOR, RATIONAL_PARAMETER_SPACE).is_ok());
+    assert!(is_implemented_search_contract(FERGUSON_PARAMETER_GENERATOR, RATIONAL_PARAMETER_SPACE));
     assert!(validate_known_search_contract(FERGUSON_INDEX_GENERATOR, "unknown-space").is_err());
+}
+
+#[test]
+fn rational_parameter_ordinal_round_trip() {
+    let parameter = decode_rational_parameter(7);
+    assert_eq!(parameter.index, 1);
+    assert_eq!(parameter.shift, 2);
+    assert_eq!(rational_parameter_ordinal(parameter.index, parameter.shift).unwrap(), 7);
 }
 
 #[test]

@@ -9,6 +9,36 @@ pub const NONNEGATIVE_INDEX_SPACE: &str = "nonnegative-index-v1";
 pub const FERGUSON_PARAMETER_GENERATOR: &str = "ferguson-parameter-v1";
 /// Planned parameter space for rational parameter vectors.
 pub const RATIONAL_PARAMETER_SPACE: &str = "rational-parameter-v1";
+/// Maximum moment shift encoded by `rational-parameter-v1`.
+pub const RATIONAL_PARAMETER_MAX_SHIFT: usize = 4;
+
+/// One `(index, shift)` pair in the rational parameter space.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct RationalParameter {
+    /// Ferguson index `n`.
+    pub index: usize,
+    /// Moment shift applied before Hankel construction.
+    pub shift: usize,
+}
+
+/// Decode a mixed-radix ordinal into `(index, shift)`.
+pub fn decode_rational_parameter(ordinal: usize) -> RationalParameter {
+    let stride = RATIONAL_PARAMETER_MAX_SHIFT + 1;
+    RationalParameter {
+        index: ordinal / stride,
+        shift: ordinal % stride,
+    }
+}
+
+/// Encode `(index, shift)` as the checkpoint ordinal cursor.
+pub fn rational_parameter_ordinal(index: usize, shift: usize) -> Result<usize, String> {
+    if shift > RATIONAL_PARAMETER_MAX_SHIFT {
+        return Err(format!(
+            "shift `{shift}` exceeds rational-parameter max `{RATIONAL_PARAMETER_MAX_SHIFT}`"
+        ));
+    }
+    Ok(index * (RATIONAL_PARAMETER_MAX_SHIFT + 1) + shift)
+}
 
 /// Registered checkpoint search contract.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -31,7 +61,7 @@ pub const SEARCH_CONTRACTS: &[SearchContract] = &[
         generator_id: FERGUSON_PARAMETER_GENERATOR,
         parameter_space_id: RATIONAL_PARAMETER_SPACE,
         label: "Ferguson rational parameter family",
-        implemented: false,
+        implemented: true,
     },
 ];
 
