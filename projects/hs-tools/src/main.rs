@@ -224,7 +224,11 @@ fn improve_polynomial(
     let started = std::time::Instant::now();
     let report = zeta_polynomial::improve_polynomial(&mut cp, steps, time_budget, jobs, full_delta)?;
     let elapsed_ms = started.elapsed().as_millis() as u64;
-    let should_write = !write_on_improvement || report.completed_steps > 0;
+    let should_write = if write_on_improvement {
+        report.polynomial_observation_updated
+    } else {
+        report.completed_steps > 0
+    };
     if should_write {
         zeta_polynomial::record_benchmark(&mut cp, &report, elapsed_ms, jobs);
         write_checkpoint(path, &cp).map_err(map_err)?;
@@ -232,7 +236,7 @@ fn improve_polynomial(
     println!("searched: n={}..{}", report.start_n, report.end_n);
     println!("completed construction indices: {}", report.completed_steps);
     if !should_write {
-        println!("checkpoint: not written (--write-on-improvement and no progress)");
+        println!("checkpoint: not written (--write-on-improvement and no polynomial observation update)");
     } else {
         println!("checkpoint: {}", path.display());
     }

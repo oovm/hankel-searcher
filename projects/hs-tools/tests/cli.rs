@@ -272,6 +272,31 @@ fn improve_polynomial_rejects_non_zeta5_target() {
 }
 
 #[test]
+fn status_shows_polynomial_observed_best_after_improve() {
+    let dir = tempdir_in(repo_root()).unwrap();
+    let path = dir.path().join("checkpoint.json");
+    let source = repo_root().join("projects/hs-problems/checkpoints/zeta-5/checkpoint.json");
+    std::fs::copy(source, &path).expect("copy checkpoint");
+    let improve = Command::new(hs_bin())
+        .current_dir(repo_root())
+        .args(["improve", "zeta-5", "--polynomial", "--steps", "1", "--checkpoint"])
+        .arg(&path)
+        .output()
+        .expect("spawn hs");
+    assert!(improve.status.success());
+    let status = Command::new(hs_bin())
+        .current_dir(repo_root())
+        .args(["status", "zeta-5", "--checkpoint"])
+        .arg(&path)
+        .output()
+        .expect("spawn hs");
+    assert!(status.status.success());
+    let stdout = String::from_utf8_lossy(&status.stdout);
+    assert!(stdout.contains("polynomial_observed_best.n: 1"));
+    assert!(stdout.contains("generator_id: polynomial-hankel-v1"));
+}
+
+#[test]
 fn improve_polynomial_records_observation() {
     let dir = tempdir_in(repo_root()).unwrap();
     let path = dir.path().join("checkpoint.json");
@@ -311,6 +336,44 @@ fn targets_mentions_polynomial_improve_for_zeta5() {
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("zeta-5"));
     assert!(stdout.contains("--polynomial"));
+}
+
+#[test]
+fn improve_polynomial_skips_write_when_write_on_improvement_and_no_update() {
+    let dir = tempdir_in(repo_root()).unwrap();
+    let path = dir.path().join("checkpoint.json");
+    let source = repo_root().join("projects/hs-problems/checkpoints/zeta-5/checkpoint.json");
+    std::fs::copy(source, &path).expect("copy checkpoint");
+    let first = Command::new(hs_bin())
+        .current_dir(repo_root())
+        .args(["improve", "zeta-5", "--polynomial", "--steps", "1", "--checkpoint"])
+        .arg(&path)
+        .output()
+        .expect("spawn hs");
+    assert!(first.status.success());
+    let mut cp = read_checkpoint(&path).unwrap();
+    cp.search.next_candidate = "1".into();
+    write_checkpoint(&path, &cp).unwrap();
+    let before = read_checkpoint(&path).unwrap();
+    let second = Command::new(hs_bin())
+        .current_dir(repo_root())
+        .args([
+            "improve",
+            "zeta-5",
+            "--polynomial",
+            "--steps",
+            "1",
+            "--write-on-improvement",
+            "--checkpoint",
+        ])
+        .arg(&path)
+        .output()
+        .expect("spawn hs");
+    assert!(second.status.success());
+    let stdout = String::from_utf8_lossy(&second.stdout);
+    assert!(stdout.contains("no polynomial observation update"));
+    let after = read_checkpoint(&path).unwrap();
+    assert_eq!(after.updated_at, before.updated_at);
 }
 
 #[test]

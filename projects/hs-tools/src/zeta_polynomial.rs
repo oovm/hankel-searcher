@@ -14,6 +14,7 @@ pub struct PolynomialImproveReport {
     pub end_n: usize,
     pub completed_steps: usize,
     pub full_delta: bool,
+    pub polynomial_observation_updated: bool,
 }
 
 pub fn improve_polynomial(
@@ -56,6 +57,7 @@ pub fn improve_polynomial(
     let deadline = time_budget.map(|budget| Instant::now() + budget);
     let mut current = start_n;
     let mut completed = 0usize;
+    let mut polynomial_observation_updated = false;
 
     println!("target: {}", cp.target);
     println!("level: polynomial Hankel ({ZETA5_PAPER_PARAMETER_SPACE})");
@@ -103,7 +105,9 @@ pub fn improve_polynomial(
             print_energy_report(&params, &energy);
             energy_report = Some(energy);
         }
-        record_polynomial_observation(cp, &params, &lead, log_s, energy_report.as_ref());
+        if record_polynomial_observation(cp, &params, &lead, log_s, energy_report.as_ref()) {
+            polynomial_observation_updated = true;
+        }
 
         println!(
             "n={current} K={} N={} h={} entries_ms={entries_ms}",
@@ -133,6 +137,7 @@ pub fn improve_polynomial(
         end_n: current,
         completed_steps: completed,
         full_delta,
+        polynomial_observation_updated,
     })
 }
 
@@ -167,7 +172,7 @@ fn record_polynomial_observation(
     leading_coeff: &num_rational::Ratio<num_bigint::BigInt>,
     log_s_k: f64,
     energy: Option<&hs_problems::Zeta5EnergyReport>,
-) {
+) -> bool {
     let candidate = PolynomialHankelObservation {
         kind: OBSERVATION_KIND_POLYNOMIAL_HANKEL.into(),
         n: params.n,
@@ -185,13 +190,14 @@ fn record_polynomial_observation(
         Some(best) => match (candidate.log_primitive_at_zeta5, best.log_primitive_at_zeta5) {
             (Some(new_log), Some(old_log)) => new_log < old_log,
             (Some(_), None) => true,
-            (None, None) => params.n >= best.n,
+            (None, None) => params.n > best.n,
             (None, Some(_)) => false,
         },
     };
     if replace {
         cp.polynomial_observed_best = Some(candidate);
     }
+    replace
 }
 
 pub fn record_benchmark(cp: &mut Checkpoint, report: &PolynomialImproveReport, elapsed_ms: u64, jobs: usize) {
