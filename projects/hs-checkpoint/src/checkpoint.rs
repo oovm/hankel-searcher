@@ -44,6 +44,12 @@ impl RationalData {
     }
 }
 
+/// Observation kind for Ferguson finite-index bounds.
+pub const OBSERVATION_KIND_FERGUSON: &str = "finite_approximation_error_upper";
+
+/// Observation kind for Zeta5 whole-polynomial Hankel energy logs.
+pub const OBSERVATION_KIND_POLYNOMIAL_HANKEL: &str = "polynomial_hankel_energy";
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Observation {
@@ -54,6 +60,29 @@ pub struct Observation {
     pub series_terms: usize,
     pub approximant: RationalData,
     pub error_upper: RationalData,
+}
+
+/// Best polynomial Hankel observation for `polynomial-hankel-v1` (separate from Ferguson `observed_best`).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PolynomialHankelObservation {
+    pub kind: String,
+    /// Construction index `n` with `K=40n`, `N=3n`, `h=37n`.
+    pub n: usize,
+    pub k: usize,
+    pub capital_n: usize,
+    pub h: usize,
+    /// `log S_K` paper normalization at this scaling.
+    pub log_s_k: f64,
+    /// Leading coefficient from paper (2.9), exact rational.
+    pub leading_coeff: RationalData,
+    /// Present only after an exact `Δ_K` run (`--full-delta`).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub log_delta_at_zeta5: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub log_primitive_at_zeta5: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_primitive_coeff_bits: Option<usize>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -134,6 +163,8 @@ pub struct Checkpoint {
     pub best: Option<serde_json::Value>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub observed_best: Option<Observation>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub polynomial_observed_best: Option<PolynomialHankelObservation>,
     pub updated_at: String,
 }
 
@@ -189,6 +220,7 @@ fn migrate_v1(legacy: CheckpointV1) -> Checkpoint {
         mu: MuRecord::default(),
         best: legacy.best,
         observed_best: legacy.observed_best,
+        polynomial_observed_best: None,
         updated_at: legacy.updated_at,
     }
 }
@@ -225,8 +257,11 @@ pub fn validate_checkpoint(cp: &Checkpoint) -> Result<(), CheckpointError> {
             return Err(CheckpointError::Invalid(format!("unknown proof kind `{}`", proof.kind)));
         }
     }
+    if let Some(observation) = &cp.polynomial_observed_best {
+        validate_polynomial_hankel_observation(observation)?;
+    }
     if let Some(observation) = &cp.observed_best {
-        if observation.kind != "finite_approximation_error_upper" {
+        if observation.kind != OBSERVATION_KIND_FERGUSON {
             return Err(CheckpointError::Invalid("unsupported observation kind".into()));
         }
         if let Some(shift) = observation.shift {
@@ -243,6 +278,35 @@ pub fn validate_checkpoint(cp: &Checkpoint) -> Result<(), CheckpointError> {
         return Err(CheckpointError::Invalid("certified best records are not validated by this release".into()));
     }
     validate_mu_record(&cp.mu)?;
+    Ok(())
+}
+
+fn validate_polynomial_hankel_observation(observation: &PolynomialHankelObservation) -> Result<(), CheckpointError> {
+    if observation.kind != OBSERVATION_KIND_POLYNOMIAL_HANKEL {
+        return Err(CheckpointError::Invalid("unsupported polynomial observation kind".into()));
+    }
+    if observation.n == 0 {
+        return Err(CheckpointError::Invalid("polynomial observation n must be positive".into()));
+    }
+    if observation.k != 40 * observation.n
+        || observation.capital_n != 3 * observation.n
+        || observation.h != 37 * observation.n
+    {
+        return Err(CheckpointError::Invalid("polynomial observation scaling must match K=40n N=3n h=37n".into()));
+    }
+    observation.leading_coeff.ratio().map_err(CheckpointError::Invalid)?;
+    let has_delta = observation.log_delta_at_zeta5.is_some();
+    let has_primitive = observation.log_primitive_at_zeta5.is_some();
+    if has_delta != has_primitive {
+        return Err(CheckpointError::Invalid(
+            "polynomial energy logs require both log_delta_at_zeta5 and log_primitive_at_zeta5".into(),
+        ));
+    }
+    if has_primitive && observation.max_primitive_coeff_bits.is_none() {
+        return Err(CheckpointError::Invalid(
+            "polynomial energy observation requires max_primitive_coeff_bits".into(),
+        ));
+    }
     Ok(())
 }
 

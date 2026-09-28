@@ -7,8 +7,9 @@ mod targets;
 mod zeta;
 
 pub use checkpoint::{
-    Checkpoint, MuRecord, MuStatus, Objective, Observation, ProofRecord, ProofStatus, RationalData, SCHEMA_VERSION,
-    Search, SearchBenchmark, default_checkpoint_path, read_checkpoint, validate_checkpoint, write_checkpoint,
+    Checkpoint, MuRecord, MuStatus, Objective, Observation, PolynomialHankelObservation, ProofRecord, ProofStatus,
+    RationalData, SCHEMA_VERSION, Search, SearchBenchmark, OBSERVATION_KIND_FERGUSON,
+    OBSERVATION_KIND_POLYNOMIAL_HANKEL, default_checkpoint_path, read_checkpoint, validate_checkpoint, write_checkpoint,
 };
 pub use error::CheckpointError;
 pub use rational::ratio_from_data;

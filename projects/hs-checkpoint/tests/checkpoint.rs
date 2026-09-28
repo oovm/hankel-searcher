@@ -1,10 +1,10 @@
 use hs_checkpoint::{
     decode_rational_parameter, rational_parameter_ordinal, Checkpoint, CHECKPOINT_TARGETS, FERGUSON_INDEX_GENERATOR,
     FERGUSON_PARAMETER_GENERATOR, FERGUSON_ZETA_TARGETS, MuRecord, MuStatus, NONNEGATIVE_INDEX_SPACE, Objective,
-    POLYNOMIAL_HANKEL_GENERATOR, ProofRecord, ProofStatus, RATIONAL_PARAMETER_SPACE, RationalData, Search,
-    ZETA5_PAPER_PARAMETER_SPACE, default_checkpoint_path, has_ferguson_search, has_polynomial_hankel,
-    is_implemented_search_contract, is_known_target, read_checkpoint, validate_known_search_contract, write_checkpoint,
-    zeta_order,
+    OBSERVATION_KIND_POLYNOMIAL_HANKEL, POLYNOMIAL_HANKEL_GENERATOR, PolynomialHankelObservation, ProofRecord,
+    ProofStatus, RATIONAL_PARAMETER_SPACE, RationalData, Search, ZETA5_PAPER_PARAMETER_SPACE, default_checkpoint_path,
+    has_ferguson_search, has_polynomial_hankel, is_implemented_search_contract, is_known_target, read_checkpoint,
+    validate_known_search_contract, write_checkpoint, zeta_order,
 };
 use num_bigint::BigInt;
 use num_rational::Ratio;
@@ -35,6 +35,7 @@ fn sample_checkpoint() -> Checkpoint {
         mu: MuRecord::default(),
         best: None,
         observed_best: None,
+        polynomial_observed_best: None,
         updated_at: "2026-01-01T00:00:00Z".into(),
     }
 }
@@ -172,6 +173,33 @@ fn polynomial_hankel_contract_round_trips() {
     let loaded = read_checkpoint(&path).unwrap();
     assert_eq!(loaded.search.generator_id, POLYNOMIAL_HANKEL_GENERATOR);
     assert!(!is_implemented_search_contract(POLYNOMIAL_HANKEL_GENERATOR, ZETA5_PAPER_PARAMETER_SPACE));
+}
+
+#[test]
+fn polynomial_observed_best_round_trips() {
+    let mut cp = sample_checkpoint();
+    cp.target = "zeta-5".into();
+    cp.search.generator_id = POLYNOMIAL_HANKEL_GENERATOR.into();
+    cp.search.parameter_space_id = ZETA5_PAPER_PARAMETER_SPACE.into();
+    cp.polynomial_observed_best = Some(PolynomialHankelObservation {
+        kind: OBSERVATION_KIND_POLYNOMIAL_HANKEL.into(),
+        n: 1,
+        k: 40,
+        capital_n: 3,
+        h: 37,
+        log_s_k: -204.319,
+        leading_coeff: RationalData { num: "1".into(), den: "2".into() },
+        log_delta_at_zeta5: None,
+        log_primitive_at_zeta5: None,
+        max_primitive_coeff_bits: None,
+    });
+    validate_known_search_contract(&cp.search.generator_id, &cp.search.parameter_space_id).unwrap();
+    hs_checkpoint::validate_checkpoint(&cp).unwrap();
+    let dir = tempdir().unwrap();
+    let path = dir.path().join("checkpoint.json");
+    write_checkpoint(&path, &cp).unwrap();
+    let loaded = read_checkpoint(&path).unwrap();
+    assert_eq!(loaded.polynomial_observed_best.as_ref().unwrap().n, 1);
 }
 
 #[test]
