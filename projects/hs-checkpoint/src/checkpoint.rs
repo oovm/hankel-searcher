@@ -1,4 +1,5 @@
 use crate::error::CheckpointError;
+use crate::targets::is_known_target;
 use crate::rational::ratio_from_data;
 use num_bigint::BigInt;
 use num_rational::Ratio;
@@ -134,10 +135,10 @@ struct CheckpointV1 {
 }
 
 pub fn default_checkpoint_path(target: &str) -> Result<PathBuf, CheckpointError> {
-    match target {
-        "zeta-3" => Ok(PathBuf::from("projects/targets/zeta-3/checkpoint.json")),
-        other => Err(CheckpointError::UnsupportedTarget(other.to_string())),
+    if !is_known_target(target) {
+        return Err(CheckpointError::UnsupportedTarget(target.to_string()));
     }
+    Ok(PathBuf::from(format!("projects/targets/{target}/checkpoint.json")))
 }
 
 pub fn read_checkpoint(path: &Path) -> Result<Checkpoint, CheckpointError> {
@@ -180,8 +181,8 @@ pub fn validate_checkpoint(cp: &Checkpoint) -> Result<(), CheckpointError> {
     if cp.schema_version != SCHEMA_VERSION {
         return Err(CheckpointError::Invalid(format!("expected schema_version {SCHEMA_VERSION}, got {}", cp.schema_version)));
     }
-    if cp.target != "zeta-3" {
-        return Err(CheckpointError::Invalid("only zeta-3 checkpoints are supported".into()));
+    if !is_known_target(&cp.target) {
+        return Err(CheckpointError::Invalid(format!("unsupported checkpoint target `{}`", cp.target)));
     }
     if cp.search.generator_id != "unassigned" && cp.search.generator_id != "ferguson-index-v1" {
         return Err(CheckpointError::Invalid("unknown candidate generator".into()));
