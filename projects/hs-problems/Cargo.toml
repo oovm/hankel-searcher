@@ -1,6 +1,6 @@
 [package]
 name = "hs-problems"
-description = "Ferguson certificate export for non-zeta Hankel targets"
+description = "Ferguson certificate export for all lean-prove Problems targets"
 readme = "src/readme.md"
 exclude = ["package.json", "tests/**"]
 version.workspace = true
@@ -13,6 +13,8 @@ publish.workspace = true
 hs-types = { workspace = true }
 hs-moments = { workspace = true }
 hs-lean-helper = { workspace = true }
+num-bigint = { workspace = true }
+num-rational = { workspace = true }
 thiserror = { workspace = true }
 
 [[bin]]
@@ -26,6 +28,22 @@ path = "src/bin/export_gamma_certificates.rs"
 [[bin]]
 name = "export-catalan-certificates"
 path = "src/bin/export_catalan_certificates.rs"
+
+[[bin]]
+name = "export-zeta2-certificates"
+path = "src/bin/export_zeta2_certificates.rs"
+
+[[bin]]
+name = "export-zeta3-certificates"
+path = "src/bin/export_zeta3_certificates.rs"
+
+[[bin]]
+name = "export-zeta5-certificates"
+path = "src/bin/export_zeta5_certificates.rs"
+
+[dev-dependencies]
+num-bigint = { workspace = true }
+num-rational = { workspace = true }
 
 [features]
 default = []

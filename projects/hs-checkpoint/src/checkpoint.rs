@@ -135,7 +135,7 @@ struct CheckpointV1 {
 
 pub fn default_checkpoint_path(target: &str) -> Result<PathBuf, CheckpointError> {
     match target {
-        "zeta-3" => Ok(PathBuf::from("projects/zeta-3/checkpoint.json")),
+        "zeta-3" => Ok(PathBuf::from("projects/targets/zeta-3/checkpoint.json")),
         other => Err(CheckpointError::UnsupportedTarget(other.to_string())),
     }
 }

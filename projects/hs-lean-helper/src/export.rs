@@ -42,59 +42,38 @@ impl CertificateExport {
 
     /// Default export settings for the `zeta-2` problem.
     pub fn zeta2_default() -> Self {
-        Self::problem_defaults(
-            "Zeta2",
-            "cargo run --release -p zeta-2 --bin export-zeta2-certificates",
-        )
+        Self::problem_defaults("Zeta2", "cargo run --release -p hs-problems --bin export-zeta2-certificates")
     }
 
     /// Default export settings for the `zeta-3` problem.
     pub fn zeta3_default() -> Self {
-        Self::problem_defaults(
-            "Zeta3",
-            "cargo run --release -p zeta-3 --bin export-zeta3-certificates",
-        )
+        Self::problem_defaults("Zeta3", "cargo run --release -p hs-problems --bin export-zeta3-certificates")
     }
 
     /// Default export settings for the `zeta-5` problem.
     pub fn zeta5_default() -> Self {
-        Self::problem_defaults(
-            "Zeta5",
-            "cargo run --release -p zeta-5 --bin export-zeta5-certificates",
-        )
+        Self::problem_defaults("Zeta5", "cargo run --release -p hs-problems --bin export-zeta5-certificates")
     }
 
     /// Default export settings for the Euler-Gompertz `δ` problem.
     pub fn delta_default() -> Self {
-        Self::problem_defaults(
-            "Delta",
-            "cargo run --release -p hs-problems --bin export-delta-certificates",
-        )
+        Self::problem_defaults("Delta", "cargo run --release -p hs-problems --bin export-delta-certificates")
     }
 
     /// Default export settings for the Euler-Mascheroni `γ` problem.
     pub fn gamma_default() -> Self {
-        Self::problem_defaults(
-            "Gamma",
-            "cargo run --release -p hs-problems --bin export-gamma-certificates",
-        )
+        Self::problem_defaults("Gamma", "cargo run --release -p hs-problems --bin export-gamma-certificates")
     }
 
     /// Default export settings for the Catalan constant `G = β(2)`.
     pub fn catalan_default() -> Self {
-        Self::problem_defaults(
-            "Catalan",
-            "cargo run --release -p hs-problems --bin export-catalan-certificates",
-        )
+        Self::problem_defaults("Catalan", "cargo run --release -p hs-problems --bin export-catalan-certificates")
     }
 }
 
 /// Path to `lean-prove/Problems/<Problem>/Certificates.lean` from this crate layout.
 pub fn lean_prove_certificates_path(problem: &str) -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../lean-prove/Problems")
-        .join(problem)
-        .join("Certificates.lean")
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../lean-prove/Problems").join(problem).join("Certificates.lean")
 }
 
 /// Write rendered Lean certificate source to `path`.

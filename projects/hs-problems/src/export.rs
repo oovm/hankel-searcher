@@ -1,6 +1,4 @@
-use hs_lean_helper::{
-    certificates_from_range, lean_prove_certificates_path, write_certificates, CertificateExport,
-};
+use hs_lean_helper::{CertificateExport, certificates_from_range, lean_prove_certificates_path, write_certificates};
 use hs_moments::{catalan_beta_moments, delta_moments, gamma_moments};
 use std::path::PathBuf;
 
@@ -37,4 +35,25 @@ pub fn export_catalan_certificates(max_n: usize) -> Result<PathBuf, HsProblemsEr
     let moment_count = 2 * (max_n + 2);
     let moments = catalan_beta_moments(moment_count);
     export_moments("Catalan", CertificateExport::catalan_default(), &moments, max_n)
+}
+
+/// Write `lean-prove/Problems/Zeta2/Certificates.lean`.
+pub fn export_zeta2_certificates(max_n: usize) -> Result<PathBuf, HsProblemsError> {
+    let moment_count = 2 * (max_n + 2);
+    let moments = hs_moments::zeta_moments(2, moment_count);
+    export_moments("Zeta2", CertificateExport::zeta2_default(), &moments, max_n)
+}
+
+/// Write `lean-prove/Problems/Zeta3/Certificates.lean`.
+pub fn export_zeta3_certificates(max_n: usize) -> Result<PathBuf, HsProblemsError> {
+    let moment_count = 2 * (max_n + 2);
+    let moments = hs_moments::zeta_moments(3, moment_count);
+    export_moments("Zeta3", CertificateExport::zeta3_default(), &moments, max_n)
+}
+
+/// Write `lean-prove/Problems/Zeta5/Certificates.lean`.
+pub fn export_zeta5_certificates(max_n: usize) -> Result<PathBuf, HsProblemsError> {
+    let moment_count = 2 * (max_n + 2);
+    let moments = hs_moments::zeta_moments(5, moment_count);
+    export_moments("Zeta5", CertificateExport::zeta5_default(), &moments, max_n)
 }

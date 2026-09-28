@@ -49,7 +49,7 @@ fn doctor_finds_repo_root() {
 fn check_rejects_tampered_observation() {
     let dir = tempdir_in(repo_root()).unwrap();
     let path = dir.path().join("checkpoint.json");
-    let source = repo_root().join("projects/zeta-3/checkpoint.json");
+    let source = repo_root().join("projects/targets/zeta-3/checkpoint.json");
     std::fs::copy(source, &path).expect("copy checkpoint");
     let mut cp = read_checkpoint(&path).unwrap();
     let observation = cp.observed_best.as_mut().expect("observed");
@@ -68,7 +68,7 @@ fn check_rejects_tampered_observation() {
 fn verify_accepts_rational_proof_record() {
     let dir = tempdir_in(repo_root()).unwrap();
     let path = dir.path().join("checkpoint.json");
-    let source = repo_root().join("projects/zeta-3/checkpoint.json");
+    let source = repo_root().join("projects/targets/zeta-3/checkpoint.json");
     std::fs::copy(source, &path).expect("copy checkpoint");
     let mut cp = read_checkpoint(&path).unwrap();
     cp.proof_status = ProofStatus::Rational;

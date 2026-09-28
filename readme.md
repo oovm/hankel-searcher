@@ -11,10 +11,9 @@ Hankel-determinant rational approximation experiments for constants related to i
 | `hs-moments`        | Moment sequences for `δ`, `γ`, `ζ(k)`, `β(k)` / Catalan, Prevost weights      |
 | `hs-lean-helper`    | Lean 4 certificate export for Ferguson approximants                           |
 | `lean-prove`        | Shared Lean library (`Hankel/`, `Problems/*`)                                 |
-| `hs-problems`       | Ferguson certificate export for `δ`, `γ`, and Catalan `G`                     |
+| `hs-problems`       | Ferguson certificate export for all `lean-prove/Problems/*` targets           |
 | `hs-benchmark`      | Ferguson table regression and Criterion micro-benchmarks                      |
-| `zeta-2` / `zeta-3` | Ferguson examples and Lean certificate experiments                            |
-| `zeta-5`            | Ferguson certificates and incomplete Lean formalization                       |
+| `targets/zeta-3`    | Collaborative `hs` checkpoint JSON (not a Rust crate)                         |
 | `hs-checkpoint`     | Checkpoint JSON schema v2, validation, migration, and atomic writes           |
 | `hs-searcher`       | Search budgets and consecutive index enumeration for checkpoint improvement     |
 | `hs-verify`         | Proof verification (`rational_equality` via `exact-rational-v1`)            |
@@ -33,7 +32,7 @@ hs check zeta-3
 hs verify zeta-3
 ```
 
-`hs improve` currently updates the finite-index approximation bound in `projects/zeta-3/checkpoint.json`. The uniform
+`hs improve` currently updates the finite-index approximation bound in `projects/targets/zeta-3/checkpoint.json`. The uniform
 irrationality-proof bound remains unset. Commit the JSON change in a pull request after `hs check` succeeds.
 
 ## Current proof progress
@@ -42,7 +41,7 @@ The time below means **wall-clock time from a fresh search to an independently v
 unknown: the current candidate family has no theorem guaranteeing that the search contains such a proof. A fixed compute
 budget or a benchmark of several indices does not estimate this time.
 
-- **`ζ(3)` finite-index result:** The [checkpoint](projects/zeta-3/checkpoint.json) covers indices `0..3`. Its best
+- **`ζ(3)` finite-index result:** The [checkpoint](projects/targets/zeta-3/checkpoint.json) covers indices `0..3`. Its best
   recorded candidate is `n=3` with a rigorous bound `|ζ(3) - P_3/Q_3| < 0.001515864284004895`, obtained using an exact
   rational enclosure with 256 series terms. The complete rational upper bound is stored in the JSON. The next index is
   `4`.

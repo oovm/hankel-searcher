@@ -21,7 +21,7 @@ pub fn zeta3_interval(terms: usize) -> Result<(Ratio<BigInt>, Ratio<BigInt>), St
 
 pub fn observe(n: usize, terms: usize, interval: &(Ratio<BigInt>, Ratio<BigInt>)) -> Result<Observation, String> {
     let count = n.checked_add(2).and_then(|x| x.checked_mul(2)).ok_or("index overflow")?;
-    let pair = zeta_3::ferguson_approximant(n, count).map_err(|e| e.to_string())?;
+    let pair = hs_problems::zeta3::ferguson_approximant(n, count).map_err(|e| e.to_string())?;
     if pair.q.is_zero() {
         return Err("zero Ferguson denominator".into());
     }

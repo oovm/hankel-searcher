@@ -110,7 +110,7 @@ fn status(path: &PathBuf) -> Result<(), String> {
 
 fn targets() {
     println!("zeta-3");
-    println!("  path: projects/zeta-3/checkpoint.json");
+    println!("  path: projects/targets/zeta-3/checkpoint.json");
     println!("  improve: finite-index Ferguson bounds");
     println!("  check: recompute finite-index prefix");
     println!("  verify: rational_equality when proof_status is rational");

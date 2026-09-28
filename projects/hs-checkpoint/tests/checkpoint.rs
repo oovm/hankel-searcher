@@ -92,5 +92,5 @@ fn rejects_noncanonical_rational() {
 #[test]
 fn default_path_for_zeta3() {
     let path = default_checkpoint_path("zeta-3").unwrap();
-    assert!(path.ends_with("projects/zeta-3/checkpoint.json"));
+    assert!(path.ends_with("projects/targets/zeta-3/checkpoint.json"));
 }
