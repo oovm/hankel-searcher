@@ -95,6 +95,37 @@ fn verify_accepts_rational_proof_record() {
 }
 
 #[test]
+fn targets_lists_all_ferguson_zeta() {
+    let output = Command::new(hs_bin()).current_dir(repo_root()).arg("targets").output().expect("spawn hs");
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("zeta-2"));
+    assert!(stdout.contains("zeta-3"));
+    assert!(stdout.contains("zeta-5"));
+}
+
+#[test]
+fn status_reads_zeta2_checkpoint() {
+    let output = Command::new(hs_bin())
+        .current_dir(repo_root())
+        .args(["status", "zeta-2"])
+        .output()
+        .expect("spawn hs");
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("target: zeta-2"));
+    assert!(stdout.contains("observed_best.n:"));
+}
+
+#[test]
+fn check_validates_zeta5_observation() {
+    let output = Command::new(hs_bin()).current_dir(repo_root()).args(["check", "zeta-5"]).output().expect("spawn hs");
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("checked n="));
+}
+
+#[test]
 fn improve_rejects_parallel_jobs() {
     let output = Command::new(hs_bin())
         .current_dir(repo_root())

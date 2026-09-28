@@ -9,7 +9,7 @@ use hs_searcher::SearchStrategy;
 
 mod duration;
 mod repo;
-mod zeta3;
+mod zeta;
 
 #[derive(Parser)]
 #[command(name = "hs", about = "Hankel search tools")]
@@ -79,8 +79,19 @@ fn resolve_path(
     repo::resolve_checkpoint(repo_root, target, explicit)
 }
 
-fn status(path: &PathBuf) -> Result<(), String> {
+fn ensure_checkpoint_target(cp: &hs_checkpoint::Checkpoint, target: &str) -> Result<(), String> {
+    if !hs_checkpoint::is_known_target(target) {
+        return Err(format!("unsupported target `{target}`"));
+    }
+    if cp.target != target {
+        return Err(format!("checkpoint target `{}` does not match `{target}`", cp.target));
+    }
+    Ok(())
+}
+
+fn status(path: &PathBuf, target: &str) -> Result<(), String> {
     let cp = read_checkpoint(path).map_err(map_err)?;
+    ensure_checkpoint_target(&cp, target)?;
     println!("target: {}", cp.target);
     println!("schema_version: {}", cp.schema_version);
     println!("status: {}", cp.status);
@@ -113,15 +124,18 @@ fn status(path: &PathBuf) -> Result<(), String> {
 }
 
 fn targets() {
-    println!("zeta-3");
-    println!("  path: projects/targets/zeta-3/checkpoint.json");
-    println!("  improve: finite-index Ferguson bounds");
-    println!("  check: recompute finite-index prefix");
-    println!("  verify: rational_equality when proof_status is rational");
+    for target in hs_checkpoint::FERGUSON_ZETA_TARGETS {
+        println!("{target}");
+        println!("  path: projects/targets/{target}/checkpoint.json");
+        println!("  improve: finite-index Ferguson bounds");
+        println!("  check: recompute finite-index prefix");
+        println!("  verify: rational_equality when proof_status is rational");
+    }
 }
 
 fn improve(
     path: &PathBuf,
+    target: &str,
     steps: usize,
     terms: usize,
     time_budget: Option<Duration>,
@@ -135,10 +149,14 @@ fn improve(
     if steps == 0 {
         return Err("steps must be positive".into());
     }
+    if !hs_checkpoint::is_known_target(target) {
+        return Err(format!("unsupported target `{target}`"));
+    }
     let mut cp = read_checkpoint(path).map_err(map_err)?;
+    ensure_checkpoint_target(&cp, target)?;
     let before = cp.observed_best.clone();
     let start_index = cp.search.next_candidate.clone();
-    let report = zeta3::improve(&mut cp, steps, terms, time_budget, strategy)?;
+    let report = zeta::improve(&mut cp, steps, terms, time_budget, strategy)?;
     let bound_improved = report.bound_improved;
     let total_improvements = report.improvements;
     let should_write = if write_on_improvement { bound_improved } else { true };
@@ -174,16 +192,18 @@ fn improve(
     Ok(())
 }
 
-fn check(path: &PathBuf) -> Result<(), String> {
+fn check(path: &PathBuf, target: &str) -> Result<(), String> {
     let cp = read_checkpoint(path).map_err(map_err)?;
-    zeta3::check_observation(&cp)?;
+    ensure_checkpoint_target(&cp, target)?;
+    zeta::check_observation(&cp)?;
     let observation = cp.observed_best.as_ref().expect("validated");
     println!("checked n={} finite approximation bound", observation.n);
     Ok(())
 }
 
-fn verify(path: &PathBuf) -> Result<(), String> {
+fn verify(path: &PathBuf, target: &str) -> Result<(), String> {
     let cp = read_checkpoint(path).map_err(map_err)?;
+    ensure_checkpoint_target(&cp, target)?;
     let report = verify_checkpoint(&cp)?;
     match report.verdict {
         VerifyVerdict::Verified => {
@@ -249,7 +269,7 @@ fn main() {
         Command::Doctor => require_repo_root().and_then(|root| doctor(&root)),
         Command::Status { target, checkpoint } => require_repo_root()
             .and_then(|root| resolve_path(&root, &target, checkpoint))
-            .and_then(|path| status(&path)),
+            .and_then(|path| status(&path, &target)),
         Command::Improve {
             target,
             checkpoint,
@@ -268,15 +288,15 @@ fn main() {
                         None => None,
                     };
                     let strategy = SearchStrategy::parse(&strategy)?;
-                    improve(&path, steps, series_terms, budget, jobs, write_on_improvement, strategy)
+                    improve(&path, &target, steps, series_terms, budget, jobs, write_on_improvement, strategy)
                 })
         }
         Command::Check { target, checkpoint } => require_repo_root()
             .and_then(|root| resolve_path(&root, &target, checkpoint))
-            .and_then(|path| check(&path)),
+            .and_then(|path| check(&path, &target)),
         Command::Verify { target, checkpoint } => require_repo_root()
             .and_then(|root| resolve_path(&root, &target, checkpoint))
-            .and_then(|path| verify(&path)),
+            .and_then(|path| verify(&path, &target)),
     };
     if let Err(error) = result {
         eprintln!("hs: {error}");

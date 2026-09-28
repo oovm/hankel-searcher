@@ -5,27 +5,50 @@ use num_rational::Ratio;
 use num_traits::{Signed, Zero};
 use std::time::Duration;
 
-pub fn zeta3_interval(terms: usize) -> Result<(Ratio<BigInt>, Ratio<BigInt>), String> {
+pub fn zeta_interval(order: u32, terms: usize) -> Result<(Ratio<BigInt>, Ratio<BigInt>), String> {
     if terms == 0 {
         return Err("series_terms must be positive".into());
     }
     let mut lower = Ratio::from_integer(BigInt::zero());
-    for k in 1..=terms {
-        let k = BigInt::from(k);
-        lower += Ratio::new(BigInt::from(1), k.pow(3));
+    for index in 1..=terms {
+        let index = BigInt::from(index);
+        lower += Ratio::new(BigInt::from(1), index.pow(order));
     }
     let m = BigInt::from(terms);
     let upper = &lower + Ratio::new(BigInt::from(1), BigInt::from(2) * m.pow(2));
     Ok((lower, upper))
 }
 
-pub fn observe(n: usize, terms: usize, interval: &(Ratio<BigInt>, Ratio<BigInt>)) -> Result<Observation, String> {
+fn ferguson_pair(order: u32, n: usize, count: usize) -> Result<(Ratio<BigInt>, Ratio<BigInt>), String> {
+    match order {
+        2 => {
+            let pair = hs_problems::zeta2::ferguson_approximant(n, count).map_err(|e| e.to_string())?;
+            Ok((pair.p, pair.q))
+        }
+        3 => {
+            let pair = hs_problems::zeta3::ferguson_approximant(n, count).map_err(|e| e.to_string())?;
+            Ok((pair.p, pair.q))
+        }
+        5 => {
+            let pair = hs_problems::zeta5::ferguson_approximant(n, count).map_err(|e| e.to_string())?;
+            Ok((pair.p, pair.q))
+        }
+        other => Err(format!("unsupported zeta order `{other}`")),
+    }
+}
+
+pub fn observe(
+    order: u32,
+    n: usize,
+    terms: usize,
+    interval: &(Ratio<BigInt>, Ratio<BigInt>),
+) -> Result<Observation, String> {
     let count = n.checked_add(2).and_then(|x| x.checked_mul(2)).ok_or("index overflow")?;
-    let pair = hs_problems::zeta3::ferguson_approximant(n, count).map_err(|e| e.to_string())?;
-    if pair.q.is_zero() {
+    let (p, q) = ferguson_pair(order, n, count)?;
+    if q.is_zero() {
         return Err("zero Ferguson denominator".into());
     }
-    let approx = pair.p / pair.q;
+    let approx = p / q;
     let low_error = (&interval.0 - &approx).abs();
     let high_error = (&interval.1 - &approx).abs();
     let bound = low_error.max(high_error);
@@ -45,6 +68,7 @@ pub fn improve(
     time_budget: Option<Duration>,
     strategy: SearchStrategy,
 ) -> Result<SearchReport, String> {
+    let order = hs_checkpoint::zeta_order(&cp.target).ok_or_else(|| format!("unsupported target `{}`", cp.target))?;
     if steps == 0 {
         return Err("steps must be positive".into());
     }
@@ -58,18 +82,18 @@ pub fn improve(
         Some(limit) => SearchBudget::from_duration(steps, limit),
         None => SearchBudget::new(steps),
     };
-    let interval = zeta3_interval(terms)?;
+    let interval = zeta_interval(order, terms)?;
     let initial = cp.observed_best.clone();
     let report = match strategy {
         SearchStrategy::Enumerate => {
-            enumerate_indices(start, initial, &budget, |n| observe(n, terms, &interval))?
+            enumerate_indices(start, initial, &budget, |n| observe(order, n, terms, &interval))?
         }
         SearchStrategy::Local => {
             let center = cp.observed_best.as_ref().map(|o| o.n).unwrap_or(start);
-            local_indices(center, start, initial, &budget, |n| observe(n, terms, &interval))?
+            local_indices(center, start, initial, &budget, |n| observe(order, n, terms, &interval))?
         }
         SearchStrategy::Sample => {
-            sample_indices(&cp.search.seed, start, initial, &budget, |n| observe(n, terms, &interval))?
+            sample_indices(&cp.search.seed, start, initial, &budget, |n| observe(order, n, terms, &interval))?
         }
     };
     cp.observed_best = report.best.clone();
@@ -83,6 +107,7 @@ pub fn improve(
 }
 
 pub fn check_observation(cp: &Checkpoint) -> Result<(), String> {
+    let order = hs_checkpoint::zeta_order(&cp.target).ok_or_else(|| format!("unsupported target `{}`", cp.target))?;
     let observation = cp.observed_best.as_ref().ok_or("checkpoint has no observation")?;
     if observation.kind != "finite_approximation_error_upper" {
         return Err("unsupported observation kind".into());
@@ -95,10 +120,10 @@ pub fn check_observation(cp: &Checkpoint) -> Result<(), String> {
     if next == 0 {
         return Err("observation exists without searched candidates".into());
     }
-    let interval = zeta3_interval(terms)?;
+    let interval = zeta_interval(order, terms)?;
     let mut best: Option<Observation> = None;
     for n in 0..next {
-        let candidate = observe(n, terms, &interval)?;
+        let candidate = observe(order, n, terms, &interval)?;
         let better = match &best {
             Some(old) => candidate.error_upper.ratio()? < old.error_upper.ratio()?,
             None => true,
