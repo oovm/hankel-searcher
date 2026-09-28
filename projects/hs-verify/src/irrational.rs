@@ -20,6 +20,7 @@ pub fn verify_irrational_proof(cp: &Checkpoint, proof: &ProofRecord) -> Result<V
                 "irrational proof kind `{other}` has no registered verifier for `{0}`",
                 cp.target
             ),
+            mu_checkpoint_hint: None,
         }),
     }
 }
@@ -32,6 +33,7 @@ fn verify_integer_linear_form(cp: &Checkpoint, proof: &ProofRecord) -> Result<Ve
         return Ok(VerifyReport {
             verdict: VerifyVerdict::Unsupported,
             message: format!("linear form `{linear_form_id}` is not registered for `{0}`", cp.target),
+            mu_checkpoint_hint: None,
         });
     }
     if linear_form_id != cp.objective.linear_form_id {
@@ -53,6 +55,11 @@ fn verify_integer_linear_form(cp: &Checkpoint, proof: &ProofRecord) -> Result<Ve
     let mu_upper = Ratio::from_integer(BigInt::one()) + sigma / tau;
     let mu = RationalData::from_ratio(&mu_upper);
     validate_mu_for_integer_linear_form(cp, verifier, &mu)?;
+    let mu_checkpoint_hint = if cp.mu.status == hs_checkpoint::MuStatus::Unavailable {
+        Some(mu_upper_bound_hint(&mu, verifier))
+    } else {
+        None
+    };
     Ok(VerifyReport {
         verdict: VerifyVerdict::Verified,
         message: format!(
@@ -61,7 +68,20 @@ fn verify_integer_linear_form(cp: &Checkpoint, proof: &ProofRecord) -> Result<Ve
             mu.num,
             mu.den
         ),
+        mu_checkpoint_hint,
     })
+}
+
+fn mu_upper_bound_hint(mu: &RationalData, verifier: &str) -> String {
+    format!(
+        "checkpoint mu snippet (not written automatically):\n\
+\"mu\": {{\n\
+  \"status\": \"upper_bound\",\n\
+  \"upper_bound\": {{ \"num\": \"{}\", \"den\": \"{}\" }},\n\
+  \"verifier_id\": \"{verifier}\"\n\
+}}",
+        mu.num, mu.den
+    )
 }
 
 fn validate_mu_for_integer_linear_form(

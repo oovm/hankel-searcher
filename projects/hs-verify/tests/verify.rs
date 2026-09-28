@@ -50,6 +50,7 @@ fn rational_certificate_verifies() {
     let cp = sample_checkpoint(ProofStatus::Rational, Some(proof));
     let report = verify_checkpoint(&cp).unwrap();
     assert_eq!(report.verdict, VerifyVerdict::Verified);
+    assert!(report.mu_checkpoint_hint.is_none());
 }
 
 #[test]
@@ -106,6 +107,11 @@ fn integer_linear_form_regression_fixture_verifies_mu_upper_bound() {
     let report = verify_checkpoint(&cp).unwrap();
     assert_eq!(report.verdict, VerifyVerdict::Verified);
     assert!(report.message.contains("mu upper bound 3/1"));
+    assert!(report
+        .mu_checkpoint_hint
+        .as_ref()
+        .expect("hint")
+        .contains("\"status\": \"upper_bound\""));
 }
 
 #[test]
@@ -127,6 +133,7 @@ fn integer_linear_form_accepts_matching_mu_record() {
     cp.mu.verifier_id = Some("integer-linear-form-v1".into());
     let report = verify_checkpoint(&cp).unwrap();
     assert_eq!(report.verdict, VerifyVerdict::Verified);
+    assert!(report.mu_checkpoint_hint.is_none());
 }
 
 #[test]

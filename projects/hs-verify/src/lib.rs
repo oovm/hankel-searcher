@@ -14,6 +14,7 @@ pub enum VerifyVerdict {
 pub struct VerifyReport {
     pub verdict: VerifyVerdict,
     pub message: String,
+    pub mu_checkpoint_hint: Option<String>,
 }
 
 impl fmt::Display for VerifyReport {
@@ -32,6 +33,7 @@ pub fn verify_checkpoint(cp: &Checkpoint) -> Result<VerifyReport, String> {
             Ok(VerifyReport {
                 verdict: VerifyVerdict::Unsupported,
                 message: format!("no proof registered for `{0}`", cp.target),
+                mu_checkpoint_hint: None,
             })
         }
         ProofStatus::Rational => {

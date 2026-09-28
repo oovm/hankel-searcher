@@ -10,6 +10,7 @@ pub fn verify_rational_proof(cp: &Checkpoint, proof: &ProofRecord) -> Result<Ver
         return Ok(VerifyReport {
             verdict: VerifyVerdict::Unsupported,
             message: format!("proof kind `{0}` has no registered verifier", proof.kind),
+            mu_checkpoint_hint: None,
         });
     }
     if cp.proof_status != ProofStatus::Rational {
@@ -40,6 +41,7 @@ pub fn verify_rational_proof(cp: &Checkpoint, proof: &ProofRecord) -> Result<Ver
             canonical.den,
             verifier
         ),
+        mu_checkpoint_hint: None,
     })
 }
 
