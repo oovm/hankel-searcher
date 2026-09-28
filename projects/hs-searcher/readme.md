@@ -8,4 +8,4 @@ Search budgets and deterministic index strategies for Hankel checkpoint improvem
 | `local` | Visit the same forward window, closest to the current best index first |
 | `sample` | Visit the same forward window in a seed-stable pseudo-random order |
 
-All three strategies advance the checkpoint cursor across the same forward window for `zeta-3` today. They differ only in evaluation order.
+All three strategies advance the checkpoint cursor across the same forward window. They differ only in evaluation order. Pass `--jobs` to `hs improve` to evaluate indices in parallel while preserving merge order.

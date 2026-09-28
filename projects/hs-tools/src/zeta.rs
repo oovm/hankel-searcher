@@ -71,10 +71,14 @@ pub fn improve(
     terms: usize,
     time_budget: Option<Duration>,
     strategy: SearchStrategy,
+    jobs: usize,
 ) -> Result<SearchReport, String> {
     let order = hs_checkpoint::zeta_order(&cp.target).ok_or_else(|| format!("unsupported target `{}`", cp.target))?;
     if steps == 0 {
         return Err("steps must be positive".into());
+    }
+    if jobs == 0 {
+        return Err("jobs must be positive".into());
     }
     if let Some(saved_terms) = cp.search.series_terms {
         if saved_terms != terms {
@@ -90,14 +94,14 @@ pub fn improve(
     let initial = cp.observed_best.clone();
     let report = match strategy {
         SearchStrategy::Enumerate => {
-            enumerate_indices(start, initial, &budget, |n| observe(order, n, terms, &interval))?
+            enumerate_indices(start, initial, &budget, jobs, |n| observe(order, n, terms, &interval))?
         }
         SearchStrategy::Local => {
             let center = cp.observed_best.as_ref().map(|o| o.n).unwrap_or(start);
-            local_indices(center, start, initial, &budget, |n| observe(order, n, terms, &interval))?
+            local_indices(center, start, initial, &budget, jobs, |n| observe(order, n, terms, &interval))?
         }
         SearchStrategy::Sample => {
-            sample_indices(&cp.search.seed, start, initial, &budget, |n| observe(order, n, terms, &interval))?
+            sample_indices(&cp.search.seed, start, initial, &budget, jobs, |n| observe(order, n, terms, &interval))?
         }
     };
     cp.observed_best = report.best.clone();

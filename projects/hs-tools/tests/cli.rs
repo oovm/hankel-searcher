@@ -165,13 +165,13 @@ fn check_validates_zeta5_observation() {
 }
 
 #[test]
-fn improve_rejects_parallel_jobs() {
+fn improve_accepts_parallel_jobs() {
     let output = Command::new(hs_bin())
         .current_dir(repo_root())
         .args(["improve", "zeta-3", "--steps", "1", "--jobs", "2"])
         .output()
         .expect("spawn hs");
-    assert!(!output.status.success());
-    let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(stderr.contains("parallel improve"));
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("jobs=2"));
 }

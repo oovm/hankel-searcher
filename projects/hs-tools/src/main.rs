@@ -148,11 +148,11 @@ fn improve(
     write_on_improvement: bool,
     strategy: SearchStrategy,
 ) -> Result<(), String> {
-    if jobs > 1 {
-        return Err("parallel improve is not implemented yet; use --jobs 1".into());
-    }
     if steps == 0 {
         return Err("steps must be positive".into());
+    }
+    if jobs == 0 {
+        return Err("jobs must be positive".into());
     }
     if !hs_checkpoint::is_known_target(target) {
         return Err(format!("unsupported target `{target}`"));
@@ -164,7 +164,7 @@ fn improve(
     ensure_checkpoint_target(&cp, target)?;
     let before = cp.observed_best.clone();
     let start_index = cp.search.next_candidate.clone();
-    let report = zeta::improve(&mut cp, steps, terms, time_budget, strategy)?;
+    let report = zeta::improve(&mut cp, steps, terms, time_budget, strategy, jobs)?;
     let bound_improved = report.bound_improved;
     let total_improvements = report.improvements;
     let should_write = if write_on_improvement { bound_improved } else { true };
@@ -172,7 +172,7 @@ fn improve(
         write_checkpoint(path, &cp).map_err(map_err)?;
     }
     println!("target: {}", cp.target);
-    println!("level: finite-index bound ({})", strategy.label());
+    println!("level: finite-index bound ({}, jobs={jobs})", strategy.label());
     println!("searched: n={start_index}..{}", cp.search.next_candidate);
     if bound_improved {
         if let (Some(old), Some(new)) = (&before, &cp.observed_best) {

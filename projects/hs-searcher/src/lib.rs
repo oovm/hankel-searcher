@@ -1,6 +1,7 @@
 mod budget;
 mod enumerate;
 mod local;
+mod parallel;
 mod report;
 mod rng;
 mod sample;
