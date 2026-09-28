@@ -1,12 +1,12 @@
 use hs_checkpoint::{Observation, RationalData};
 use hs_searcher::{SearchBudget, SearchStrategy, enumerate_indices, local_indices, sample_indices};
-use num_bigint::BigInt;
-use num_rational::Ratio;
+use hs_types::{Integer, Rational};
+use malachite::base::num::basic::traits::One;
 use std::sync::Mutex;
 
 fn observation(n: usize, error_num: i32, error_den: u32) -> Observation {
-    let approx = Ratio::new(BigInt::from(1), BigInt::from(2));
-    let bound = Ratio::new(BigInt::from(error_num), BigInt::from(error_den));
+    let approx = Rational::from_integers(Integer::ONE, Integer::from(2));
+    let bound = Rational::from_integers(Integer::from(error_num), Integer::from(error_den));
     Observation {
         kind: "finite_approximation_error_upper".into(),
         n,
@@ -69,6 +69,7 @@ fn parallel_enumerate_matches_sequential_merge() {
     assert_eq!(parallel.best.as_ref().map(|o| o.n), sequential.best.as_ref().map(|o| o.n));
     assert_eq!(parallel.improvements, sequential.improvements);
 }
+
 #[test]
 fn zero_step_budget_is_rejected() {
     let budget = SearchBudget::new(0);

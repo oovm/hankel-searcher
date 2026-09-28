@@ -3,9 +3,7 @@ use hs_checkpoint::{
     fixture_exact_rational, target_supports_rational_certificate, zeta_order, zeta_value_in_enclosure, Checkpoint,
     ProofRecord, ProofStatus, RationalData,
 };
-use num_bigint::BigInt;
-use num_rational::Ratio;
-use num_traits::Zero;
+use hs_types::Rational;
 use serde_json::Value;
 
 const ZETA_ENCLOSURE_TERMS: usize = 2048;
@@ -23,12 +21,7 @@ pub fn verify_rational_proof(cp: &Checkpoint, proof: &ProofRecord) -> Result<Ver
     }
     let numerator = payload_str(&proof.payload, "numerator")?;
     let denominator = payload_str(&proof.payload, "denominator")?;
-    let num = numerator.parse::<BigInt>().map_err(|e| e.to_string())?;
-    let den = denominator.parse::<BigInt>().map_err(|e| e.to_string())?;
-    if den <= BigInt::zero() {
-        return Err("rational denominator must be positive".into());
-    }
-    let ratio = Ratio::new(num, den);
+    let ratio = hs_types::rational_from_str(&numerator, &denominator)?;
     let canonical = RationalData::from_ratio(&ratio);
     if canonical.num != numerator || canonical.den != denominator {
         return Err("rational certificate must use canonical numerator and denominator".into());
@@ -51,14 +44,14 @@ pub fn verify_rational_proof(cp: &Checkpoint, proof: &ProofRecord) -> Result<Ver
     })
 }
 
-fn confirm_target_rational_identity(target: &str, value: &Ratio<BigInt>) -> Result<(), String> {
+fn confirm_target_rational_identity(target: &str, value: &Rational) -> Result<(), String> {
     if let Some(fixture) = fixture_exact_rational(target) {
         let expected = fixture.ratio()?;
         if *value != expected {
             return Err(format!(
                 "certificate {}/{} does not match fixture target `{target}`",
-                value.numer(),
-                value.denom()
+                value.to_numerator(),
+                value.to_denominator()
             ));
         }
         return Ok(());
@@ -71,8 +64,8 @@ fn confirm_target_rational_identity(target: &str, value: &Ratio<BigInt>) -> Resu
         }
         return Err(format!(
             "certificate {}/{} is outside the rigorous `ζ({order})` enclosure at {ZETA_ENCLOSURE_TERMS} terms",
-            value.numer(),
-            value.denom()
+            value.to_numerator(),
+            value.to_denominator()
         ));
     }
     if target_supports_rational_certificate(target) {

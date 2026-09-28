@@ -12,6 +12,6 @@ publish.workspace = true
 hs-checkpoint = { workspace = true }
 
 [dev-dependencies]
-num-bigint = { workspace = true }
-num-rational = { workspace = true }
+hs-types = { workspace = true }
+malachite = { workspace = true }
 tempfile = "3.23.0"

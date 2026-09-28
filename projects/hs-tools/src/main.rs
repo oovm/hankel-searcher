@@ -1,7 +1,6 @@
 use clap::{Parser, Subcommand};
-use hs_checkpoint::{CheckpointError, ProofStatus, SearchBenchmark, read_checkpoint, write_checkpoint};
+use hs_checkpoint::{CheckpointError, ProofStatus, SearchBenchmark, rational_to_f64, read_checkpoint, write_checkpoint};
 use hs_verify::{VerifyVerdict, verify_checkpoint};
-use num_traits::ToPrimitive;
 use std::path::PathBuf;
 use std::time::Duration;
 
@@ -120,7 +119,7 @@ fn status(path: &PathBuf, target: &str) -> Result<(), String> {
         if let Some(shift) = observation.shift {
             println!("observed_best.shift: {shift}");
         }
-        if let Some(approximate) = observation.error_upper.ratio()?.to_f64() {
+        if let Some(approximate) = rational_to_f64(&observation.error_upper.ratio()?) {
             println!("observed_best.error_upper (approx display): <= {:.12e}", approximate);
         }
         println!(
@@ -323,7 +322,10 @@ fn improve(
     }
     if bound_improved {
         if let (Some(old), Some(new)) = (&before, &cp.observed_best) {
-            if let (Some(old_f), Some(new_f)) = (old.error_upper.ratio()?.to_f64(), new.error_upper.ratio()?.to_f64()) {
+            if let (Some(old_f), Some(new_f)) = (
+                rational_to_f64(&old.error_upper.ratio()?),
+                rational_to_f64(&new.error_upper.ratio()?),
+            ) {
                 if parameter_contract {
                     let old_shift = old.shift.unwrap_or(0);
                     let new_shift = new.shift.unwrap_or(0);
@@ -341,7 +343,7 @@ fn improve(
                 }
             }
         } else if let Some(new) = &cp.observed_best {
-            if let Some(new_f) = new.error_upper.ratio()?.to_f64() {
+            if let Some(new_f) = rational_to_f64(&new.error_upper.ratio()?) {
                 if parameter_contract {
                     println!(
                         "best after: n={}, shift={}, error < {:.12e}",

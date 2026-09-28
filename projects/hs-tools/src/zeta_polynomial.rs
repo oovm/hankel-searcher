@@ -6,7 +6,7 @@ use hs_problems::{
     zeta5_delta_degree, zeta5_delta_leading_coeff, zeta5_delta_polynomial, zeta5_energy_report, zeta5_entries,
     zeta5_log_s_k, zeta5_paper_params,
 };
-use num_traits::Zero;
+use hs_types::{Rational, is_zero};
 use std::time::{Duration, Instant};
 
 pub struct PolynomialImproveReport {
@@ -97,7 +97,7 @@ pub fn improve_polynomial(
                     delta.len()
                 ));
             }
-            if delta[degree].is_zero() {
+            if is_zero(&delta[degree]) {
                 return Err(format!("Δ_K leading coefficient vanished at n={current}"));
             }
             leading_match = Some(delta[degree] == lead);
@@ -117,7 +117,7 @@ pub fn improve_polynomial(
             println!("  delta_ms={ms}");
         }
         println!("  log S_K: {log_s:.3}");
-        println!("  leading_coeff (2.9): {}/{}", lead.numer(), lead.denom());
+        println!("  leading_coeff (2.9): {}/{}", lead.to_numerator(), lead.to_denominator());
         if let Some(matches) = leading_match {
             println!("  leading_coeff matches Δ_K: {matches}");
         }
@@ -169,7 +169,7 @@ fn print_energy_report(params: &hs_problems::Zeta5PaperParams, energy: &hs_probl
 fn record_polynomial_observation(
     cp: &mut Checkpoint,
     params: &hs_problems::Zeta5PaperParams,
-    leading_coeff: &num_rational::Ratio<num_bigint::BigInt>,
+    leading_coeff: &Rational,
     log_s_k: f64,
     energy: Option<&hs_problems::Zeta5EnergyReport>,
 ) -> bool {

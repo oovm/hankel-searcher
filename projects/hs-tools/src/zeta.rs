@@ -1,18 +1,17 @@
 use hs_checkpoint::{
-    decode_rational_parameter, rational_parameter_ordinal, Checkpoint, FERGUSON_INDEX_GENERATOR,
+    decode_rational_parameter, rational_parameter_ordinal, rational_to_f64, Checkpoint, FERGUSON_INDEX_GENERATOR,
     FERGUSON_PARAMETER_GENERATOR, NONNEGATIVE_INDEX_SPACE, Observation, RATIONAL_PARAMETER_SPACE,
 };
 use hs_searcher::{SearchBudget, SearchReport, SearchStrategy, enumerate_indices, local_indices, sample_indices};
-use num_bigint::BigInt;
-use num_rational::Ratio;
-use num_traits::{Signed, Zero};
+use hs_types::{Rational, is_zero};
+use malachite::base::num::basic::traits::Abs;
 use std::time::Duration;
 
-pub fn zeta_interval(order: u32, terms: usize) -> Result<(Ratio<BigInt>, Ratio<BigInt>), String> {
+pub fn zeta_interval(order: u32, terms: usize) -> Result<(Rational, Rational), String> {
     hs_checkpoint::zeta_series_bounds(order, terms)
 }
 
-fn ferguson_pair(order: u32, n: usize, count: usize) -> Result<(Ratio<BigInt>, Ratio<BigInt>), String> {
+fn ferguson_pair(order: u32, n: usize, count: usize) -> Result<(Rational, Rational), String> {
     match order {
         2 => {
             let pair = hs_problems::zeta2::ferguson_approximant(n, count).map_err(|e| e.to_string())?;
@@ -39,7 +38,7 @@ fn ferguson_pair_shifted(
     n: usize,
     shift: usize,
     count: usize,
-) -> Result<(Ratio<BigInt>, Ratio<BigInt>), String> {
+) -> Result<(Rational, Rational), String> {
     let pair = hs_problems::zeta_ferguson_shifted(order, n, shift, count).map_err(|e| e.to_string())?;
     Ok((pair.p, pair.q))
 }
@@ -53,7 +52,7 @@ pub fn observe(
     order: u32,
     n: usize,
     terms: usize,
-    interval: &(Ratio<BigInt>, Ratio<BigInt>),
+    interval: &(Rational, Rational),
 ) -> Result<Observation, String> {
     observe_with_shift(order, n, None, terms, interval)
 }
@@ -63,7 +62,7 @@ pub fn observe_with_shift(
     n: usize,
     shift: Option<usize>,
     terms: usize,
-    interval: &(Ratio<BigInt>, Ratio<BigInt>),
+    interval: &(Rational, Rational),
 ) -> Result<Observation, String> {
     let count = n.checked_add(2).and_then(|x| x.checked_mul(2)).ok_or("index overflow")?;
     let shift_value = shift.unwrap_or(0);
@@ -77,12 +76,12 @@ pub fn observe_with_shift(
     } else {
         ferguson_pair(order, n, count)?
     };
-    if q.is_zero() {
+    if is_zero(&q) {
         return Err("zero Ferguson denominator".into());
     }
     let approx = p / q;
-    let low_error = (&interval.0 - &approx).abs();
-    let high_error = (&interval.1 - &approx).abs();
+    let low_error = (interval.0.clone() - approx.clone()).abs();
+    let high_error = (interval.1.clone() - approx).abs();
     let bound = low_error.max(high_error);
     Ok(Observation {
         kind: "finite_approximation_error_upper".into(),
