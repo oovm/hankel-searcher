@@ -1,9 +1,5 @@
 use crate::{VerifyReport, VerifyVerdict};
-use hs_checkpoint::{Checkpoint, ProofRecord, ProofStatus, RationalData};
-use num_bigint::BigInt;
-use num_rational::Ratio;
-use num_traits::{One, Zero};
-use serde_json::Value;
+use hs_checkpoint::{Checkpoint, ProofRecord, ProofStatus};
 
 pub fn verify_irrational_proof(cp: &Checkpoint, proof: &ProofRecord) -> Result<VerifyReport, String> {
     if proof.kind == "rational_equality" {
@@ -26,9 +22,11 @@ pub fn verify_irrational_proof(cp: &Checkpoint, proof: &ProofRecord) -> Result<V
 }
 
 fn verify_integer_linear_form(cp: &Checkpoint, proof: &ProofRecord) -> Result<VerifyReport, String> {
-    let linear_form_id = proof.payload.get("linear_form_id").and_then(|v| v.as_str()).ok_or(
-        "integer_linear_form proof requires payload.linear_form_id",
-    )?;
+    let linear_form_id = proof
+        .payload
+        .get("linear_form_id")
+        .and_then(|v| v.as_str())
+        .ok_or("integer_linear_form proof requires payload.linear_form_id")?;
     if linear_form_id == "unassigned" {
         return Ok(VerifyReport {
             verdict: VerifyVerdict::Unsupported,
@@ -46,102 +44,12 @@ fn verify_integer_linear_form(cp: &Checkpoint, proof: &ProofRecord) -> Result<Ve
     if verifier != "integer-linear-form-v1" {
         return Err(format!("unsupported irrational verifier `{verifier}`"));
     }
-    let start_index = payload_usize(&proof.payload, "start_index")?;
-    let tau = payload_positive_rational(&proof.payload, "tau")?;
-    let sigma = payload_nonnegative_rational(&proof.payload, "sigma")?;
-    if start_index == 0 {
-        return Err("integer_linear_form start_index must be positive".into());
-    }
-    let mu_upper = Ratio::from_integer(BigInt::one()) + sigma / tau;
-    let mu = RationalData::from_ratio(&mu_upper);
-    validate_mu_for_integer_linear_form(cp, verifier, &mu)?;
-    let mu_checkpoint_hint = if cp.mu.status == hs_checkpoint::MuStatus::Unavailable {
-        Some(mu_upper_bound_hint(&mu, verifier))
-    } else {
-        None
-    };
     Ok(VerifyReport {
-        verdict: VerifyVerdict::Verified,
+        verdict: VerifyVerdict::Unsupported,
         message: format!(
-            "verified integer linear form `{linear_form_id}` for `{0}` from index {start_index} with mu upper bound {1}/{2} via `{verifier}`",
-            cp.target,
-            mu.num,
-            mu.den
+            "integer linear form `{linear_form_id}` for `{0}` is not verified: full decay, coefficient growth, and nondegeneracy evidence are not implemented",
+            cp.target
         ),
-        mu_checkpoint_hint,
+        mu_checkpoint_hint: None,
     })
-}
-
-fn mu_upper_bound_hint(mu: &RationalData, verifier: &str) -> String {
-    format!(
-        "checkpoint mu snippet (not written automatically):\n\
-\"mu\": {{\n\
-  \"status\": \"upper_bound\",\n\
-  \"upper_bound\": {{ \"num\": \"{}\", \"den\": \"{}\" }},\n\
-  \"verifier_id\": \"{verifier}\"\n\
-}}",
-        mu.num, mu.den
-    )
-}
-
-fn validate_mu_for_integer_linear_form(
-    cp: &Checkpoint,
-    verifier: &str,
-    mu_upper: &RationalData,
-) -> Result<(), String> {
-    match cp.mu.status {
-        hs_checkpoint::MuStatus::Unavailable => Ok(()),
-        hs_checkpoint::MuStatus::Exact => {
-            Err("integer_linear_form proof cannot verify checkpoint with mu status exact".into())
-        }
-        hs_checkpoint::MuStatus::UpperBound => {
-            let bound = cp
-                .mu
-                .upper_bound
-                .as_ref()
-                .ok_or("checkpoint mu upper_bound status requires upper_bound field")?;
-            if bound.num != mu_upper.num || bound.den != mu_upper.den {
-                return Err("checkpoint mu upper_bound does not match proof-derived bound".into());
-            }
-            if let Some(record_verifier) = &cp.mu.verifier_id {
-                if record_verifier != verifier {
-                    return Err(format!(
-                        "checkpoint mu verifier_id `{record_verifier}` does not match proof verifier `{verifier}`"
-                    ));
-                }
-            }
-            Ok(())
-        }
-    }
-}
-
-fn payload_usize(payload: &Value, key: &str) -> Result<usize, String> {
-    let raw = payload
-        .get(key)
-        .and_then(|v| v.as_str())
-        .ok_or_else(|| format!("proof payload missing `{key}`"))?;
-    raw.parse::<usize>().map_err(|e| e.to_string())
-}
-
-fn payload_positive_rational(payload: &Value, key: &str) -> Result<Ratio<BigInt>, String> {
-    let ratio = payload_rational(payload, key)?;
-    if ratio <= Ratio::from_integer(BigInt::zero()) {
-        return Err(format!("proof payload `{key}` must be positive"));
-    }
-    Ok(ratio)
-}
-
-fn payload_nonnegative_rational(payload: &Value, key: &str) -> Result<Ratio<BigInt>, String> {
-    let ratio = payload_rational(payload, key)?;
-    if ratio < Ratio::from_integer(BigInt::zero()) {
-        return Err(format!("proof payload `{key}` must be non-negative"));
-    }
-    Ok(ratio)
-}
-
-fn payload_rational(payload: &Value, key: &str) -> Result<Ratio<BigInt>, String> {
-    let object = payload.get(key).ok_or_else(|| format!("proof payload missing `{key}`"))?;
-    let data = serde_json::from_value::<RationalData>(object.clone())
-        .map_err(|e| format!("proof payload `{key}` must be a rational object: {e}"))?;
-    data.ratio()
 }

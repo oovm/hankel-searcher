@@ -1,15 +1,16 @@
 use hs_checkpoint::{
-    Checkpoint, MuRecord, Objective, ProofRecord, ProofStatus, Search, default_checkpoint_path, read_checkpoint, write_checkpoint,
+    Checkpoint, MuRecord, Objective, ProofRecord, ProofStatus, Search, default_checkpoint_path, read_checkpoint,
+    write_checkpoint,
 };
 use hs_verify::{VerifyVerdict, verify_checkpoint};
 use std::fs;
 use tempfile::tempdir;
 
-fn sample_checkpoint(proof_status: ProofStatus, proof: Option<ProofRecord>) -> Checkpoint {
+fn sample_checkpoint(target: &str, proof_status: ProofStatus, proof: Option<ProofRecord>) -> Checkpoint {
     Checkpoint {
         schema_version: hs_checkpoint::SCHEMA_VERSION,
         status: "draft".into(),
-        target: "zeta-3".into(),
+        target: target.into(),
         proof_status,
         objective: Objective {
             linear_form_id: "unassigned".into(),
@@ -35,22 +36,34 @@ fn sample_checkpoint(proof_status: ProofStatus, proof: Option<ProofRecord>) -> C
 
 #[test]
 fn unknown_target_is_unsupported() {
-    let cp = sample_checkpoint(ProofStatus::Unknown, None);
+    let cp = sample_checkpoint("zeta-3", ProofStatus::Unknown, None);
     let report = verify_checkpoint(&cp).unwrap();
     assert_eq!(report.verdict, VerifyVerdict::Unsupported);
 }
 
 #[test]
-fn rational_certificate_verifies() {
+fn fixture_rational_certificate_verifies() {
     let proof = ProofRecord {
         kind: "rational_equality".into(),
         verifier_id: Some("exact-rational-v1".into()),
         payload: serde_json::json!({ "numerator": "1", "denominator": "2" }),
     };
-    let cp = sample_checkpoint(ProofStatus::Rational, Some(proof));
+    let cp = sample_checkpoint("fixture-half", ProofStatus::Rational, Some(proof));
     let report = verify_checkpoint(&cp).unwrap();
     assert_eq!(report.verdict, VerifyVerdict::Verified);
     assert!(report.mu_checkpoint_hint.is_none());
+}
+
+#[test]
+fn false_zeta3_rational_certificate_rejects() {
+    let proof = ProofRecord {
+        kind: "rational_equality".into(),
+        verifier_id: Some("exact-rational-v1".into()),
+        payload: serde_json::json!({ "numerator": "1", "denominator": "2" }),
+    };
+    let cp = sample_checkpoint("zeta-3", ProofStatus::Rational, Some(proof));
+    let err = verify_checkpoint(&cp).unwrap_err();
+    assert!(err.contains("outside the rigorous"));
 }
 
 #[test]
@@ -60,7 +73,7 @@ fn noncanonical_rational_certificate_rejects() {
         verifier_id: Some("exact-rational-v1".into()),
         payload: serde_json::json!({ "numerator": "2", "denominator": "4" }),
     };
-    let cp = sample_checkpoint(ProofStatus::Rational, Some(proof));
+    let cp = sample_checkpoint("fixture-half", ProofStatus::Rational, Some(proof));
     let err = verify_checkpoint(&cp).unwrap_err();
     assert!(err.contains("canonical"));
 }
@@ -72,7 +85,7 @@ fn rational_certificate_cannot_support_irrational_status() {
         verifier_id: Some("exact-rational-v1".into()),
         payload: serde_json::json!({ "numerator": "1", "denominator": "2" }),
     };
-    let cp = sample_checkpoint(ProofStatus::Irrational, Some(proof));
+    let cp = sample_checkpoint("zeta-3", ProofStatus::Irrational, Some(proof));
     let err = verify_checkpoint(&cp).unwrap_err();
     assert!(err.contains("cannot support irrational"));
 }
@@ -84,14 +97,14 @@ fn integer_linear_form_unassigned_stays_unsupported() {
         verifier_id: Some("integer-linear-form-v1".into()),
         payload: serde_json::json!({ "linear_form_id": "unassigned" }),
     };
-    let cp = sample_checkpoint(ProofStatus::Irrational, Some(proof));
+    let cp = sample_checkpoint("zeta-3", ProofStatus::Irrational, Some(proof));
     let report = verify_checkpoint(&cp).unwrap();
     assert_eq!(report.verdict, VerifyVerdict::Unsupported);
     assert!(report.message.contains("not registered"));
 }
 
 #[test]
-fn integer_linear_form_regression_fixture_verifies_mu_upper_bound() {
+fn integer_linear_form_payload_without_evidence_stays_unsupported() {
     let proof = ProofRecord {
         kind: "integer_linear_form".into(),
         verifier_id: Some("integer-linear-form-v1".into()),
@@ -102,20 +115,15 @@ fn integer_linear_form_regression_fixture_verifies_mu_upper_bound() {
             "sigma": { "num": "1", "den": "5" }
         }),
     };
-    let mut cp = sample_checkpoint(ProofStatus::Irrational, Some(proof));
+    let mut cp = sample_checkpoint("zeta-5", ProofStatus::Irrational, Some(proof));
     cp.objective.linear_form_id = "regression-v1".into();
     let report = verify_checkpoint(&cp).unwrap();
-    assert_eq!(report.verdict, VerifyVerdict::Verified);
-    assert!(report.message.contains("mu upper bound 3/1"));
-    assert!(report
-        .mu_checkpoint_hint
-        .as_ref()
-        .expect("hint")
-        .contains("\"status\": \"upper_bound\""));
+    assert_eq!(report.verdict, VerifyVerdict::Unsupported);
+    assert!(report.message.contains("not verified"));
 }
 
 #[test]
-fn integer_linear_form_accepts_matching_mu_record() {
+fn integer_linear_form_rejects_mismatched_objective() {
     let proof = ProofRecord {
         kind: "integer_linear_form".into(),
         verifier_id: Some("integer-linear-form-v1".into()),
@@ -126,32 +134,7 @@ fn integer_linear_form_accepts_matching_mu_record() {
             "sigma": { "num": "1", "den": "5" }
         }),
     };
-    let mut cp = sample_checkpoint(ProofStatus::Irrational, Some(proof));
-    cp.objective.linear_form_id = "regression-v1".into();
-    cp.mu.status = hs_checkpoint::MuStatus::UpperBound;
-    cp.mu.upper_bound = Some(hs_checkpoint::RationalData { num: "3".into(), den: "1".into() });
-    cp.mu.verifier_id = Some("integer-linear-form-v1".into());
-    let report = verify_checkpoint(&cp).unwrap();
-    assert_eq!(report.verdict, VerifyVerdict::Verified);
-    assert!(report.mu_checkpoint_hint.is_none());
-}
-
-#[test]
-fn integer_linear_form_rejects_mismatched_mu_record() {
-    let proof = ProofRecord {
-        kind: "integer_linear_form".into(),
-        verifier_id: Some("integer-linear-form-v1".into()),
-        payload: serde_json::json!({
-            "linear_form_id": "regression-v1",
-            "start_index": "1",
-            "tau": { "num": "1", "den": "10" },
-            "sigma": { "num": "1", "den": "5" }
-        }),
-    };
-    let mut cp = sample_checkpoint(ProofStatus::Irrational, Some(proof));
-    cp.objective.linear_form_id = "regression-v1".into();
-    cp.mu.status = hs_checkpoint::MuStatus::UpperBound;
-    cp.mu.upper_bound = Some(hs_checkpoint::RationalData { num: "2".into(), den: "1".into() });
+    let cp = sample_checkpoint("zeta-3", ProofStatus::Irrational, Some(proof));
     let err = verify_checkpoint(&cp).unwrap_err();
     assert!(err.contains("does not match"));
 }
@@ -167,15 +150,15 @@ fn project_zeta3_checkpoint_has_no_proof() {
 }
 
 #[test]
-fn round_trip_rational_proof_checkpoint() {
+fn round_trip_rational_fixture_checkpoint() {
     let dir = tempdir().unwrap();
     let path = dir.path().join("checkpoint.json");
     let proof = ProofRecord {
         kind: "rational_equality".into(),
         verifier_id: Some("exact-rational-v1".into()),
-        payload: serde_json::json!({ "numerator": "22", "denominator": "7" }),
+        payload: serde_json::json!({ "numerator": "1", "denominator": "2" }),
     };
-    let cp = sample_checkpoint(ProofStatus::Rational, Some(proof));
+    let cp = sample_checkpoint("fixture-half", ProofStatus::Rational, Some(proof));
     write_checkpoint(&path, &cp).unwrap();
     let loaded = read_checkpoint(&path).unwrap();
     let report = verify_checkpoint(&loaded).unwrap();

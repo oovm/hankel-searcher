@@ -1,9 +1,14 @@
 use crate::{VerifyReport, VerifyVerdict};
-use hs_checkpoint::{Checkpoint, ProofRecord, ProofStatus, RationalData};
+use hs_checkpoint::{
+    fixture_exact_rational, target_supports_rational_certificate, zeta_order, zeta_value_in_enclosure, Checkpoint,
+    ProofRecord, ProofStatus, RationalData,
+};
 use num_bigint::BigInt;
 use num_rational::Ratio;
 use num_traits::Zero;
 use serde_json::Value;
+
+const ZETA_ENCLOSURE_TERMS: usize = 2048;
 
 pub fn verify_rational_proof(cp: &Checkpoint, proof: &ProofRecord) -> Result<VerifyReport, String> {
     if proof.kind != "rational_equality" {
@@ -32,6 +37,7 @@ pub fn verify_rational_proof(cp: &Checkpoint, proof: &ProofRecord) -> Result<Ver
     if verifier != "exact-rational-v1" {
         return Err(format!("unsupported rational verifier `{verifier}`"));
     }
+    confirm_target_rational_identity(&cp.target, &ratio)?;
     Ok(VerifyReport {
         verdict: VerifyVerdict::Verified,
         message: format!(
@@ -43,6 +49,36 @@ pub fn verify_rational_proof(cp: &Checkpoint, proof: &ProofRecord) -> Result<Ver
         ),
         mu_checkpoint_hint: None,
     })
+}
+
+fn confirm_target_rational_identity(target: &str, value: &Ratio<BigInt>) -> Result<(), String> {
+    if let Some(fixture) = fixture_exact_rational(target) {
+        let expected = fixture.ratio()?;
+        if *value != expected {
+            return Err(format!(
+                "certificate {}/{} does not match fixture target `{target}`",
+                value.numer(),
+                value.denom()
+            ));
+        }
+        return Ok(());
+    }
+    if let Some(order) = zeta_order(target) {
+        if zeta_value_in_enclosure(order, ZETA_ENCLOSURE_TERMS, value)? {
+            return Err(format!(
+                "certificate lies inside a finite `ζ({order})` partial-sum enclosure but exact equality is not registered for `{target}`"
+            ));
+        }
+        return Err(format!(
+            "certificate {}/{} is outside the rigorous `ζ({order})` enclosure at {ZETA_ENCLOSURE_TERMS} terms",
+            value.numer(),
+            value.denom()
+        ));
+    }
+    if target_supports_rational_certificate(target) {
+        return Err(format!("target `{target}` has no exact rational identity registered"));
+    }
+    Err(format!("unsupported rational certificate target `{target}`"))
 }
 
 fn payload_str(payload: &Value, key: &str) -> Result<String, String> {
