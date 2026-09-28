@@ -131,6 +131,25 @@ fn status(path: &PathBuf, target: &str) -> Result<(), String> {
     } else {
         println!("observed_best: none");
     }
+    if let Some(observation) = &cp.polynomial_observed_best {
+        println!("polynomial_observed_best.n: {}", observation.n);
+        println!(
+            "polynomial_observed_best.scaling: K={} N={} h={}",
+            observation.k,
+            observation.capital_n,
+            observation.h
+        );
+        println!("polynomial_observed_best.log_s_k: {:.3}", observation.log_s_k);
+        if let Some(log_primitive) = observation.log_primitive_at_zeta5 {
+            println!("polynomial_observed_best.log_primitive_at_zeta5: {:.3}", log_primitive);
+            println!(
+                "polynomial_observed_best.log_primitive / n^2: {:.3}",
+                log_primitive / (observation.n * observation.n) as f64
+            );
+        }
+    } else {
+        println!("polynomial_observed_best: none");
+    }
     println!("certified_best: {}", if cp.best.is_some() { "present" } else { "null" });
     println!("mu_status: {}", mu_status_label(&cp.mu.status));
     match cp.mu.status {

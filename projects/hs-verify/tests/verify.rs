@@ -30,6 +30,7 @@ fn sample_checkpoint(target: &str, proof_status: ProofStatus, proof: Option<Proo
         mu: MuRecord::default(),
         best: None,
         observed_best: None,
+        polynomial_observed_best: None,
         updated_at: "2026-01-01T00:00:00Z".into(),
     }
 }

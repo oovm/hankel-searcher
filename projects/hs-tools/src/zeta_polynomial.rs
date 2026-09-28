@@ -1,5 +1,6 @@
 use hs_checkpoint::{
-    Checkpoint, POLYNOMIAL_HANKEL_GENERATOR, SearchBenchmark, ZETA5_PAPER_PARAMETER_SPACE,
+    Checkpoint, OBSERVATION_KIND_POLYNOMIAL_HANKEL, POLYNOMIAL_HANKEL_GENERATOR, PolynomialHankelObservation,
+    RationalData, SearchBenchmark, ZETA5_PAPER_PARAMETER_SPACE,
 };
 use hs_problems::{
     zeta5_delta_degree, zeta5_delta_leading_coeff, zeta5_delta_polynomial, zeta5_energy_report, zeta5_entries,
@@ -46,6 +47,7 @@ pub fn improve_polynomial(
         );
         start_n = 1;
         cp.search.next_candidate = "1".into();
+        cp.observed_best = None;
     }
     if start_n == 0 {
         return Err("polynomial construction index `n` must be positive".into());
@@ -80,6 +82,7 @@ pub fn improve_polynomial(
         let log_s = zeta5_log_s_k(&params);
         let mut delta_ms = None;
         let mut leading_match = None;
+        let mut energy_report = None;
         if full_delta {
             let delta_started = Instant::now();
             let delta = zeta5_delta_polynomial(&entries);
@@ -98,7 +101,9 @@ pub fn improve_polynomial(
             leading_match = Some(delta[degree] == lead);
             let energy = zeta5_energy_report(&params, &delta)?;
             print_energy_report(&params, &energy);
+            energy_report = Some(energy);
         }
+        record_polynomial_observation(cp, &params, &lead, log_s, energy_report.as_ref());
 
         println!(
             "n={current} K={} N={} h={} entries_ms={entries_ms}",
@@ -154,6 +159,39 @@ fn print_energy_report(params: &hs_problems::Zeta5PaperParams, energy: &hs_probl
         energy.max_primitive_coeff_bits,
         energy.max_primitive_coeff_bits as f64 * std::f64::consts::LN_2 / k2
     );
+}
+
+fn record_polynomial_observation(
+    cp: &mut Checkpoint,
+    params: &hs_problems::Zeta5PaperParams,
+    leading_coeff: &num_rational::Ratio<num_bigint::BigInt>,
+    log_s_k: f64,
+    energy: Option<&hs_problems::Zeta5EnergyReport>,
+) {
+    let candidate = PolynomialHankelObservation {
+        kind: OBSERVATION_KIND_POLYNOMIAL_HANKEL.into(),
+        n: params.n,
+        k: params.k,
+        capital_n: params.capital_n,
+        h: params.h,
+        log_s_k,
+        leading_coeff: RationalData::from_ratio(leading_coeff),
+        log_delta_at_zeta5: energy.map(|report| report.log_delta_at_zeta5),
+        log_primitive_at_zeta5: energy.map(|report| report.log_primitive_at_zeta5),
+        max_primitive_coeff_bits: energy.map(|report| report.max_primitive_coeff_bits),
+    };
+    let replace = match &cp.polynomial_observed_best {
+        None => true,
+        Some(best) => match (candidate.log_primitive_at_zeta5, best.log_primitive_at_zeta5) {
+            (Some(new_log), Some(old_log)) => new_log < old_log,
+            (Some(_), None) => true,
+            (None, None) => params.n >= best.n,
+            (None, Some(_)) => false,
+        },
+    };
+    if replace {
+        cp.polynomial_observed_best = Some(candidate);
+    }
 }
 
 pub fn record_benchmark(cp: &mut Checkpoint, report: &PolynomialImproveReport, elapsed_ms: u64, jobs: usize) {

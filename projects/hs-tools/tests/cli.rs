@@ -1,5 +1,6 @@
 use hs_checkpoint::{
-    FERGUSON_PARAMETER_GENERATOR, ProofRecord, ProofStatus, RATIONAL_PARAMETER_SPACE, read_checkpoint, write_checkpoint,
+    FERGUSON_PARAMETER_GENERATOR, POLYNOMIAL_HANKEL_GENERATOR, ProofRecord, ProofStatus, RATIONAL_PARAMETER_SPACE,
+    read_checkpoint, write_checkpoint,
 };
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -268,6 +269,27 @@ fn improve_polynomial_rejects_non_zeta5_target() {
     assert!(!output.status.success());
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(stderr.contains("polynomial Hankel improve is not registered"));
+}
+
+#[test]
+fn improve_polynomial_records_observation() {
+    let dir = tempdir_in(repo_root()).unwrap();
+    let path = dir.path().join("checkpoint.json");
+    let source = repo_root().join("projects/hs-problems/checkpoints/zeta-5/checkpoint.json");
+    std::fs::copy(source, &path).expect("copy checkpoint");
+    let output = Command::new(hs_bin())
+        .current_dir(repo_root())
+        .args(["improve", "zeta-5", "--polynomial", "--steps", "1", "--checkpoint"])
+        .arg(&path)
+        .output()
+        .expect("spawn hs");
+    assert!(output.status.success(), "stderr={}", String::from_utf8_lossy(&output.stderr));
+    let cp = read_checkpoint(&path).unwrap();
+    assert_eq!(cp.search.generator_id, POLYNOMIAL_HANKEL_GENERATOR);
+    let observation = cp.polynomial_observed_best.expect("polynomial observation");
+    assert_eq!(observation.n, 1);
+    assert_eq!(observation.k, 40);
+    assert!(cp.observed_best.is_none());
 }
 
 #[test]
