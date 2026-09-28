@@ -58,6 +58,9 @@ enum Command {
         target: String,
         #[arg(long)]
         checkpoint: Option<PathBuf>,
+        /// Compare `n=1` polynomial Hankel pipeline to embedded `hankel.py` golden (`zeta-5` only).
+        #[arg(long)]
+        polynomial_golden: bool,
     },
     /// Verify a registered rational or irrational proof record.
     Verify {
@@ -168,6 +171,7 @@ fn targets() {
         println!("  path: projects/hs-problems/checkpoints/{target}/checkpoint.json");
         if hs_checkpoint::has_polynomial_hankel(target) {
             println!("  improve: Ferguson finite-index, or `--polynomial` for paper Hankel construction");
+            println!("  check: `--polynomial-golden` for `hankel.py` regression at n=1");
             println!("  verify: polynomial_irrationality when proof_status is irrational");
         }
         if hs_checkpoint::has_ferguson_search(target) {
@@ -321,6 +325,23 @@ fn improve(
         println!("checkpoint: {}", path.display());
     }
     println!("proof status: no uniform bound registered");
+    Ok(())
+}
+
+fn check_polynomial_golden(target: &str) -> Result<(), String> {
+    if target != "zeta-5" {
+        return Err(format!("polynomial golden check is only registered for `zeta-5`, not `{target}`"));
+    }
+    if !hs_checkpoint::has_polynomial_hankel(target) {
+        return Err(format!("polynomial Hankel is not registered for `{target}`"));
+    }
+    println!("checking polynomial Hankel golden for {target} (n=1, vs mo271/Zeta5 hankel.py)");
+    let energy = hs_problems::zeta5_polynomial_golden_check()?;
+    println!("polynomial Hankel golden: ok");
+    println!("  max |coeff P_K| bits = {}", energy.max_primitive_coeff_bits);
+    println!("  log S_K = {:.3}", energy.log_s_k);
+    println!("  log Delta_K(zeta5) = {:.3}", energy.log_delta_at_zeta5);
+    println!("  log P_K(zeta5) / n^2 = {:.3}", energy.log_primitive_at_zeta5);
     Ok(())
 }
 
@@ -481,9 +502,19 @@ fn main() {
                     }
                 })
         }
-        Command::Check { target, checkpoint } => require_repo_root()
-            .and_then(|root| resolve_path(&root, &target, checkpoint))
-            .and_then(|path| check(&path, &target)),
+        Command::Check {
+            target,
+            checkpoint,
+            polynomial_golden,
+        } => {
+            if polynomial_golden {
+                require_repo_root().and_then(|_| check_polynomial_golden(&target))
+            } else {
+                require_repo_root()
+                    .and_then(|root| resolve_path(&root, &target, checkpoint))
+                    .and_then(|path| check(&path, &target))
+            }
+        }
         Command::Verify { target, checkpoint } => require_repo_root()
             .and_then(|root| resolve_path(&root, &target, checkpoint))
             .and_then(|path| verify(&path, &target)),
