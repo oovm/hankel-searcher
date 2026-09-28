@@ -15,7 +15,7 @@ exclude = [
 [workspace.package]
 version = "0.0.0"
 authors = ["Aster <192607617@qq.com>"]
-license = "MPL-2.0"
+license = "CC0-1.0"
 edition = "2021"
 publish = false
 
@@ -24,6 +24,7 @@ hs-types = { path = "projects/hs-types" }
 hs-moments = { path = "projects/hs-moments" }
 hs-lean-helper = { path = "projects/hs-lean-helper" }
 hs-problems = { path = "projects/hs-problems" }
+hs-checkpoint = { path = "projects/hs-checkpoint" }
 zeta-2 = { path = "projects/zeta-2" }
 zeta-3 = { path = "projects/zeta-3" }
 zeta-5 = { path = "projects/zeta-5" }

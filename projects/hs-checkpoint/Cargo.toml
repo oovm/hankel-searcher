@@ -1,0 +1,20 @@
+[package]
+name = "hs-checkpoint"
+description = "Checkpoint JSON schema, validation, and atomic writes for Hankel search"
+readme = "readme.md"
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+num-bigint = { workspace = true }
+num-rational = { workspace = true }
+num-traits = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+tempfile = "3.23.0"
