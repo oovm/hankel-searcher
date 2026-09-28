@@ -1,3 +1,4 @@
+use crate::polynomial;
 use crate::{VerifyReport, VerifyVerdict};
 use hs_checkpoint::{Checkpoint, ProofRecord, ProofStatus};
 
@@ -10,6 +11,7 @@ pub fn verify_irrational_proof(cp: &Checkpoint, proof: &ProofRecord) -> Result<V
     }
     match proof.kind.as_str() {
         "integer_linear_form" => verify_integer_linear_form(cp, proof),
+        "polynomial_irrationality" => polynomial::verify_polynomial_irrationality(cp, proof),
         other => Ok(VerifyReport {
             verdict: VerifyVerdict::Unsupported,
             message: format!(

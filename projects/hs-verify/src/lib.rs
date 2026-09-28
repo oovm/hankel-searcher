@@ -1,4 +1,5 @@
 mod irrational;
+mod polynomial;
 mod rational;
 
 use hs_checkpoint::{Checkpoint, ProofStatus};

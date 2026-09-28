@@ -140,6 +140,53 @@ fn integer_linear_form_rejects_mismatched_objective() {
 }
 
 #[test]
+fn polynomial_irrationality_stays_unsupported_for_zeta5() {
+    let proof = ProofRecord {
+        kind: "polynomial_irrationality".into(),
+        verifier_id: Some("polynomial-irrationality-v1".into()),
+        payload: serde_json::json!({
+            "parameter_space_id": "zeta5-paper-v1",
+            "n": "1",
+            "K": "40",
+            "N": "3",
+            "h": "37"
+        }),
+    };
+    let cp = sample_checkpoint("zeta-5", ProofStatus::Irrational, Some(proof));
+    let report = verify_checkpoint(&cp).unwrap();
+    assert_eq!(report.verdict, VerifyVerdict::Unsupported);
+    assert!(report.message.contains("not verified"));
+}
+
+#[test]
+fn polynomial_irrationality_rejects_mismatched_dimensions() {
+    let proof = ProofRecord {
+        kind: "polynomial_irrationality".into(),
+        verifier_id: Some("polynomial-irrationality-v1".into()),
+        payload: serde_json::json!({
+            "parameter_space_id": "zeta5-paper-v1",
+            "n": "1",
+            "h": "36"
+        }),
+    };
+    let cp = sample_checkpoint("zeta-5", ProofStatus::Irrational, Some(proof));
+    let err = verify_checkpoint(&cp).unwrap_err();
+    assert!(err.contains("h` must be 37"));
+}
+
+#[test]
+fn polynomial_irrationality_rejects_non_zeta5_target() {
+    let proof = ProofRecord {
+        kind: "polynomial_irrationality".into(),
+        verifier_id: Some("polynomial-irrationality-v1".into()),
+        payload: serde_json::json!({ "n": "1" }),
+    };
+    let cp = sample_checkpoint("zeta-3", ProofStatus::Irrational, Some(proof));
+    let err = verify_checkpoint(&cp).unwrap_err();
+    assert!(err.contains("not registered"));
+}
+
+#[test]
 fn project_zeta3_checkpoint_has_no_proof() {
     let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
     let path = default_checkpoint_path("zeta-3").unwrap();
