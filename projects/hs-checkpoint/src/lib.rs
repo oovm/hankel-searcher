@@ -9,4 +9,6 @@ pub use checkpoint::{
 };
 pub use error::CheckpointError;
 pub use rational::ratio_from_data;
-pub use targets::{FERGUSON_ZETA_TARGETS, is_known_target, zeta_order};
+pub use targets::{
+    CHECKPOINT_TARGETS, FERGUSON_ZETA_TARGETS, has_ferguson_search, is_known_target, zeta_order,
+};

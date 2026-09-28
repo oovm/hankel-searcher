@@ -1,6 +1,6 @@
 use hs_checkpoint::{
-    Checkpoint, FERGUSON_ZETA_TARGETS, MuRecord, MuStatus, Objective, ProofStatus, RationalData, Search,
-    default_checkpoint_path, is_known_target, read_checkpoint, write_checkpoint, zeta_order,
+    Checkpoint, CHECKPOINT_TARGETS, FERGUSON_ZETA_TARGETS, MuRecord, MuStatus, Objective, ProofStatus, RationalData,
+    Search, default_checkpoint_path, has_ferguson_search, is_known_target, read_checkpoint, write_checkpoint, zeta_order,
 };
 use num_bigint::BigInt;
 use num_rational::Ratio;
@@ -96,17 +96,16 @@ fn default_path_for_zeta3() {
 }
 
 #[test]
-fn ferguson_targets_registry() {
+fn checkpoint_targets_registry() {
+    assert_eq!(CHECKPOINT_TARGETS, &["zeta-2", "zeta-3", "zeta-5", "zeta-7"]);
     assert_eq!(FERGUSON_ZETA_TARGETS, &["zeta-2", "zeta-3", "zeta-5"]);
     assert!(is_known_target("zeta-2"));
-    assert!(is_known_target("zeta-3"));
-    assert!(is_known_target("zeta-5"));
+    assert!(is_known_target("zeta-7"));
     assert!(!is_known_target("zeta-4"));
-    assert_eq!(zeta_order("zeta-2"), Some(2));
-    assert_eq!(zeta_order("zeta-3"), Some(3));
-    assert_eq!(zeta_order("zeta-5"), Some(5));
+    assert!(has_ferguson_search("zeta-3"));
+    assert!(!has_ferguson_search("zeta-7"));
+    assert_eq!(zeta_order("zeta-7"), Some(7));
     assert_eq!(zeta_order("delta"), None);
-    assert!(default_checkpoint_path("zeta-2").unwrap().ends_with("projects/targets/zeta-2/checkpoint.json"));
-    assert!(default_checkpoint_path("zeta-5").unwrap().ends_with("projects/targets/zeta-5/checkpoint.json"));
+    assert!(default_checkpoint_path("zeta-7").unwrap().ends_with("projects/targets/zeta-7/checkpoint.json"));
     assert!(default_checkpoint_path("unknown").is_err());
 }
