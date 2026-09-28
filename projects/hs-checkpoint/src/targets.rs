@@ -1,10 +1,17 @@
 /// Checkpoint targets with collaborative JSON under `projects/hs-problems/checkpoints/<id>/`.
 pub const CHECKPOINT_TARGETS: &[&str] = &["zeta-2", "zeta-3", "zeta-5", "zeta-7"];
 
+/// Verify-only conformance fixtures without project checkpoint JSON.
+pub const VERIFY_FIXTURE_TARGETS: &[&str] = &["fixture-half"];
+
 /// Subset with registered Ferguson finite-index exports in `hs-problems`.
 pub const FERGUSON_ZETA_TARGETS: &[&str] = &["zeta-2", "zeta-3", "zeta-5", "zeta-7"];
 
 pub fn is_known_target(target: &str) -> bool {
+    CHECKPOINT_TARGETS.contains(&target) || VERIFY_FIXTURE_TARGETS.contains(&target)
+}
+
+pub fn is_project_checkpoint_target(target: &str) -> bool {
     CHECKPOINT_TARGETS.contains(&target)
 }
 

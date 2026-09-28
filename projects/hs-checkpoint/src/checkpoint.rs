@@ -1,6 +1,6 @@
 use crate::error::CheckpointError;
 use crate::search::{validate_known_search_contract, RATIONAL_PARAMETER_MAX_SHIFT};
-use crate::targets::is_known_target;
+use crate::targets::{is_known_target, is_project_checkpoint_target};
 use crate::rational::ratio_from_data;
 use num_bigint::BigInt;
 use num_rational::Ratio;
@@ -150,7 +150,7 @@ struct CheckpointV1 {
 }
 
 pub fn default_checkpoint_path(target: &str) -> Result<PathBuf, CheckpointError> {
-    if !is_known_target(target) {
+    if !is_project_checkpoint_target(target) {
         return Err(CheckpointError::UnsupportedTarget(target.to_string()));
     }
     Ok(PathBuf::from(format!("projects/hs-problems/checkpoints/{target}/checkpoint.json")))

@@ -3,6 +3,7 @@ mod error;
 mod rational;
 mod search;
 mod targets;
+mod zeta;
 
 pub use checkpoint::{
     Checkpoint, MuRecord, MuStatus, Objective, Observation, ProofRecord, ProofStatus, RationalData, SCHEMA_VERSION,
@@ -17,5 +18,9 @@ pub use search::{
     is_implemented_search_contract, is_unassigned_search_contract, validate_known_search_contract,
 };
 pub use targets::{
-    CHECKPOINT_TARGETS, FERGUSON_ZETA_TARGETS, has_ferguson_search, is_known_target, zeta_order,
+    CHECKPOINT_TARGETS, FERGUSON_ZETA_TARGETS, VERIFY_FIXTURE_TARGETS, has_ferguson_search, is_known_target,
+    is_project_checkpoint_target, zeta_order,
+};
+pub use zeta::{
+    fixture_exact_rational, target_supports_rational_certificate, zeta_series_bounds, zeta_value_in_enclosure,
 };
