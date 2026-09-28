@@ -49,6 +49,10 @@ path = "src/bin/export_zeta5_certificates.rs"
 name = "export-zeta7-certificates"
 path = "src/bin/export_zeta7_certificates.rs"
 
+[[bin]]
+name = "zeta5-hankel-golden"
+path = "src/bin/zeta5_hankel_golden.rs"
+
 [dev-dependencies]
 num-bigint = { workspace = true }
 num-rational = { workspace = true }

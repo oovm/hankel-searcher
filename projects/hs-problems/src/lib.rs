@@ -11,6 +11,8 @@ pub mod zeta5_polynomial;
 pub mod zeta5_hankel;
 /// Energy logs at `ζ(5)` for polynomial Hankel diagnostics.
 pub mod zeta5_energy;
+/// Golden expectations for `hankel.py` regression at `n=1`.
+pub mod zeta5_golden;
 /// Ferguson approximants and moments for `ζ(2)`.
 pub mod zeta2;
 /// Ferguson approximants and moments for `ζ(3)`.
@@ -30,6 +32,7 @@ pub use crate::zeta5_hankel::{
 pub use crate::zeta5_energy::{
     Zeta5DeltaPrimitive, Zeta5EnergyReport, zeta5_delta_primitive, zeta5_energy_report, zeta5_log_s_k,
 };
+pub use crate::zeta5_golden::{Zeta5GoldenN1, zeta5_polynomial_golden_check};
 pub use crate::export::{
     export_catalan_certificates, export_delta_certificates, export_gamma_certificates, export_zeta2_certificates,
     export_zeta3_certificates, export_zeta5_certificates, export_zeta7_certificates,
