@@ -176,6 +176,34 @@ fn polynomial_hankel_contract_round_trips() {
 }
 
 #[test]
+fn polynomial_observed_best_with_energy_round_trips() {
+    let mut cp = sample_checkpoint();
+    cp.target = "zeta-5".into();
+    cp.search.generator_id = POLYNOMIAL_HANKEL_GENERATOR.into();
+    cp.search.parameter_space_id = ZETA5_PAPER_PARAMETER_SPACE.into();
+    cp.polynomial_observed_best = Some(PolynomialHankelObservation {
+        kind: OBSERVATION_KIND_POLYNOMIAL_HANKEL.into(),
+        n: 1,
+        k: 40,
+        capital_n: 3,
+        h: 37,
+        log_s_k: -204.319,
+        leading_coeff: RationalData { num: "1".into(), den: "2".into() },
+        log_delta_at_zeta5: Some(-1836.876),
+        log_primitive_at_zeta5: Some(-265.129),
+        max_primitive_coeff_bits: Some(7597),
+    });
+    hs_checkpoint::validate_checkpoint(&cp).unwrap();
+    let dir = tempdir().unwrap();
+    let path = dir.path().join("checkpoint.json");
+    write_checkpoint(&path, &cp).unwrap();
+    let loaded = read_checkpoint(&path).unwrap();
+    let observation = loaded.polynomial_observed_best.as_ref().unwrap();
+    assert_eq!(observation.max_primitive_coeff_bits, Some(7597));
+    assert_eq!(observation.log_primitive_at_zeta5, Some(-265.129));
+}
+
+#[test]
 fn polynomial_observed_best_round_trips() {
     let mut cp = sample_checkpoint();
     cp.target = "zeta-5".into();
