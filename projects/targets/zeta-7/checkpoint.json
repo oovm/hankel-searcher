@@ -1,0 +1,25 @@
+{
+  "schema_version": 2,
+  "status": "draft",
+  "target": "zeta-7",
+  "proof_status": "unknown",
+  "objective": {
+    "linear_form_id": "unassigned",
+    "normalization_id": "unassigned",
+    "bound_kind": "certified_margin_lower_bound",
+    "direction": "maximize"
+  },
+  "search": {
+    "generator_id": "unassigned",
+    "parameter_space_id": "unassigned",
+    "seed": "0",
+    "next_candidate": "0"
+  },
+  "proof": null,
+  "mu": {
+    "status": "unavailable"
+  },
+  "best": null,
+  "observed_best": null,
+  "updated_at": "2026-09-28T00:00:00Z"
+}
