@@ -104,6 +104,9 @@ fn status(path: &PathBuf, target: &str) -> Result<(), String> {
     }
     if let Some(observation) = &cp.observed_best {
         println!("observed_best.n: {}", observation.n);
+        if let Some(shift) = observation.shift {
+            println!("observed_best.shift: {shift}");
+        }
         if let Some(approximate) = observation.error_upper.ratio()?.to_f64() {
             println!("observed_best.error_upper (approx display): <= {:.12e}", approximate);
         }
@@ -157,8 +160,8 @@ fn targets() {
         println!("{target}");
         println!("  path: projects/hs-problems/checkpoints/{target}/checkpoint.json");
         if hs_checkpoint::has_ferguson_search(target) {
-            println!("  improve: finite-index Ferguson bounds");
-            println!("  check: recompute finite-index prefix");
+            println!("  improve: finite-index Ferguson bounds or rational-parameter family");
+            println!("  check: recompute finite-index or parameter prefix");
         } else {
             println!("  improve: unavailable (no Ferguson export registered)");
             println!("  check: unavailable (no finite-index pipeline registered)");
@@ -198,6 +201,7 @@ fn improve(
     }
     let before = cp.observed_best.clone();
     let start_index = cp.search.next_candidate.clone();
+    let parameter_contract = zeta::uses_parameter_contract(&cp);
     let started = std::time::Instant::now();
     let report = zeta::improve(&mut cp, steps, terms, time_budget, strategy, jobs)?;
     let elapsed_ms = started.elapsed().as_millis() as u64;
@@ -215,17 +219,50 @@ fn improve(
         write_checkpoint(path, &cp).map_err(map_err)?;
     }
     println!("target: {}", cp.target);
-    println!("level: finite-index bound ({}, jobs={jobs})", strategy.label());
-    println!("searched: n={start_index}..{}", cp.search.next_candidate);
+    if parameter_contract {
+        println!("level: rational-parameter bound ({}, jobs={jobs})", strategy.label());
+        println!(
+            "searched: {}",
+            zeta::format_parameter_cursor(
+                start_index.parse().unwrap_or(0),
+                cp.search.next_candidate.parse().unwrap_or(0)
+            )
+        );
+    } else {
+        println!("level: finite-index bound ({}, jobs={jobs})", strategy.label());
+        println!("searched: n={start_index}..{}", cp.search.next_candidate);
+    }
     if bound_improved {
         if let (Some(old), Some(new)) = (&before, &cp.observed_best) {
             if let (Some(old_f), Some(new_f)) = (old.error_upper.ratio()?.to_f64(), new.error_upper.ratio()?.to_f64()) {
-                println!("best before: n={}, error < {:.12e}", old.n, old_f);
-                println!("best after: n={}, error < {:.12e}", new.n, new_f);
+                if parameter_contract {
+                    let old_shift = old.shift.unwrap_or(0);
+                    let new_shift = new.shift.unwrap_or(0);
+                    println!(
+                        "best before: n={}, shift={}, error < {:.12e}",
+                        old.n, old_shift, old_f
+                    );
+                    println!(
+                        "best after: n={}, shift={}, error < {:.12e}",
+                        new.n, new_shift, new_f
+                    );
+                } else {
+                    println!("best before: n={}, error < {:.12e}", old.n, old_f);
+                    println!("best after: n={}, error < {:.12e}", new.n, new_f);
+                }
             }
         } else if let Some(new) = &cp.observed_best {
             if let Some(new_f) = new.error_upper.ratio()?.to_f64() {
-                println!("best after: n={}, error < {:.12e}", new.n, new_f);
+                if parameter_contract {
+                    println!(
+                        "best after: n={}, shift={}, error < {:.12e}",
+                        new.n,
+                        new.shift.unwrap_or(0),
+                        new_f
+                    );
+                } else {
+                    println!("best after: n={}, error < {:.12e}", new.n, new_f);
+                }
             }
         }
     } else {
@@ -251,7 +288,15 @@ fn check(path: &PathBuf, target: &str) -> Result<(), String> {
     ensure_checkpoint_target(&cp, target)?;
     zeta::check_observation(&cp)?;
     let observation = cp.observed_best.as_ref().expect("validated");
-    println!("checked n={} finite approximation bound", observation.n);
+    if zeta::uses_parameter_contract(&cp) {
+        println!(
+            "checked n={} shift={} finite approximation bound",
+            observation.n,
+            observation.shift.unwrap_or(0)
+        );
+    } else {
+        println!("checked n={} finite approximation bound", observation.n);
+    }
     Ok(())
 }
 
@@ -262,6 +307,9 @@ fn verify(path: &PathBuf, target: &str) -> Result<(), String> {
     match report.verdict {
         VerifyVerdict::Verified => {
             println!("{report}");
+            if let Some(hint) = &report.mu_checkpoint_hint {
+                println!("{hint}");
+            }
             Ok(())
         }
         VerifyVerdict::Unsupported => {

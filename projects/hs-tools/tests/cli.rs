@@ -111,7 +111,7 @@ fn targets_lists_all_checkpoint_zeta() {
     assert!(stdout.contains("zeta-7"));
     assert!(stdout.contains("ferguson-index-v1"));
     assert!(stdout.contains("ferguson-parameter-v1"));
-    assert!(stdout.contains("planned"));
+    assert!(stdout.contains("implemented"));
 }
 
 #[test]
@@ -169,7 +169,7 @@ fn check_validates_zeta5_observation() {
 }
 
 #[test]
-fn improve_rejects_planned_parameter_search_contract() {
+fn improve_runs_parameter_search_contract() {
     let dir = tempdir_in(repo_root()).unwrap();
     let path = dir.path().join("checkpoint.json");
     let source = repo_root().join("projects/hs-problems/checkpoints/zeta-3/checkpoint.json");
@@ -177,16 +177,24 @@ fn improve_rejects_planned_parameter_search_contract() {
     let mut cp = read_checkpoint(&path).unwrap();
     cp.search.generator_id = FERGUSON_PARAMETER_GENERATOR.into();
     cp.search.parameter_space_id = RATIONAL_PARAMETER_SPACE.into();
+    cp.search.next_candidate = "0".into();
+    cp.observed_best = None;
+    cp.search.benchmark = None;
     write_checkpoint(&path, &cp).unwrap();
     let output = Command::new(hs_bin())
         .current_dir(repo_root())
-        .args(["improve", "zeta-3", "--steps", "1", "--checkpoint"])
+        .args(["improve", "zeta-3", "--steps", "2", "--checkpoint"])
         .arg(&path)
         .output()
         .expect("spawn hs");
-    assert!(!output.status.success());
-    let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(stderr.contains("not implemented"));
+    assert!(output.status.success(), "stderr={}", String::from_utf8_lossy(&output.stderr));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("rational-parameter bound"));
+    assert!(stdout.contains("ordinal="));
+    let updated = read_checkpoint(&path).unwrap();
+    assert_eq!(updated.search.generator_id, FERGUSON_PARAMETER_GENERATOR);
+    assert_eq!(updated.search.next_candidate, "2");
+    assert!(updated.observed_best.as_ref().unwrap().shift.is_some());
 }
 
 #[test]

@@ -10,6 +10,7 @@ fn observation(n: usize, error_num: i32, error_den: u32) -> Observation {
     Observation {
         kind: "finite_approximation_error_upper".into(),
         n,
+        shift: None,
         series_terms: 64,
         approximant: RationalData::from_ratio(&approx),
         error_upper: RationalData::from_ratio(&bound),
