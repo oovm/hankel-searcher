@@ -159,10 +159,14 @@ fn targets() {
     for target in hs_checkpoint::CHECKPOINT_TARGETS {
         println!("{target}");
         println!("  path: projects/hs-problems/checkpoints/{target}/checkpoint.json");
+        if hs_checkpoint::has_polynomial_hankel(target) {
+            println!("  improve: polynomial Hankel search is planned (not implemented)");
+            println!("  verify: polynomial_irrationality when proof_status is irrational");
+        }
         if hs_checkpoint::has_ferguson_search(target) {
             println!("  improve: finite-index Ferguson bounds or rational-parameter family");
             println!("  check: recompute finite-index or parameter prefix");
-        } else {
+        } else if !hs_checkpoint::has_polynomial_hankel(target) {
             println!("  improve: unavailable (no Ferguson export registered)");
             println!("  check: unavailable (no finite-index pipeline registered)");
         }
