@@ -124,11 +124,16 @@ fn status(path: &PathBuf, target: &str) -> Result<(), String> {
 }
 
 fn targets() {
-    for target in hs_checkpoint::FERGUSON_ZETA_TARGETS {
+    for target in hs_checkpoint::CHECKPOINT_TARGETS {
         println!("{target}");
         println!("  path: projects/targets/{target}/checkpoint.json");
-        println!("  improve: finite-index Ferguson bounds");
-        println!("  check: recompute finite-index prefix");
+        if hs_checkpoint::has_ferguson_search(target) {
+            println!("  improve: finite-index Ferguson bounds");
+            println!("  check: recompute finite-index prefix");
+        } else {
+            println!("  improve: unavailable (no Ferguson export registered)");
+            println!("  check: unavailable (no finite-index pipeline registered)");
+        }
         println!("  verify: rational_equality when proof_status is rational");
     }
 }
@@ -151,6 +156,9 @@ fn improve(
     }
     if !hs_checkpoint::is_known_target(target) {
         return Err(format!("unsupported target `{target}`"));
+    }
+    if !hs_checkpoint::has_ferguson_search(target) {
+        return Err(format!("finite-index Ferguson search is not registered for `{target}`"));
     }
     let mut cp = read_checkpoint(path).map_err(map_err)?;
     ensure_checkpoint_target(&cp, target)?;
@@ -193,6 +201,9 @@ fn improve(
 }
 
 fn check(path: &PathBuf, target: &str) -> Result<(), String> {
+    if !hs_checkpoint::has_ferguson_search(target) {
+        return Err(format!("finite-index Ferguson check is not registered for `{target}`"));
+    }
     let cp = read_checkpoint(path).map_err(map_err)?;
     ensure_checkpoint_target(&cp, target)?;
     zeta::check_observation(&cp)?;
