@@ -259,6 +259,27 @@ fn improve_records_workload_benchmark() {
 }
 
 #[test]
+fn improve_polynomial_rejects_non_zeta5_target() {
+    let output = Command::new(hs_bin())
+        .current_dir(repo_root())
+        .args(["improve", "zeta-3", "--polynomial", "--steps", "1"])
+        .output()
+        .expect("spawn hs");
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("polynomial Hankel improve is not registered"));
+}
+
+#[test]
+fn targets_mentions_polynomial_improve_for_zeta5() {
+    let output = Command::new(hs_bin()).current_dir(repo_root()).arg("targets").output().expect("spawn hs");
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("zeta-5"));
+    assert!(stdout.contains("--polynomial"));
+}
+
+#[test]
 fn improve_accepts_parallel_jobs() {
     let output = Command::new(hs_bin())
         .current_dir(repo_root())

@@ -10,6 +10,7 @@ use hs_searcher::SearchStrategy;
 mod duration;
 mod repo;
 mod zeta;
+mod zeta_polynomial;
 
 #[derive(Parser)]
 #[command(name = "hs", about = "Hankel search tools")]
@@ -45,6 +46,12 @@ enum Command {
         write_on_improvement: bool,
         #[arg(long, default_value = "enumerate")]
         strategy: String,
+        /// Run the Zeta5 whole-polynomial Hankel line (`polynomial-hankel-v1`) instead of Ferguson.
+        #[arg(long)]
+        polynomial: bool,
+        /// With `--polynomial`, also compute exact `Δ_K` (very expensive).
+        #[arg(long)]
+        full_delta: bool,
     },
     /// Recompute and check the observation stored in a checkpoint.
     Check {
@@ -160,7 +167,7 @@ fn targets() {
         println!("{target}");
         println!("  path: projects/hs-problems/checkpoints/{target}/checkpoint.json");
         if hs_checkpoint::has_polynomial_hankel(target) {
-            println!("  improve: polynomial Hankel search is planned (not implemented)");
+            println!("  improve: Ferguson finite-index, or `--polynomial` for paper Hankel construction");
             println!("  verify: polynomial_irrationality when proof_status is irrational");
         }
         if hs_checkpoint::has_ferguson_search(target) {
@@ -172,6 +179,39 @@ fn targets() {
         }
         println!("  verify: rational_equality when proof_status is rational");
     }
+}
+
+fn improve_polynomial(
+    path: &PathBuf,
+    target: &str,
+    steps: usize,
+    time_budget: Option<Duration>,
+    jobs: usize,
+    write_on_improvement: bool,
+    full_delta: bool,
+) -> Result<(), String> {
+    if !hs_checkpoint::has_polynomial_hankel(target) {
+        return Err(format!("polynomial Hankel improve is not registered for `{target}`"));
+    }
+    let mut cp = read_checkpoint(path).map_err(map_err)?;
+    ensure_checkpoint_target(&cp, target)?;
+    let started = std::time::Instant::now();
+    let report = zeta_polynomial::improve_polynomial(&mut cp, steps, time_budget, jobs, full_delta)?;
+    let elapsed_ms = started.elapsed().as_millis() as u64;
+    let should_write = !write_on_improvement || report.completed_steps > 0;
+    if should_write {
+        zeta_polynomial::record_benchmark(&mut cp, &report, elapsed_ms, jobs);
+        write_checkpoint(path, &cp).map_err(map_err)?;
+    }
+    println!("searched: n={}..{}", report.start_n, report.end_n);
+    println!("completed construction indices: {}", report.completed_steps);
+    if !should_write {
+        println!("checkpoint: not written (--write-on-improvement and no progress)");
+    } else {
+        println!("checkpoint: {}", path.display());
+    }
+    println!("proof status: no uniform bound registered");
+    Ok(())
 }
 
 fn improve(
@@ -406,6 +446,8 @@ fn main() {
             jobs,
             write_on_improvement,
             strategy,
+            polynomial,
+            full_delta,
         } => {
             require_repo_root()
                 .and_then(|root| resolve_path(&root, &target, checkpoint))
@@ -414,8 +456,29 @@ fn main() {
                         Some(value) => Some(duration::parse_duration(&value)?),
                         None => None,
                     };
-                    let strategy = SearchStrategy::parse(&strategy)?;
-                    improve(&path, &target, steps, series_terms, budget, jobs, write_on_improvement, strategy)
+                    if polynomial {
+                        improve_polynomial(
+                            &path,
+                            &target,
+                            steps,
+                            budget,
+                            jobs,
+                            write_on_improvement,
+                            full_delta,
+                        )
+                    } else {
+                        let strategy = SearchStrategy::parse(&strategy)?;
+                        improve(
+                            &path,
+                            &target,
+                            steps,
+                            series_terms,
+                            budget,
+                            jobs,
+                            write_on_improvement,
+                            strategy,
+                        )
+                    }
                 })
         }
         Command::Check { target, checkpoint } => require_repo_root()
