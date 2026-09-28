@@ -14,4 +14,4 @@ Rust Ferguson certificate export for every `lean-prove/Problems/*` target.
 
 Output lands in `projects/lean-prove/Problems/<Problem>/Certificates.lean`.
 
-Checkpoint JSON for collaborative `hs` runs lives under `projects/targets/<target-id>/`.
+Checkpoint JSON for collaborative `hs` runs lives under `projects/hs-problems/checkpoints/<target-id>/`.

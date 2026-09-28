@@ -126,7 +126,7 @@ fn status(path: &PathBuf, target: &str) -> Result<(), String> {
 fn targets() {
     for target in hs_checkpoint::CHECKPOINT_TARGETS {
         println!("{target}");
-        println!("  path: projects/targets/{target}/checkpoint.json");
+        println!("  path: projects/hs-problems/checkpoints/{target}/checkpoint.json");
         if hs_checkpoint::has_ferguson_search(target) {
             println!("  improve: finite-index Ferguson bounds");
             println!("  check: recompute finite-index prefix");

@@ -92,7 +92,7 @@ fn rejects_noncanonical_rational() {
 #[test]
 fn default_path_for_zeta3() {
     let path = default_checkpoint_path("zeta-3").unwrap();
-    assert!(path.ends_with("projects/targets/zeta-3/checkpoint.json"));
+    assert!(path.ends_with("projects/hs-problems/checkpoints/zeta-3/checkpoint.json"));
 }
 
 #[test]
@@ -106,6 +106,6 @@ fn checkpoint_targets_registry() {
     assert!(has_ferguson_search("zeta-7"));
     assert_eq!(zeta_order("zeta-7"), Some(7));
     assert_eq!(zeta_order("delta"), None);
-    assert!(default_checkpoint_path("zeta-7").unwrap().ends_with("projects/targets/zeta-7/checkpoint.json"));
+    assert!(default_checkpoint_path("zeta-7").unwrap().ends_with("projects/hs-problems/checkpoints/zeta-7/checkpoint.json"));
     assert!(default_checkpoint_path("unknown").is_err());
 }

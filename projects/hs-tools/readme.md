@@ -14,7 +14,7 @@ hs check zeta-3
 hs verify zeta-3
 ```
 
-`improve` and `check` operate on finite-index Ferguson bounds under `projects/targets/<target>/checkpoint.json`.
+`improve` and `check` operate on finite-index Ferguson bounds under `projects/hs-problems/checkpoints/<target>/checkpoint.json`.
 `hs targets` lists every registered checkpoint target. Ferguson search is available for `zeta-2`, `zeta-3`, `zeta-5`, and `zeta-7`.
 `--time` accepts suffixes `s`, `m`, and `h`. `--strategy` accepts `enumerate`, `local`, or `sample`. `--jobs` above `1` is rejected until parallel search exists.
 `--write-on-improvement` skips writing the JSON when only coverage advances without a bound improvement.

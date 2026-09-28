@@ -138,7 +138,7 @@ pub fn default_checkpoint_path(target: &str) -> Result<PathBuf, CheckpointError>
     if !is_known_target(target) {
         return Err(CheckpointError::UnsupportedTarget(target.to_string()));
     }
-    Ok(PathBuf::from(format!("projects/targets/{target}/checkpoint.json")))
+    Ok(PathBuf::from(format!("projects/hs-problems/checkpoints/{target}/checkpoint.json")))
 }
 
 pub fn read_checkpoint(path: &Path) -> Result<Checkpoint, CheckpointError> {

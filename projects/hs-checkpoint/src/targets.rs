@@ -1,4 +1,4 @@
-/// Checkpoint targets with collaborative JSON under `projects/targets/<id>/`.
+/// Checkpoint targets with collaborative JSON under `projects/hs-problems/checkpoints/<id>/`.
 pub const CHECKPOINT_TARGETS: &[&str] = &["zeta-2", "zeta-3", "zeta-5", "zeta-7"];
 
 /// Subset with registered Ferguson finite-index exports in `hs-problems`.

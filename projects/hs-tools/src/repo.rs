@@ -5,7 +5,12 @@ pub fn find_repo_root(start: &Path) -> Option<PathBuf> {
     let mut current = start.canonicalize().ok()?;
     while current.parent().is_some() {
         for target in hs_checkpoint::CHECKPOINT_TARGETS {
-            let marker = current.join("projects").join("targets").join(target).join("checkpoint.json");
+            let marker = current
+                .join("projects")
+                .join("hs-problems")
+                .join("checkpoints")
+                .join(target)
+                .join("checkpoint.json");
             if marker.is_file() {
                 return Some(current);
             }
