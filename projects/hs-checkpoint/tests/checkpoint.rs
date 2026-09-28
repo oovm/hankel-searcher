@@ -1,7 +1,8 @@
 use hs_checkpoint::{
     decode_rational_parameter, rational_parameter_ordinal, Checkpoint, CHECKPOINT_TARGETS, FERGUSON_INDEX_GENERATOR,
     FERGUSON_PARAMETER_GENERATOR, FERGUSON_ZETA_TARGETS, MuRecord, MuStatus, NONNEGATIVE_INDEX_SPACE, Objective,
-    ProofStatus, RATIONAL_PARAMETER_SPACE, RationalData, Search, default_checkpoint_path, has_ferguson_search,
+    POLYNOMIAL_HANKEL_GENERATOR, ProofRecord, ProofStatus, RATIONAL_PARAMETER_SPACE, RationalData, Search,
+    ZETA5_PAPER_PARAMETER_SPACE, default_checkpoint_path, has_ferguson_search, has_polynomial_hankel,
     is_implemented_search_contract, is_known_target, read_checkpoint, validate_known_search_contract, write_checkpoint,
     zeta_order,
 };
@@ -137,6 +138,8 @@ fn checkpoint_targets_registry() {
     assert!(!is_known_target("zeta-4"));
     assert!(has_ferguson_search("zeta-3"));
     assert!(has_ferguson_search("zeta-7"));
+    assert!(has_polynomial_hankel("zeta-5"));
+    assert!(!has_polynomial_hankel("zeta-3"));
     assert_eq!(zeta_order("zeta-7"), Some(7));
     assert_eq!(zeta_order("delta"), None);
     assert!(default_checkpoint_path("zeta-7").unwrap().ends_with("projects/hs-problems/checkpoints/zeta-7/checkpoint.json"));
@@ -156,6 +159,31 @@ fn rational_parameter_ordinal_round_trip() {
     assert_eq!(parameter.index, 1);
     assert_eq!(parameter.shift, 2);
     assert_eq!(rational_parameter_ordinal(parameter.index, parameter.shift).unwrap(), 7);
+}
+
+#[test]
+fn polynomial_hankel_contract_round_trips() {
+    let dir = tempdir().unwrap();
+    let path = dir.path().join("checkpoint.json");
+    let mut cp = sample_checkpoint();
+    cp.search.generator_id = POLYNOMIAL_HANKEL_GENERATOR.into();
+    cp.search.parameter_space_id = ZETA5_PAPER_PARAMETER_SPACE.into();
+    write_checkpoint(&path, &cp).unwrap();
+    let loaded = read_checkpoint(&path).unwrap();
+    assert_eq!(loaded.search.generator_id, POLYNOMIAL_HANKEL_GENERATOR);
+    assert!(!is_implemented_search_contract(POLYNOMIAL_HANKEL_GENERATOR, ZETA5_PAPER_PARAMETER_SPACE));
+}
+
+#[test]
+fn polynomial_proof_kind_round_trips() {
+    let mut cp = sample_checkpoint();
+    cp.proof_status = ProofStatus::Irrational;
+    cp.proof = Some(ProofRecord {
+        kind: "polynomial_irrationality".into(),
+        verifier_id: Some("polynomial-irrationality-v1".into()),
+        payload: serde_json::json!({ "n": "1" }),
+    });
+    hs_checkpoint::validate_checkpoint(&cp).unwrap();
 }
 
 #[test]

@@ -9,6 +9,11 @@ pub const NONNEGATIVE_INDEX_SPACE: &str = "nonnegative-index-v1";
 pub const FERGUSON_PARAMETER_GENERATOR: &str = "ferguson-parameter-v1";
 /// Planned parameter space for rational parameter vectors.
 pub const RATIONAL_PARAMETER_SPACE: &str = "rational-parameter-v1";
+
+/// Generator for the Zeta5 whole-polynomial Hankel search line.
+pub const POLYNOMIAL_HANKEL_GENERATOR: &str = "polynomial-hankel-v1";
+/// Paper scaling `K=40n`, `N=3n`, `h=37n` for `ζ(5)`.
+pub const ZETA5_PAPER_PARAMETER_SPACE: &str = "zeta5-paper-v1";
 /// Maximum moment shift encoded by `rational-parameter-v1`.
 pub const RATIONAL_PARAMETER_MAX_SHIFT: usize = 4;
 
@@ -62,6 +67,12 @@ pub const SEARCH_CONTRACTS: &[SearchContract] = &[
         parameter_space_id: RATIONAL_PARAMETER_SPACE,
         label: "Ferguson rational parameter family",
         implemented: true,
+    },
+    SearchContract {
+        generator_id: POLYNOMIAL_HANKEL_GENERATOR,
+        parameter_space_id: ZETA5_PAPER_PARAMETER_SPACE,
+        label: "Zeta5 whole-polynomial Hankel (paper scaling)",
+        implemented: false,
     },
 ];
 

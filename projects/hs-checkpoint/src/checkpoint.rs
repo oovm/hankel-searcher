@@ -1,4 +1,5 @@
 use crate::error::CheckpointError;
+use crate::proof::is_known_proof_kind;
 use crate::search::{validate_known_search_contract, RATIONAL_PARAMETER_MAX_SHIFT};
 use crate::targets::{is_known_target, is_project_checkpoint_target};
 use crate::rational::ratio_from_data;
@@ -217,6 +218,11 @@ pub fn validate_checkpoint(cp: &Checkpoint) -> Result<(), CheckpointError> {
             if cp.proof.is_none() {
                 return Err(CheckpointError::Invalid("proof_status requires proof record".into()));
             }
+        }
+    }
+    if let Some(proof) = &cp.proof {
+        if !is_known_proof_kind(&proof.kind) {
+            return Err(CheckpointError::Invalid(format!("unknown proof kind `{}`", proof.kind)));
         }
     }
     if let Some(observation) = &cp.observed_best {
