@@ -15,7 +15,9 @@ Hankel-determinant rational approximation experiments for constants related to i
 | `hs-benchmark`      | Ferguson table regression and Criterion micro-benchmarks                      |
 | `zeta-2` / `zeta-3` | Ferguson examples and Lean certificate experiments                            |
 | `zeta-5`            | Ferguson certificates and incomplete Lean formalization                       |
-| `hs-tools`          | Installable `hs` command for finite-index checkpoint improvement and checking |
+| `hs-checkpoint`     | Checkpoint JSON schema v2, validation, migration, and atomic writes           |
+| `hs-verify`         | Proof verification (`rational_equality` via `exact-rational-v1`)            |
+| `hs-tools`          | Installable `hs` command (`targets`, `status`, `improve`, `check`, `verify`, `doctor`) |
 
 ## Build
 
@@ -23,8 +25,11 @@ Install the `hs` command from this repository:
 
 ```bash
 cargo install --path projects/hs-tools
+hs targets
+hs status zeta-3
 hs improve zeta-3
 hs check zeta-3
+hs verify zeta-3
 ```
 
 `hs improve` currently updates the finite-index approximation bound in `projects/zeta-3/checkpoint.json`. The uniform
@@ -74,3 +79,7 @@ cargo bench -p hs-benchmark
 `cargo run -p hs-benchmark --example zeta5_search`). Its current gap uses an approximate reference constant.
 
 **Lean:** `projects/lean-prove` holds shared `Hankel/` definitions and all constants under `Problems/`. With [elan](https://github.com/leanprover/elan) on `PATH`, run `cd projects/lean-prove && lake build`. A successful build does not establish any irrationality theorem.
+
+## License
+
+This repository is released under [CC0 1.0 Universal](license.md). You may copy, modify, and distribute the work, even for commercial purposes, without asking permission.

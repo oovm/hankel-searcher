@@ -22,5 +22,14 @@ jobs:
         run: cargo build --release
       - name: Test workspace
         run: cargo test --release
+      - name: Test hs checkpoint tools
+        run: cargo test --release -p hs-checkpoint -p hs-verify -p hs-tools
+      - name: hs doctor
+        run: cargo run --release -p hs-tools -- doctor
       - name: Check zeta-3 checkpoint
         run: cargo run --release -p hs-tools -- check zeta-3
+      - name: Verify zeta-3 proof record
+        run: |
+          cargo run --release -p hs-tools -- verify zeta-3
+          if [ $? -ne 2 ]; then exit 1; fi
+        shell: bash
