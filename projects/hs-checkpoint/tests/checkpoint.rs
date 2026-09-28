@@ -1,6 +1,8 @@
 use hs_checkpoint::{
-    Checkpoint, CHECKPOINT_TARGETS, FERGUSON_ZETA_TARGETS, MuRecord, MuStatus, Objective, ProofStatus, RationalData,
-    Search, default_checkpoint_path, has_ferguson_search, is_known_target, read_checkpoint, write_checkpoint, zeta_order,
+    Checkpoint, CHECKPOINT_TARGETS, FERGUSON_INDEX_GENERATOR, FERGUSON_PARAMETER_GENERATOR, FERGUSON_ZETA_TARGETS,
+    MuRecord, MuStatus, NONNEGATIVE_INDEX_SPACE, Objective, ProofStatus, RATIONAL_PARAMETER_SPACE, RationalData, Search,
+    default_checkpoint_path, has_ferguson_search, is_implemented_search_contract, is_known_target, read_checkpoint,
+    validate_known_search_contract, write_checkpoint, zeta_order,
 };
 use num_bigint::BigInt;
 use num_rational::Ratio;
@@ -108,4 +110,24 @@ fn checkpoint_targets_registry() {
     assert_eq!(zeta_order("delta"), None);
     assert!(default_checkpoint_path("zeta-7").unwrap().ends_with("projects/hs-problems/checkpoints/zeta-7/checkpoint.json"));
     assert!(default_checkpoint_path("unknown").is_err());
+}
+
+#[test]
+fn search_contract_registry() {
+    assert!(is_implemented_search_contract(FERGUSON_INDEX_GENERATOR, NONNEGATIVE_INDEX_SPACE));
+    assert!(!is_implemented_search_contract(FERGUSON_PARAMETER_GENERATOR, RATIONAL_PARAMETER_SPACE));
+    assert!(validate_known_search_contract(FERGUSON_PARAMETER_GENERATOR, RATIONAL_PARAMETER_SPACE).is_ok());
+    assert!(validate_known_search_contract(FERGUSON_INDEX_GENERATOR, "unknown-space").is_err());
+}
+
+#[test]
+fn planned_parameter_contract_round_trips() {
+    let dir = tempdir().unwrap();
+    let path = dir.path().join("checkpoint.json");
+    let mut cp = sample_checkpoint();
+    cp.search.generator_id = FERGUSON_PARAMETER_GENERATOR.into();
+    cp.search.parameter_space_id = RATIONAL_PARAMETER_SPACE.into();
+    write_checkpoint(&path, &cp).unwrap();
+    let loaded = read_checkpoint(&path).unwrap();
+    assert_eq!(loaded.search.generator_id, FERGUSON_PARAMETER_GENERATOR);
 }

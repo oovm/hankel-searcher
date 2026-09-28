@@ -1,4 +1,5 @@
 use crate::error::CheckpointError;
+use crate::search::validate_known_search_contract;
 use crate::targets::is_known_target;
 use crate::rational::ratio_from_data;
 use num_bigint::BigInt;
@@ -184,12 +185,7 @@ pub fn validate_checkpoint(cp: &Checkpoint) -> Result<(), CheckpointError> {
     if !is_known_target(&cp.target) {
         return Err(CheckpointError::Invalid(format!("unsupported checkpoint target `{}`", cp.target)));
     }
-    if cp.search.generator_id != "unassigned" && cp.search.generator_id != "ferguson-index-v1" {
-        return Err(CheckpointError::Invalid("unknown candidate generator".into()));
-    }
-    if cp.search.parameter_space_id != "unassigned" && cp.search.parameter_space_id != "nonnegative-index-v1" {
-        return Err(CheckpointError::Invalid("unknown parameter space".into()));
-    }
+    validate_known_search_contract(&cp.search.generator_id, &cp.search.parameter_space_id)?;
     match cp.proof_status {
         ProofStatus::Unknown => {}
         ProofStatus::Rational | ProofStatus::Irrational => {
