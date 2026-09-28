@@ -1,4 +1,4 @@
-use hs_types::{bareiss_det, hankel_matrix};
+use hs_types::{bareiss_det, f64_det, hankel_matrix};
 use num_rational::Ratio;
 use num_traits::Zero;
 
@@ -7,6 +7,14 @@ fn bareiss_matches_small_integer_matrix() {
     let matrix = vec![vec![1, 2], vec![3, 4]];
     let det = bareiss_det(&matrix);
     assert_eq!(det, -2);
+}
+
+#[test]
+fn f64_det_matches_bareiss_on_small_matrix() {
+    let matrix = vec![vec![1.0, 2.0], vec![3.0, 4.0]];
+    let bareiss = bareiss_det(&matrix);
+    let faer = f64_det(&matrix);
+    assert!((bareiss - faer).abs() < 1e-12);
 }
 
 #[test]

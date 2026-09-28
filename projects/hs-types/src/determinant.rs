@@ -62,10 +62,20 @@ where
     sign * work[n - 1][n - 1].clone()
 }
 
+/// Floating-point determinant via `faer` (pure Rust SIMD kernels, no BLAS sys).
+pub fn f64_det(matrix: &[Vec<f64>]) -> f64 {
+    let n = matrix.len();
+    if n == 0 {
+        return 1.0;
+    }
+    let m = faer::Mat::from_fn(n, n, |row, col| matrix[row][col]);
+    m.determinant()
+}
+
 /// Floating-point Hankel determinant for asymptotic energy estimates.
 pub fn hankel_det_f64(moments: &[f64], shift: usize, size: usize) -> f64 {
     let matrix = hankel_matrix(moments, shift, size);
-    bareiss_det(&matrix)
+    f64_det(&matrix)
 }
 
 /// Natural logarithm of `|det|` for log-energy diagnostics.
