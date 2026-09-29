@@ -260,10 +260,10 @@ fn improve_records_workload_benchmark() {
 }
 
 #[test]
-fn improve_polynomial_rejects_non_zeta5_target() {
+fn improve_polynomial_rejects_unregistered_target() {
     let output = Command::new(hs_bin())
         .current_dir(repo_root())
-        .args(["improve", "zeta-3", "--polynomial", "--steps", "1"])
+        .args(["improve", "zeta-7", "--polynomial", "--steps", "1"])
         .output()
         .expect("spawn hs");
     assert!(!output.status.success());
@@ -327,6 +327,24 @@ fn check_polynomial_golden_fast_for_zeta5() {
     assert!(output.status.success(), "stderr={}", String::from_utf8_lossy(&output.stderr));
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("polynomial Hankel golden (fast): ok"));
+}
+
+#[test]
+fn check_polynomial_golden_fast_for_zeta2_and_zeta3() {
+    for target in ["zeta-2", "zeta-3"] {
+        let output = Command::new(hs_bin())
+            .current_dir(repo_root())
+            .args(["check", target, "--polynomial-golden"])
+            .output()
+            .expect("spawn hs");
+        assert!(
+            output.status.success(),
+            "{target} stderr={}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        assert!(stdout.contains("polynomial Hankel golden (fast): ok"));
+    }
 }
 
 #[test]

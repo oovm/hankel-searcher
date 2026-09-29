@@ -139,8 +139,10 @@ fn checkpoint_targets_registry() {
     assert!(!is_known_target("zeta-4"));
     assert!(has_ferguson_search("zeta-3"));
     assert!(has_ferguson_search("zeta-7"));
+    assert!(has_polynomial_hankel("zeta-2"));
+    assert!(has_polynomial_hankel("zeta-3"));
     assert!(has_polynomial_hankel("zeta-5"));
-    assert!(!has_polynomial_hankel("zeta-3"));
+    assert!(!has_polynomial_hankel("zeta-7"));
     assert_eq!(zeta_order("zeta-7"), Some(7));
     assert_eq!(zeta_order("delta"), None);
     assert!(default_checkpoint_path("zeta-7").unwrap().ends_with("projects/hs-problems/checkpoints/zeta-7/checkpoint.json"));
