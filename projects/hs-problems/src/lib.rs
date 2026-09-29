@@ -35,7 +35,10 @@ pub mod zeta7;
 
 pub use crate::error::HsProblemsError;
 pub use crate::ferguson::{ShiftedApproximant, zeta_ferguson_shifted};
-pub use crate::zeta5_polynomial::{Zeta5PaperParams, d_polynomial, d_polynomial_degree, evaluate_polynomial, zeta5_paper_params};
+pub use crate::zeta5_polynomial::{
+    Zeta5PaperParams, d_polynomial, d_polynomial_degree, evaluate_polynomial, polynomial_hankel_params,
+    zeta5_paper_params,
+};
 pub use crate::zeta5_hankel::{
     Zeta5Entries, zeta5_delta_degree, zeta5_delta_leading_coeff, zeta5_delta_polynomial, zeta5_entries,
     zeta5_hankel_a, zeta5_hankel_b,
@@ -47,7 +50,8 @@ pub use crate::zeta5_energy::{
 pub use crate::zeta5_golden::{Zeta5GoldenN1, zeta5_polynomial_golden_fast, zeta5_polynomial_golden_full};
 pub use crate::polynomial_hankel::{
     ZetaPolynomialEntries, polynomial_hankel_log_s_k, zeta_polynomial_delta, zeta_polynomial_delta_degree,
-    zeta_polynomial_delta_leading_coeff, zeta_polynomial_entries, zeta_polynomial_hankel_a, zeta_polynomial_hankel_b,
+    zeta_polynomial_delta_leading_coeff, zeta_polynomial_entries, zeta_polynomial_entries_with_params,
+    zeta_polynomial_hankel_a, zeta_polynomial_hankel_b,
 };
 pub use crate::zeta2_hankel::{
     Zeta2Entries, zeta2_delta_degree, zeta2_delta_leading_coeff, zeta2_delta_polynomial, zeta2_entries, zeta2_hankel_a,

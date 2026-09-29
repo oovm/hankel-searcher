@@ -14,18 +14,48 @@ pub struct Zeta5PaperParams {
     pub k: usize,
     /// Vanishing-order parameter `N`.
     pub capital_n: usize,
-    /// Polynomial determinant degree `h`.
+    /// Polynomial determinant degree `h = K - N`.
     pub h: usize,
+    /// Vanishing exponent `q` on `D_N(t)^q`.
+    pub q: usize,
 }
 
-/// Return `K=40n`, `N=3n`, `h=37n`.
+/// Return `K=40n`, `N=3n`, `h=37n`, `q=6`.
 pub fn zeta5_paper_params(n: usize) -> Zeta5PaperParams {
-    Zeta5PaperParams {
-        n,
-        k: 40 * n,
-        capital_n: 3 * n,
-        h: 37 * n,
+    polynomial_hankel_params(n, 40, 3, 6).expect("default paper scaling")
+}
+
+/// Build `(K,N,h,q)` from per-`n` multiples `K=k_per_n·n`, `N=capital_n_per_n·n`.
+pub fn polynomial_hankel_params(
+    n: usize,
+    k_per_n: usize,
+    capital_n_per_n: usize,
+    q: usize,
+) -> Result<Zeta5PaperParams, String> {
+    if n == 0 {
+        return Err("construction index `n` must be positive".into());
     }
+    if q == 0 {
+        return Err("vanishing exponent `q` must be positive".into());
+    }
+    if capital_n_per_n >= k_per_n {
+        return Err(format!(
+            "need capital_n_per_n < k_per_n, got N={capital_n_per_n}n and K={k_per_n}n"
+        ));
+    }
+    let k = k_per_n * n;
+    let capital_n = capital_n_per_n * n;
+    let h = k - capital_n;
+    if h == 0 {
+        return Err("h = K - N must be positive".into());
+    }
+    Ok(Zeta5PaperParams {
+        n,
+        k,
+        capital_n,
+        h,
+        q,
+    })
 }
 
 /// Coefficients in ascending order for `D_m(t) = ∏_{j=1}^m (t + j^2)`.

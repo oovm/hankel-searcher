@@ -18,25 +18,33 @@ pub struct ZetaPolynomialEntries {
     pub b: Vec<Rational>,
 }
 
-/// Build `(K, N, h, a, b)` for integer `ζ(s)` with `s ∈ {2, 3, 5}`.
+/// Build `(K, N, h, a, b)` for integer `ζ(s)` with `s ∈ {2, 3, 5}` at default paper scaling.
 pub fn zeta_polynomial_entries(order: u32, n: usize) -> Result<ZetaPolynomialEntries, String> {
+    zeta_polynomial_entries_with_params(order, zeta5_paper_params(n))
+}
+
+/// Build moment sequences for integer `ζ(s)` at explicit `(K,N,q,h)` scaling.
+pub fn zeta_polynomial_entries_with_params(
+    order: u32,
+    params: Zeta5PaperParams,
+) -> Result<ZetaPolynomialEntries, String> {
     if !matches!(order, 2 | 3 | 5) {
         return Err(format!("polynomial Hankel order `{order}` is not implemented"));
     }
-    let params = zeta5_paper_params(n);
     let k = params.k;
     let capital_n = params.capital_n;
     let h = params.h;
+    let q = params.q;
     let e_len = 2 * h - 1;
-    let maxk = (6 * capital_n + e_len - 1).saturating_sub(k);
+    let maxk = (q * capital_n + e_len - 1).saturating_sub(k);
     let mus = (0..=maxk)
         .map(|index| mu_moment_rational(order, index))
         .collect::<Vec<_>>();
     let harmonic = harmonic_zeta_prefix(k, order);
-    let base = base_values(capital_n, k);
+    let base = base_values(capital_n, k, q);
     let dn = d_polynomial(capital_n);
     let dk = d_polynomial(k);
-    let w = poly_pow(&dn, 6);
+    let w = poly_pow(&dn, q);
 
     let mut a = Vec::with_capacity(e_len);
     let mut b = Vec::with_capacity(e_len);
@@ -64,12 +72,7 @@ pub fn zeta_polynomial_entries(order: u32, n: usize) -> Result<ZetaPolynomialEnt
         b.push(be);
     }
 
-    Ok(ZetaPolynomialEntries {
-        order,
-        params,
-        a,
-        b,
-    })
+    Ok(ZetaPolynomialEntries { order, params, a, b })
 }
 
 /// Hankel matrix `(a_{i+j})` of size `h × h`.
@@ -117,6 +120,7 @@ pub fn zeta_polynomial_delta_leading_coeff(entries: &ZetaPolynomialEntries) -> R
 /// `log S_K` paper normalization (independent of `ζ(s)` order for fixed `K,N,h`).
 pub fn polynomial_hankel_log_s_k(params: &Zeta5PaperParams) -> f64 {
     let h = params.h as f64;
+    let q = params.q as f64;
     let logfact = |m: usize| libm::lgamma(m as f64 + 1.0);
     let mut tail = 0.0;
     for index in 1..params.h {
@@ -124,7 +128,7 @@ pub fn polynomial_hankel_log_s_k(params: &Zeta5PaperParams) -> f64 {
     }
     2.0 * h * logfact(params.k)
         + (h - 1.0) * 4.0f64.ln()
-        - 12.0 * h * logfact(params.capital_n)
+        - 2.0 * q * h * logfact(params.capital_n)
         - 2.0 * tail
 }
 
@@ -208,11 +212,11 @@ fn binomial_rational(n: usize, k: usize) -> Rational {
     Rational::from_integers(numerator, denominator)
 }
 
-fn base_values(capital_n: usize, k: usize) -> Vec<Rational> {
+fn base_values(capital_n: usize, k: usize, q: usize) -> Vec<Rational> {
     let dn = d_polynomial(capital_n);
     let mut values = Vec::with_capacity(k - capital_n);
     for j in (capital_n + 1)..=k {
-        let num = evaluate_polynomial(&dn, &Rational::from(-Integer::from(j * j))).pow(6u64);
+        let num = evaluate_polynomial(&dn, &Rational::from(-Integer::from(j * j))).pow(q as u64);
         let mut den = Rational::ONE;
         for t in 1..=k {
             if t != j {

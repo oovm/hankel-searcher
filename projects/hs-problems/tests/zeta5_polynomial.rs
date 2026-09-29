@@ -1,5 +1,5 @@
 use hs_problems::zeta5_polynomial::{
-    d_polynomial, d_polynomial_degree, evaluate_polynomial, zeta5_paper_params,
+    d_polynomial, d_polynomial_degree, evaluate_polynomial, polynomial_hankel_params, zeta5_paper_params,
 };
 use hs_types::{Integer, Rational, is_zero};
 use malachite::base::num::basic::traits::{One, Zero};
@@ -10,6 +10,13 @@ fn paper_params_scale_linearly() {
     assert_eq!(params.k, 80);
     assert_eq!(params.capital_n, 6);
     assert_eq!(params.h, 74);
+    assert_eq!(params.q, 6);
+}
+
+#[test]
+fn polynomial_hankel_params_rejects_invalid_scaling() {
+    assert!(polynomial_hankel_params(1, 3, 3, 6).is_err());
+    assert!(polynomial_hankel_params(0, 40, 3, 6).is_err());
 }
 
 #[test]
