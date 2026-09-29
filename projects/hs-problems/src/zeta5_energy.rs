@@ -1,5 +1,6 @@
 //! Energy diagnostics for the Zeta5 polynomial Hankel line, aligned with `hankel.py#run`.
 
+use crate::polynomial_hankel::polynomial_hankel_log_s_k;
 use crate::progress::trace_step;
 use crate::zeta5_polynomial::Zeta5PaperParams;
 use hs_types::{Integer, Natural, Rational, is_zero};
@@ -19,6 +20,23 @@ pub struct Zeta5DeltaPrimitive {
     pub content_denominator: Natural,
     /// Integer coefficients of the primitive polynomial `P_K`.
     pub coefficients: Vec<Integer>,
+}
+
+/// Paper energy logs at `ζ(s)` for polynomial Hankel diagnostics.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ZetaPolynomialEnergyReport {
+    /// `log S_K` normalization factor from the paper.
+    pub log_s_k: f64,
+    /// `log Δ_K(ζ(s))`.
+    pub log_delta_at_zeta: f64,
+    /// `log F_K(ζ(s)) = log Δ_K + log S_K`.
+    pub log_f_k: f64,
+    /// `log content(F_K)`.
+    pub log_content_f_k: f64,
+    /// `log P_K(ζ(s))` for the primitive integer polynomial.
+    pub log_primitive_at_zeta: f64,
+    /// Maximum bit length of primitive coefficients.
+    pub max_primitive_coeff_bits: usize,
 }
 
 /// Paper energy logs at `ζ(5)`, matching `hankel.py` output fields.
@@ -45,16 +63,7 @@ pub fn energy_eval_precision_bits(max_coeff_bits: usize, k: usize) -> u64 {
 
 /// `log S_K` from the paper normalization (uses `libm::lgamma`, no `Δ_K` needed).
 pub fn zeta5_log_s_k(params: &Zeta5PaperParams) -> f64 {
-    let h = params.h as f64;
-    let logfact = |m: usize| libm::lgamma(m as f64 + 1.0);
-    let mut tail = 0.0;
-    for index in 1..params.h {
-        tail += logfact(2 * index);
-    }
-    2.0 * h * logfact(params.k)
-        + (h - 1.0) * 4.0f64.ln()
-        - 12.0 * h * logfact(params.capital_n)
-        - 2.0 * tail
+    polynomial_hankel_log_s_k(params)
 }
 
 /// Clear `gcd(numerators)/lcm(denominators)` from ascending `Δ_K` coefficients.
@@ -82,26 +91,34 @@ pub fn zeta5_delta_primitive(delta: &[Rational]) -> Zeta5DeltaPrimitive {
     }
 }
 
-/// Evaluate energy logs for an already computed `Δ_K`.
-pub fn zeta5_energy_report(params: &Zeta5PaperParams, delta: &[Rational]) -> Result<Zeta5EnergyReport, String> {
-    tracing::info!(phase = "energy_report", "start");
+/// Evaluate energy logs for an already computed `Δ_K` at `ζ(s)`.
+pub fn zeta_polynomial_energy_report(
+    order: u32,
+    params: &Zeta5PaperParams,
+    delta: &[Rational],
+) -> Result<ZetaPolynomialEnergyReport, String> {
+    if order < 2 {
+        return Err("zeta order must be >= 2".into());
+    }
+    tracing::info!(phase = "energy_report", order, "start");
     let primitive = zeta5_delta_primitive(delta);
     let max_bits = max_coeff_bits(&primitive.coefficients);
     let prec_bits = energy_eval_precision_bits(max_bits, params.k);
     let work_prec = prec_bits + 64;
     tracing::info!(
         phase = "energy_report",
+        order,
         max_coeff_bits = max_bits,
         prec_bits,
         work_prec,
         "primitive content cleared"
     );
-    tracing::info!(phase = "zeta5", order = 5, prec_bits, "computing zeta(5)");
-    let zeta5 = zeta_at_precision(5, prec_bits)?;
-    tracing::info!(phase = "energy_report", "zeta(5) ready, evaluating Delta_K");
-    let log_s_k = zeta5_log_s_k(params);
-    let delta_value = evaluate_rational_poly_float(delta, &zeta5, work_prec)?;
-    tracing::info!(phase = "energy_report", "Delta_K evaluated, scaling to P_K");
+    tracing::info!(phase = "zeta_borwein", order, prec_bits, "computing zeta(s)");
+    let zeta_value = zeta_at_precision(order, prec_bits)?;
+    tracing::info!(phase = "energy_report", order, "zeta(s) ready, evaluating Delta_K");
+    let log_s_k = polynomial_hankel_log_s_k(params);
+    let delta_value = evaluate_rational_poly_float(delta, &zeta_value, work_prec)?;
+    tracing::info!(phase = "energy_report", order, "Delta_K evaluated, scaling to P_K");
     let content_scale = Float::from_rational_prec(
         Rational::from_integers(
             Integer::from(primitive.content_denominator.clone()),
@@ -111,16 +128,29 @@ pub fn zeta5_energy_report(params: &Zeta5PaperParams, delta: &[Rational]) -> Res
     )
     .0;
     let primitive_value = delta_value.clone() * content_scale;
-    let log_delta_at_zeta5 = log_positive_float("Delta_K", &delta_value)?;
-    let log_primitive_at_zeta5 = log_positive_float("P_K", &primitive_value)?;
+    let log_delta_at_zeta = log_positive_float("Delta_K", &delta_value)?;
+    let log_primitive_at_zeta = log_positive_float("P_K", &primitive_value)?;
     let log_content = log_natural_ratio(&primitive.content_numerator, &primitive.content_denominator)?;
-    Ok(Zeta5EnergyReport {
+    Ok(ZetaPolynomialEnergyReport {
         log_s_k,
-        log_delta_at_zeta5,
-        log_f_k: log_delta_at_zeta5 + log_s_k,
+        log_delta_at_zeta,
+        log_f_k: log_delta_at_zeta + log_s_k,
         log_content_f_k: log_content + log_s_k,
-        log_primitive_at_zeta5,
+        log_primitive_at_zeta,
         max_primitive_coeff_bits: max_bits,
+    })
+}
+
+/// Evaluate energy logs for an already computed `Δ_K` at `ζ(5)`.
+pub fn zeta5_energy_report(params: &Zeta5PaperParams, delta: &[Rational]) -> Result<Zeta5EnergyReport, String> {
+    let report = zeta_polynomial_energy_report(5, params, delta)?;
+    Ok(Zeta5EnergyReport {
+        log_s_k: report.log_s_k,
+        log_delta_at_zeta5: report.log_delta_at_zeta,
+        log_f_k: report.log_f_k,
+        log_content_f_k: report.log_content_f_k,
+        log_primitive_at_zeta5: report.log_primitive_at_zeta,
+        max_primitive_coeff_bits: report.max_primitive_coeff_bits,
     })
 }
 

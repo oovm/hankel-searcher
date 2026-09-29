@@ -52,6 +52,16 @@ name = "zeta5-hankel-golden"
 path = "src/bin/zeta5_hankel_golden.rs"
 required-features = ["offline-golden"]
 
+[[bin]]
+name = "zeta2-hankel-golden"
+path = "src/bin/zeta2_hankel_golden.rs"
+required-features = ["offline-golden"]
+
+[[bin]]
+name = "zeta3-hankel-golden"
+path = "src/bin/zeta3_hankel_golden.rs"
+required-features = ["offline-golden"]
+
 [features]
 default = []
 offline-golden = []
