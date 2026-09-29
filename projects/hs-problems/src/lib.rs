@@ -5,6 +5,7 @@
 mod error;
 mod export;
 mod ferguson;
+mod polynomial_hankel;
 mod progress;
 /// Whole-polynomial Hankel construction for `ζ(5)`.
 pub mod zeta5_polynomial;
@@ -16,8 +17,12 @@ pub mod zeta5_energy;
 pub mod zeta5_golden;
 /// Ferguson approximants and moments for `ζ(2)`.
 pub mod zeta2;
+/// Whole-polynomial Hankel construction for `ζ(2)`.
+pub mod zeta2_hankel;
 /// Ferguson approximants and moments for `ζ(3)`.
 pub mod zeta3;
+/// Whole-polynomial Hankel construction for `ζ(3)`.
+pub mod zeta3_hankel;
 /// Ferguson approximants and moments for `ζ(5)`.
 pub mod zeta5;
 /// Ferguson approximants and moments for `ζ(7)`.
@@ -35,6 +40,18 @@ pub use crate::zeta5_energy::{
     zeta5_log_s_k, zeta_integer_float,
 };
 pub use crate::zeta5_golden::{Zeta5GoldenN1, zeta5_polynomial_golden_fast, zeta5_polynomial_golden_full};
+pub use crate::polynomial_hankel::{
+    ZetaPolynomialEntries, polynomial_hankel_log_s_k, zeta_polynomial_delta, zeta_polynomial_delta_degree,
+    zeta_polynomial_delta_leading_coeff, zeta_polynomial_entries, zeta_polynomial_hankel_a, zeta_polynomial_hankel_b,
+};
+pub use crate::zeta2_hankel::{
+    Zeta2Entries, zeta2_delta_degree, zeta2_delta_leading_coeff, zeta2_delta_polynomial, zeta2_entries, zeta2_hankel_a,
+    zeta2_hankel_b, zeta2_log_s_k,
+};
+pub use crate::zeta3_hankel::{
+    Zeta3Entries, zeta3_delta_degree, zeta3_delta_leading_coeff, zeta3_delta_polynomial, zeta3_entries, zeta3_hankel_a,
+    zeta3_hankel_b, zeta3_log_s_k,
+};
 pub use crate::progress::{init_progress_tracing, trace_step};
 pub use crate::export::{
     export_catalan_certificates, export_delta_certificates, export_gamma_certificates, export_zeta2_certificates,
