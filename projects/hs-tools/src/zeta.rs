@@ -4,7 +4,7 @@ use hs_checkpoint::{
 };
 use hs_searcher::{SearchBudget, SearchReport, SearchStrategy, enumerate_indices, local_indices, sample_indices};
 use hs_types::{Rational, is_zero};
-use malachite::base::num::basic::traits::Abs;
+use malachite::base::num::arithmetic::traits::Abs;
 use std::time::Duration;
 
 pub fn zeta_interval(order: u32, terms: usize) -> Result<(Rational, Rational), String> {
@@ -81,7 +81,7 @@ pub fn observe_with_shift(
     }
     let approx = p / q;
     let low_error = (interval.0.clone() - approx.clone()).abs();
-    let high_error = (interval.1.clone() - approx).abs();
+    let high_error = (interval.1.clone() - approx.clone()).abs();
     let bound = low_error.max(high_error);
     Ok(Observation {
         kind: "finite_approximation_error_upper".into(),
