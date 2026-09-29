@@ -1,5 +1,5 @@
 use hs_checkpoint::zeta_series_bounds;
-use hs_problems::{zeta5_log_s_k, zeta5_paper_params, zeta_integer_float};
+use hs_problems::{energy_eval_precision_bits, zeta5_log_s_k, zeta5_paper_params, zeta_integer_float};
 use malachite::Float;
 use malachite::base::num::conversion::traits::RoundingFrom;
 use malachite::base::rounding_modes::RoundingMode::Nearest;
@@ -31,6 +31,20 @@ fn zeta5_float_lies_in_rigorous_series_enclosure() {
         value >= lower_f && value <= upper_f,
         "zeta5={value} lower={lower_f} upper={upper_f}"
     );
+}
+
+#[test]
+fn energy_eval_precision_requires_borwein_not_capped_series() {
+    let prec = energy_eval_precision_bits(7597, 40);
+    let required = 2f64.powf((prec as f64 + 1.0) / 4.0).ceil() as usize;
+    assert!(required > 200_000, "n=1 energy must not use capped 200k direct sum");
+}
+
+#[test]
+fn borwein_zeta5_head_at_moderate_precision() {
+    let z = zeta_integer_float(5, 2_048).expect("borwein zeta5");
+    let (head, _) = f64::rounding_from(&z, Nearest);
+    assert!((head - 1.036_927_755_1).abs() < 1e-9);
 }
 
 #[test]

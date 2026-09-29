@@ -88,21 +88,29 @@ pub fn zeta5_energy_report(params: &Zeta5PaperParams, delta: &[Rational]) -> Res
     let primitive = zeta5_delta_primitive(delta);
     let max_bits = max_coeff_bits(&primitive.coefficients);
     let prec_bits = energy_eval_precision_bits(max_bits, params.k);
-    let eval_prec = prec_bits + 512;
+    let work_prec = prec_bits + 64;
     tracing::info!(
         phase = "energy_report",
         max_coeff_bits = max_bits,
         prec_bits,
-        eval_prec,
+        work_prec,
         "primitive content cleared"
     );
     tracing::info!(phase = "zeta5", order = 5, prec_bits, "computing zeta(5)");
     let zeta5 = zeta_at_precision(5, prec_bits)?;
     tracing::info!(phase = "energy_report", "zeta(5) ready, evaluating Delta_K");
     let log_s_k = zeta5_log_s_k(params);
-    let delta_value = evaluate_rational_poly_float(delta, &zeta5, eval_prec)?;
-    tracing::info!(phase = "energy_report", "Delta_K evaluated, evaluating P_K");
-    let primitive_value = evaluate_integer_poly_float(&primitive.coefficients, &zeta5, eval_prec)?;
+    let delta_value = evaluate_rational_poly_float(delta, &zeta5, work_prec)?;
+    tracing::info!(phase = "energy_report", "Delta_K evaluated, scaling to P_K");
+    let content_scale = Float::from_rational_prec(
+        Rational::from_integers(
+            Integer::from(primitive.content_denominator.clone()),
+            Integer::from(primitive.content_numerator.clone()),
+        ),
+        work_prec,
+    )
+    .0;
+    let primitive_value = delta_value.clone() * content_scale;
     let log_delta_at_zeta5 = log_positive_float("Delta_K", &delta_value)?;
     let log_primitive_at_zeta5 = log_positive_float("P_K", &primitive_value)?;
     let log_content = log_natural_ratio(&primitive.content_numerator, &primitive.content_denominator)?;
@@ -153,28 +161,17 @@ fn log_positive_float(label: &str, value: &Float) -> Result<f64, String> {
     Ok(converted)
 }
 
-fn evaluate_rational_poly_float(coefficients: &[Rational], point: &Float, eval_prec: u64) -> Result<Float, String> {
-    let prec = eval_prec + 32;
+fn evaluate_rational_poly_float(coefficients: &[Rational], point: &Float, work_prec: u64) -> Result<Float, String> {
     if coefficients.is_empty() {
-        return Ok(float_at_unsigned(prec, 0));
+        return Ok(float_at_unsigned(work_prec, 0));
     }
-    let mut acc = Float::from_rational_prec(coefficients[coefficients.len() - 1].clone(), prec).0;
-    for coeff in coefficients[..coefficients.len() - 1].iter().rev() {
-        acc = acc * point + Float::from_rational_prec(coeff.clone(), prec).0;
+    let mut sum = float_at_unsigned(work_prec, 0);
+    let mut power = Float::one_prec(work_prec);
+    for coeff in coefficients {
+        sum += Float::from_rational_prec(coeff.clone(), work_prec).0 * power.clone();
+        power *= point;
     }
-    Ok(acc)
-}
-
-fn evaluate_integer_poly_float(coefficients: &[Integer], point: &Float, eval_prec: u64) -> Result<Float, String> {
-    let prec = eval_prec + 32;
-    if coefficients.is_empty() {
-        return Ok(float_at_unsigned(prec, 0));
-    }
-    let mut acc = Float::from_integer_prec(coefficients[coefficients.len() - 1].clone(), prec).0;
-    for coeff in coefficients[..coefficients.len() - 1].iter().rev() {
-        acc = acc * point + Float::from_integer_prec(coeff.clone(), prec).0;
-    }
-    Ok(acc)
+    Ok(sum)
 }
 
 fn float_at_unsigned(prec: u64, value: u64) -> Float {
@@ -189,25 +186,26 @@ pub fn zeta_integer_float(order: u32, prec_bits: u64) -> Result<Float, String> {
 }
 
 fn zeta_at_precision(order: u32, prec_bits: u64) -> Result<Float, String> {
-    let terms = zeta_series_terms_for_precision(order, prec_bits);
-    if terms <= ZETA_DIRECT_SUM_TERM_CAP {
+    let required_terms = zeta_series_required_terms_saturated(order, prec_bits);
+    if required_terms <= ZETA_DIRECT_SUM_TERM_CAP && prec_bits < 4096 {
         tracing::info!(
             phase = "zeta5",
             route = "direct_series",
             order,
             prec_bits,
-            terms,
+            terms = required_terms,
         );
-        zeta_series_float(order, terms, prec_bits)
+        zeta_series_float(order, required_terms, prec_bits)
     } else {
         tracing::info!(
             phase = "zeta5",
-            route = "euler_maclaurin",
+            route = "borwein",
             order,
             prec_bits,
-            requested_terms = terms,
+            required_terms,
+            cap = ZETA_DIRECT_SUM_TERM_CAP,
         );
-        zeta_euler_maclaurin_float(order, prec_bits)
+        borwein_zeta_float(order, prec_bits)
     }
 }
 
@@ -233,94 +231,72 @@ pub(crate) fn zeta_series_float(order: u32, terms: usize, prec_bits: u64) -> Res
     Ok(sum + tail / float_at_unsigned(prec, 2))
 }
 
-fn zeta_series_terms_for_precision(order: u32, prec_bits: u64) -> usize {
+fn zeta_series_required_terms_saturated(order: u32, prec_bits: u64) -> usize {
     let exponent = (order - 1) as f64;
-    let min_terms = 2f64.powf((prec_bits as f64 + 1.0) / exponent).ceil() as usize;
-    min_terms.clamp(10, ZETA_DIRECT_SUM_TERM_CAP)
+    let value = 2f64.powf((prec_bits as f64 + 1.0) / exponent);
+    if value.is_finite() && value <= ZETA_DIRECT_SUM_TERM_CAP as f64 {
+        value.ceil() as usize
+    } else {
+        ZETA_DIRECT_SUM_TERM_CAP + 1
+    }
 }
 
-/// Euler–Maclaurin tail for `ζ(order)` when the direct partial sum needs too many terms.
-fn zeta_euler_maclaurin_float(order: u32, prec_bits: u64) -> Result<Float, String> {
+/// Borwein ζ(s) for integer `s >= 2`, matching MPFR / Flint `arb_zeta` on the real axis.
+fn borwein_zeta_float(order: u32, prec_bits: u64) -> Result<Float, String> {
     if order < 2 {
         return Err("zeta order must be >= 2".into());
     }
     let prec = prec_bits + 64;
-    let (n, k_max) = euler_maclaurin_zeta_params(prec_bits, order);
-    tracing::info!(phase = "zeta5_em", order, prec, n, k_max, bernoulli_max = 2 * k_max, "Euler-Maclaurin start");
-    let bernoulli = bernoulli_float_table(2 * k_max, prec);
-    tracing::info!(phase = "zeta5_em", "Bernoulli table ready, direct head sum");
+    let n = borwein_zeta_degree(prec_bits);
+    tracing::info!(phase = "zeta5_borwein", order, prec_bits, prec, borwein_n = n, "start");
+    let d = borwein_d_table(n, prec);
+    let dn = d[n].clone();
     let mut sum = float_at_unsigned(prec, 0);
-    for index in 1..=n {
-        sum += float_at_unsigned(prec, index as u64).pow(-(order as i64));
+    let step = (n / 20).max(1);
+    for k in 0..n {
+        let coeff = if k % 2 == 0 {
+            d[k].clone() - dn.clone()
+        } else {
+            -(d[k].clone() - dn.clone())
+        };
+        let base = float_at_unsigned(prec, (k + 1) as u64);
+        sum += coeff / base.pow(order as i64);
+        trace_step("zeta5_borwein", k + 1, n, step);
     }
+    let two = float_at_unsigned(prec, 2);
+    let multiplier = float_at_unsigned(prec, 1) - float_at_unsigned(prec, 2) / two.pow(order as i64);
+    tracing::info!(phase = "zeta5_borwein", order, prec, "complete");
+    Ok(-sum / (dn * multiplier))
+}
+
+/// `n ≈ 1.3 d` decimal digits (Gourdon–Sebah), with guard bits for `ζ(5)` energy logs.
+fn borwein_zeta_degree(prec_bits: u64) -> usize {
+    let decimal_digits = prec_bits as f64 * std::f64::consts::LOG10_2;
+    ((1.3 * decimal_digits + 16.0).ceil() as usize).clamp(10, 100_000)
+}
+
+fn borwein_d_table(n: usize, prec: u64) -> Vec<Float> {
     let nf = float_at_unsigned(prec, n as u64);
-    sum += nf.clone().pow(1 - order as i64) / float_at_unsigned(prec, u64::from(order - 1));
-    sum += nf.clone().pow(-(order as i64)) / float_at_unsigned(prec, 2);
-    let em_step = (k_max / 20).max(1);
-    for k in 1..=k_max {
-        let b = bernoulli[2 * k].clone();
-        let factorial = factorial_float(2 * k, prec)?;
-        let rising = rising_factorial_float(order, k, prec)?;
-        let exponent = 1 - order as i64 - 2 * k as i64;
-        sum += b / factorial * rising * nf.clone().pow(exponent);
-        trace_step("zeta5_em", k, k_max, em_step);
+    let mut inner = float_at_unsigned(prec, 0);
+    let mut d = Vec::with_capacity(n + 1);
+    for i in 0..=n {
+        inner += borwein_d_term(n, i, prec);
+        d.push(nf.clone() * inner.clone());
     }
-    tracing::info!(phase = "zeta5_em", order, prec, "Euler-Maclaurin complete");
-    Ok(sum)
+    d
 }
 
-fn euler_maclaurin_zeta_params(prec_bits: u64, order: u32) -> (usize, usize) {
-    let prec = (prec_bits + 64) as usize;
-    let order = order as usize;
-    let n = ((prec as f64).sqrt().round() as usize).clamp(64, 65_536);
-    let log2_n = (n as f64).log2();
-    let k_max = (((prec as f64) / log2_n - (order - 1) as f64) / 2.0).ceil() as usize;
-    (n, k_max.clamp(32, prec / 4))
-}
-
-fn bernoulli_float_table(max_index: usize, prec: u64) -> Vec<Float> {
-    let mut bernoulli = vec![float_at_unsigned(prec, 0); max_index + 1];
-    bernoulli[0] = Float::one_prec(prec);
-    let step = (max_index / 20).max(1);
-    for m in 1..=max_index {
-        let mut acc = float_at_unsigned(prec, 0);
-        for k in 0..m {
-            acc += binomial_float(m + 1, k, prec) * bernoulli[k].clone();
-        }
-        bernoulli[m] = -(acc / float_at_unsigned(prec, m as u64 + 1));
-        trace_step("bernoulli_table", m, max_index, step);
+fn borwein_d_term(n: usize, i: usize, prec: u64) -> Float {
+    if i == 0 {
+        return float_at_unsigned(prec, 1) / float_at_unsigned(prec, n as u64);
     }
-    bernoulli
-}
-
-fn binomial_float(n: usize, k: usize, prec: u64) -> Float {
-    if k > n {
-        return float_at_unsigned(prec, 0);
+    let mut ratio = Float::one_prec(prec);
+    for m in 0..(2 * i - 1) {
+        ratio *= float_at_unsigned(prec, (n - i + 1 + m) as u64);
     }
-    if k == 0 {
-        return Float::one_prec(prec);
+    let mut factorial = Float::one_prec(prec);
+    for m in 1..=(2 * i) {
+        factorial *= float_at_unsigned(prec, m as u64);
     }
-    let k = k.min(n - k);
-    let mut acc = Float::one_prec(prec);
-    for index in 0..k {
-        acc *= float_at_unsigned(prec, (n - index) as u64);
-        acc /= float_at_unsigned(prec, (index + 1) as u64);
-    }
-    acc
-}
-
-fn factorial_float(n: usize, prec: u64) -> Result<Float, String> {
-    let mut acc = Float::one_prec(prec);
-    for index in 2..=n {
-        acc *= float_at_unsigned(prec, index as u64);
-    }
-    Ok(acc)
-}
-
-fn rising_factorial_float(s: u32, k: usize, prec: u64) -> Result<Float, String> {
-    let mut acc = Float::one_prec(prec);
-    for j in 0..(2 * k - 1) {
-        acc *= float_at_unsigned(prec, u64::from(s + j as u32));
-    }
-    Ok(acc)
+    ratio * float_at_unsigned(prec, 4).pow(i as u64) / factorial
 }
