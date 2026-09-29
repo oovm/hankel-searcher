@@ -1,12 +1,14 @@
 use hs_checkpoint::{
-    Checkpoint, OBSERVATION_KIND_POLYNOMIAL_HANKEL, POLYNOMIAL_HANKEL_GENERATOR, PolynomialHankelObservation,
-    RationalData, SearchBenchmark, ZETA5_PAPER_PARAMETER_SPACE, zeta_order,
+    Checkpoint, OBSERVATION_KIND_POLYNOMIAL_HANKEL, POLYNOMIAL_HANKEL_GENERATOR, POLYNOMIAL_NQ_PARAMETER_SPACE,
+    PolynomialHankelObservation, RationalData, SearchBenchmark, ZETA5_PAPER_PARAMETER_SPACE, zeta_order,
 };
 use hs_problems::{
-    Zeta5PaperParams, ZetaPolynomialEnergyReport, zeta2_delta_degree, zeta2_delta_leading_coeff, zeta2_delta_polynomial,
-    zeta2_entries, zeta2_log_s_k, zeta3_delta_degree, zeta3_delta_leading_coeff, zeta3_delta_polynomial, zeta3_entries,
-    zeta3_log_s_k, zeta5_delta_degree, zeta5_delta_leading_coeff, zeta5_delta_polynomial, zeta5_entries, zeta5_log_s_k,
-    zeta5_paper_params, zeta_polynomial_energy_report,
+    best_sweep_rows_by_order, polynomial_hankel_log_s_k, polynomial_hankel_params, sweep_polynomial_hankel,
+    PolynomialHankelSweepConfig, Zeta5PaperParams, ZetaPolynomialEnergyReport, zeta2_delta_degree,
+    zeta2_delta_leading_coeff, zeta2_delta_polynomial, zeta2_entries_with_params, zeta3_delta_degree,
+    zeta3_delta_leading_coeff, zeta3_delta_polynomial, zeta3_entries_with_params, zeta5_delta_degree,
+    zeta5_delta_leading_coeff, zeta5_delta_polynomial, zeta5_entries, zeta5_log_s_k, zeta5_paper_params,
+    zeta_polynomial_energy_report,
 };
 use hs_types::{Rational, is_zero};
 use std::time::{Duration, Instant};
@@ -53,14 +55,15 @@ pub fn improve_polynomial(
     }
 
     let mut start_n = cp.search.next_candidate.parse::<usize>().map_err(|e| e.to_string())?;
-    if cp.search.generator_id != POLYNOMIAL_HANKEL_GENERATOR {
+    if cp.search.generator_id != POLYNOMIAL_HANKEL_GENERATOR
+        || cp.search.parameter_space_id != ZETA5_PAPER_PARAMETER_SPACE
+    {
         println!(
-            "note: checkpoint cursor reset to n=1 for polynomial Hankel (was `{}`)",
-            cp.search.generator_id
+            "note: checkpoint cursor reset to n=1 for polynomial Hankel (was `{}` + `{}`)",
+            cp.search.generator_id, cp.search.parameter_space_id
         );
         start_n = 1;
         cp.search.next_candidate = "1".into();
-        cp.observed_best = None;
     }
     if start_n == 0 {
         return Err("polynomial construction index `n` must be positive".into());
@@ -91,30 +94,7 @@ pub fn improve_polynomial(
         if record_polynomial_observation(cp, &step.params, &step.leading_coeff, step.log_s_k, step.energy.as_ref()) {
             polynomial_observation_updated = true;
         }
-
-        println!(
-            "n={current} K={} N={} h={} entries_ms={}",
-            step.params.k,
-            step.params.capital_n,
-            step.params.h,
-            step.entries_ms
-        );
-        if let Some(ms) = step.delta_ms {
-            println!("  delta_ms={ms}");
-        }
-        println!("  log S_K: {:.3}", step.log_s_k);
-        println!(
-            "  leading_coeff (2.9): {}/{}",
-            step.leading_coeff.to_numerator(),
-            step.leading_coeff.to_denominator()
-        );
-        if let Some(matches) = step.leading_match {
-            println!("  leading_coeff matches Δ_K: {matches}");
-        }
-        if let Some(energy) = &step.energy {
-            print_energy_report(&cp.target, &step.params, energy);
-        }
-
+        print_polynomial_step(&cp.target, current, &step);
         completed += 1;
         current += 1;
     }
@@ -134,16 +114,98 @@ pub fn improve_polynomial(
     })
 }
 
+/// Grid search over `(N,q)` at fixed `n` with full `Δ_K` energy (offline, expensive).
+pub fn improve_polynomial_nq_sweep(
+    cp: &mut Checkpoint,
+    config: PolynomialHankelSweepConfig,
+) -> Result<PolynomialImproveReport, String> {
+    if !hs_checkpoint::has_polynomial_hankel(&cp.target) {
+        return Err(format!(
+            "polynomial Hankel improve is not registered for `{}`",
+            cp.target
+        ));
+    }
+    let order = zeta_order(&cp.target).ok_or_else(|| format!("unsupported polynomial target `{}`", cp.target))?;
+    let mut sweep_config = config;
+    sweep_config.orders = match order {
+        2 => &[2][..],
+        3 => &[3][..],
+        5 => &[5][..],
+        other => return Err(format!("polynomial N-q sweep is not registered for zeta order `{other}`")),
+    };
+
+    println!("target: {}", cp.target);
+    println!("level: polynomial Hankel ({POLYNOMIAL_NQ_PARAMETER_SPACE})");
+    println!(
+        "mode: full Δ_K grid at n={}, K={}n, N={}..{}n, q={:?}",
+        sweep_config.n,
+        sweep_config.k_per_n,
+        sweep_config.capital_n_min,
+        sweep_config.capital_n_max,
+        sweep_config.q_values,
+    );
+    println!("{:<4} {:<3} {:>12} {:>12}", "N", "q", "logP", "logP/n^2");
+
+    let rows = sweep_polynomial_hankel(&sweep_config);
+    for row in &rows {
+        if row.order != order {
+            continue;
+        }
+        let capital_n_per_n = row.capital_n / row.n;
+        println!(
+            "{:<4} {:<3} {:>12.3} {:>12.3}",
+            capital_n_per_n,
+            row.q,
+            row.log_primitive_at_zeta,
+            row.log_primitive_per_n2,
+        );
+    }
+
+    let best = best_sweep_rows_by_order(&rows)
+        .into_iter()
+        .find(|row| row.order == order)
+        .ok_or("no successful (N,q) grid point")?;
+    let capital_n_per_n = best.capital_n / best.n;
+    let params = polynomial_hankel_params(best.n, sweep_config.k_per_n, capital_n_per_n, best.q)?;
+    let step = run_polynomial_step_with_params(&cp.target, params, true)?;
+    let polynomial_observation_updated =
+        record_polynomial_observation(cp, &step.params, &step.leading_coeff, step.log_s_k, step.energy.as_ref());
+
+    println!("\nbest (min logP/n^2): N={capital_n_per_n}n q={} h={}", best.q, best.h);
+    print_polynomial_step(&cp.target, best.n, &step);
+
+    cp.search.generator_id = POLYNOMIAL_HANKEL_GENERATOR.into();
+    cp.search.parameter_space_id = POLYNOMIAL_NQ_PARAMETER_SPACE.into();
+    cp.search.next_candidate = "1".into();
+    cp.status = "draft".into();
+    cp.updated_at = chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string();
+
+    Ok(PolynomialImproveReport {
+        start_n: best.n,
+        end_n: best.n + 1,
+        completed_steps: rows.iter().filter(|row| row.order == order).count(),
+        full_delta: true,
+        polynomial_observation_updated,
+    })
+}
+
 fn run_polynomial_step(target: &str, n: usize, full_delta: bool) -> Result<PolynomialStep, String> {
+    run_polynomial_step_with_params(target, zeta5_paper_params(n), full_delta)
+}
+
+fn run_polynomial_step_with_params(
+    target: &str,
+    params: Zeta5PaperParams,
+    full_delta: bool,
+) -> Result<PolynomialStep, String> {
     let order = zeta_order(target).ok_or_else(|| format!("unsupported polynomial target `{target}`"))?;
-    let params = zeta5_paper_params(n);
     let entries_started = Instant::now();
     let (leading_coeff, log_s_k, delta_degree, delta_poly) = match target {
         "zeta-2" => {
-            let entries = zeta2_entries(n)?;
+            let entries = zeta2_entries_with_params(params)?;
             (
                 zeta2_delta_leading_coeff(&entries),
-                zeta2_log_s_k(&params),
+                polynomial_hankel_log_s_k(&params),
                 zeta2_delta_degree(&entries),
                 if full_delta {
                     Some(zeta2_delta_polynomial(&entries)?)
@@ -153,10 +215,10 @@ fn run_polynomial_step(target: &str, n: usize, full_delta: bool) -> Result<Polyn
             )
         }
         "zeta-3" => {
-            let entries = zeta3_entries(n)?;
+            let entries = zeta3_entries_with_params(params)?;
             (
                 zeta3_delta_leading_coeff(&entries),
-                zeta3_log_s_k(&params),
+                polynomial_hankel_log_s_k(&params),
                 zeta3_delta_degree(&entries),
                 if full_delta {
                     Some(zeta3_delta_polynomial(&entries)?)
@@ -166,7 +228,10 @@ fn run_polynomial_step(target: &str, n: usize, full_delta: bool) -> Result<Polyn
             )
         }
         "zeta-5" => {
-            let entries = zeta5_entries(n);
+            let entries = zeta5_entries(params.n);
+            if entries.params != params {
+                return Err("zeta-5 custom (N,q) scaling is not wired yet".into());
+            }
             (
                 zeta5_delta_leading_coeff(&entries),
                 zeta5_log_s_k(&params),
@@ -189,13 +254,14 @@ fn run_polynomial_step(target: &str, n: usize, full_delta: bool) -> Result<Polyn
         let delta_started = Instant::now();
         if delta.len() != delta_degree + 1 {
             return Err(format!(
-                "Δ_K coefficient count mismatch at n={n}: expected {}, got {}",
+                "Δ_K coefficient count mismatch at n={}: expected {}, got {}",
+                params.n,
                 delta_degree + 1,
                 delta.len()
             ));
         }
         if is_zero(&delta[delta_degree]) {
-            return Err(format!("Δ_K leading coefficient vanished at n={n}"));
+            return Err(format!("Δ_K leading coefficient vanished at n={}", params.n));
         }
         leading_match = Some(delta[delta_degree] == leading_coeff);
         let report = zeta_polynomial_energy_report(order, &params, &delta)?;
@@ -212,6 +278,32 @@ fn run_polynomial_step(target: &str, n: usize, full_delta: bool) -> Result<Polyn
         delta_ms,
         leading_match,
     })
+}
+
+fn print_polynomial_step(target: &str, n: usize, step: &PolynomialStep) {
+    println!(
+        "n={n} K={} N={} q={} h={} entries_ms={}",
+        step.params.k,
+        step.params.capital_n,
+        step.params.q,
+        step.params.h,
+        step.entries_ms
+    );
+    if let Some(ms) = step.delta_ms {
+        println!("  delta_ms={ms}");
+    }
+    println!("  log S_K: {:.3}", step.log_s_k);
+    println!(
+        "  leading_coeff (2.9): {}/{}",
+        step.leading_coeff.to_numerator(),
+        step.leading_coeff.to_denominator()
+    );
+    if let Some(matches) = step.leading_match {
+        println!("  leading_coeff matches Δ_K: {matches}");
+    }
+    if let Some(energy) = &step.energy {
+        print_energy_report(target, &step.params, energy);
+    }
 }
 
 fn print_energy_report(target: &str, params: &Zeta5PaperParams, energy: &ZetaPolynomialEnergyReport) {
@@ -275,15 +367,20 @@ fn record_polynomial_observation(
 }
 
 pub fn record_benchmark(cp: &mut Checkpoint, report: &PolynomialImproveReport, elapsed_ms: u64, jobs: usize) {
+    let strategy = if report.full_delta {
+        if cp.search.parameter_space_id == POLYNOMIAL_NQ_PARAMETER_SPACE {
+            "polynomial-hankel-nq-sweep".into()
+        } else {
+            "polynomial-hankel-full-delta".into()
+        }
+    } else {
+        "polynomial-hankel-entries".into()
+    };
     cp.search.benchmark = Some(SearchBenchmark {
         steps: report.completed_steps,
         elapsed_ms,
         jobs,
-        strategy: if report.full_delta {
-            "polynomial-hankel-full-delta".into()
-        } else {
-            "polynomial-hankel-entries".into()
-        },
+        strategy,
         recorded_at: chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
     });
 }

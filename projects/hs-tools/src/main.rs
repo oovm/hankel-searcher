@@ -51,6 +51,9 @@ enum Command {
         /// With `--polynomial`, also compute exact `Δ_K` (very expensive).
         #[arg(long)]
         full_delta: bool,
+        /// With `--polynomial`, grid-search `(N,q)` at `n=1` and record best `log P_K` (implies `--full-delta`).
+        #[arg(long)]
+        nq_sweep: bool,
     },
     /// Recompute and check the observation stored in a checkpoint.
     Check {
@@ -220,6 +223,7 @@ fn improve_polynomial(
     jobs: usize,
     write_on_improvement: bool,
     full_delta: bool,
+    nq_sweep: bool,
 ) -> Result<(), String> {
     if !hs_checkpoint::has_polynomial_hankel(target) {
         return Err(format!("polynomial Hankel improve is not registered for `{target}`"));
@@ -227,7 +231,16 @@ fn improve_polynomial(
     let mut cp = read_checkpoint(path).map_err(map_err)?;
     ensure_checkpoint_target(&cp, target)?;
     let started = std::time::Instant::now();
-    let report = zeta_polynomial::improve_polynomial(&mut cp, steps, time_budget, jobs, full_delta)?;
+    let report = if nq_sweep {
+        if jobs > 1 {
+            return Err("polynomial N-q sweep does not support --jobs > 1 yet".into());
+        }
+        let _ = time_budget;
+        let _ = steps;
+        zeta_polynomial::improve_polynomial_nq_sweep(&mut cp, hs_problems::PolynomialHankelSweepConfig::default())?
+    } else {
+        zeta_polynomial::improve_polynomial(&mut cp, steps, time_budget, jobs, full_delta)?
+    };
     let elapsed_ms = started.elapsed().as_millis() as u64;
     let should_write = if write_on_improvement {
         report.polynomial_observation_updated
@@ -546,6 +559,7 @@ fn main() {
             strategy,
             polynomial,
             full_delta,
+            nq_sweep,
         } => {
             require_repo_root()
                 .and_then(|root| resolve_path(&root, &target, checkpoint))
@@ -562,7 +576,8 @@ fn main() {
                             budget,
                             jobs,
                             write_on_improvement,
-                            full_delta,
+                            full_delta || nq_sweep,
+                            nq_sweep,
                         )
                     } else {
                         let strategy = SearchStrategy::parse(&strategy)?;

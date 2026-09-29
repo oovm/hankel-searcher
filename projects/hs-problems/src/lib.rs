@@ -55,12 +55,12 @@ pub use crate::polynomial_hankel::{
     zeta_polynomial_hankel_a, zeta_polynomial_hankel_b,
 };
 pub use crate::zeta2_hankel::{
-    Zeta2Entries, zeta2_delta_degree, zeta2_delta_leading_coeff, zeta2_delta_polynomial, zeta2_entries, zeta2_hankel_a,
-    zeta2_hankel_b, zeta2_log_s_k,
+    Zeta2Entries, zeta2_delta_degree, zeta2_delta_leading_coeff, zeta2_delta_polynomial, zeta2_entries,
+    zeta2_entries_with_params, zeta2_hankel_a, zeta2_hankel_b, zeta2_log_s_k,
 };
 pub use crate::zeta3_hankel::{
-    Zeta3Entries, zeta3_delta_degree, zeta3_delta_leading_coeff, zeta3_delta_polynomial, zeta3_entries, zeta3_hankel_a,
-    zeta3_hankel_b, zeta3_log_s_k,
+    Zeta3Entries, zeta3_delta_degree, zeta3_delta_leading_coeff, zeta3_delta_polynomial, zeta3_entries,
+    zeta3_entries_with_params, zeta3_hankel_a, zeta3_hankel_b, zeta3_log_s_k,
 };
 pub use crate::polynomial_hankel_golden::{ZetaPolynomialGoldenN1, zeta2_golden_n1, zeta3_golden_n1};
 pub use crate::polynomial_hankel_sweep::{

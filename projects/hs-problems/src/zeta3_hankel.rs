@@ -2,7 +2,8 @@
 
 use crate::polynomial_hankel::{
     ZetaPolynomialEntries, polynomial_hankel_log_s_k, zeta_polynomial_delta, zeta_polynomial_delta_degree,
-    zeta_polynomial_delta_leading_coeff, zeta_polynomial_entries, zeta_polynomial_hankel_a, zeta_polynomial_hankel_b,
+    zeta_polynomial_delta_leading_coeff, zeta_polynomial_entries, zeta_polynomial_entries_with_params,
+    zeta_polynomial_hankel_a, zeta_polynomial_hankel_b,
 };
 use crate::zeta5_polynomial::Zeta5PaperParams;
 use hs_types::Rational;
@@ -15,6 +16,11 @@ pub type Zeta3Entries = ZetaPolynomialEntries;
 /// Build paper-scaled entries for construction index `n`.
 pub fn zeta3_entries(n: usize) -> Result<Zeta3Entries, String> {
     zeta_polynomial_entries(ORDER, n)
+}
+
+/// Build entries at explicit `(K,N,q,h)` scaling.
+pub fn zeta3_entries_with_params(params: Zeta5PaperParams) -> Result<Zeta3Entries, String> {
+    zeta_polynomial_entries_with_params(ORDER, params)
 }
 
 /// `log S_K` normalization for the paper scaling.

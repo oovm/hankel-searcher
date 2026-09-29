@@ -1,7 +1,8 @@
 use hs_checkpoint::{
     decode_rational_parameter, rational_parameter_ordinal, Checkpoint, CHECKPOINT_TARGETS, FERGUSON_INDEX_GENERATOR,
     FERGUSON_PARAMETER_GENERATOR, FERGUSON_ZETA_TARGETS, MuRecord, MuStatus, NONNEGATIVE_INDEX_SPACE, Objective,
-    OBSERVATION_KIND_POLYNOMIAL_HANKEL, POLYNOMIAL_HANKEL_GENERATOR, PolynomialHankelObservation, ProofRecord,
+    OBSERVATION_KIND_POLYNOMIAL_HANKEL, POLYNOMIAL_HANKEL_GENERATOR, POLYNOMIAL_NQ_PARAMETER_SPACE,
+    PolynomialHankelObservation, ProofRecord,
     ProofStatus, RATIONAL_PARAMETER_SPACE, RationalData, Search, ZETA5_PAPER_PARAMETER_SPACE, default_checkpoint_path,
     has_ferguson_search, has_polynomial_hankel, is_implemented_search_contract, is_known_target, read_checkpoint,
     validate_known_search_contract, write_checkpoint, zeta_order,
@@ -153,6 +154,10 @@ fn checkpoint_targets_registry() {
 fn search_contract_registry() {
     assert!(is_implemented_search_contract(FERGUSON_INDEX_GENERATOR, NONNEGATIVE_INDEX_SPACE));
     assert!(is_implemented_search_contract(FERGUSON_PARAMETER_GENERATOR, RATIONAL_PARAMETER_SPACE));
+    assert!(is_implemented_search_contract(
+        POLYNOMIAL_HANKEL_GENERATOR,
+        POLYNOMIAL_NQ_PARAMETER_SPACE
+    ));
     assert!(validate_known_search_contract(FERGUSON_INDEX_GENERATOR, "unknown-space").is_err());
 }
 
