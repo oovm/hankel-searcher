@@ -1,14 +1,9 @@
 //! Gram/Hankel determinant pipeline for `ζ(5)` aligned with `mo271/Zeta5` `scripts/hankel.py`.
 
 use crate::zeta5_polynomial::{Zeta5PaperParams, d_polynomial, evaluate_polynomial, zeta5_paper_params};
-use hs_types::{
-    bareiss_det, hankel_matrix, rational_charpoly, rational_mat_inv, rational_mat_mul, scale_polynomial,
-};
-use num_bigint::BigInt;
-use num_rational::Ratio;
-use num_traits::{One, Zero};
-
-type Rational = Ratio<BigInt>;
+use hs_types::{Integer, Rational, det_linear_pencil, hankel_matrix, is_zero};
+use malachite::base::num::arithmetic::traits::Pow;
+use malachite::base::num::basic::traits::{One, Zero};
 
 /// Moment sequences `(a_e, b_e)` for `e = 0..2h-2` from the Zeta5 paper construction.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -41,20 +36,21 @@ pub fn zeta5_entries(n: usize) -> Zeta5Entries {
     for e in 0..e_len {
         let shifted = poly_mul_monomial(&w, e);
         let pe = poly_div(&shifted, &dk);
-        let mut ae = Rational::zero();
+        let mut ae = Rational::ZERO;
         for (index, coeff) in pe.iter().enumerate() {
             if index < mus.len() {
-                ae += coeff * &mus[index];
+                ae += coeff.clone() * mus[index].clone();
             }
         }
-        let mut be = Rational::zero();
+        let mut be = Rational::ZERO;
         for j in (capital_n + 1)..=k {
-            let c = &base[j - (capital_n + 1)] * int_pow(-BigInt::from(j * j), e);
-            be += &c * Rational::from_integer(BigInt::from(j.pow(4)));
-            ae += &c
-                * (-Rational::from_integer(BigInt::from(j.pow(4))) * &h5[j]
-                    - Rational::new(BigInt::one(), BigInt::from(4))
-                    + Ratio::new(BigInt::one(), BigInt::from(2 * j as i64)));
+            let c = base[j - (capital_n + 1)].clone() * int_pow(-Integer::from(j * j), e);
+            let j4 = Rational::from(Integer::from(j).pow(4u64));
+            be += c.clone() * j4.clone();
+            ae += c
+                * (-j4.clone() * h5[j].clone()
+                    - Rational::from_integers(Integer::ONE, Integer::from(4))
+                    + Rational::from_integers(Integer::ONE, Integer::from(2 * j as i64)));
         }
         a.push(ae);
         b.push(be);
@@ -75,17 +71,11 @@ pub fn zeta5_hankel_b(entries: &Zeta5Entries) -> Vec<Vec<Rational>> {
 
 /// Determinant polynomial `Δ_K` with ascending coefficients, matching `hankel.py#det_poly`.
 ///
-/// **Expensive:** at `n=1` this inverts and takes the characteristic polynomial of a
-/// `37×37` rational Hankel matrix. Offline only — not part of `cargo test`.
+/// Uses Bareiss on the linear pencil `xB + A` (same as Flint `det_poly`). Offline only.
 pub fn zeta5_delta_polynomial(entries: &Zeta5Entries) -> Vec<Rational> {
     let a_matrix = zeta5_hankel_a(entries);
     let b_matrix = zeta5_hankel_b(entries);
-    let det_b = bareiss_det(&b_matrix);
-    let b_inv = rational_mat_inv(&b_matrix).expect("B must be invertible");
-    let neg_a = scale_matrix(&a_matrix, &-Rational::one());
-    let c = rational_mat_mul(&b_inv, &neg_a);
-    let charpoly = rational_charpoly(&c);
-    scale_polynomial(&charpoly, &det_b)
+    det_linear_pencil(&a_matrix, &b_matrix).expect("Δ_K pencil determinant")
 }
 
 /// Expected degree of `Δ_K`.
@@ -100,65 +90,66 @@ pub fn zeta5_delta_leading_coeff(entries: &Zeta5Entries) -> Rational {
     let capital_n = params.capital_n;
     let k = params.k;
     let sign = if (h * (h - 1) / 2) % 2 == 0 {
-        Rational::one()
+        Rational::ONE
     } else {
-        -Rational::one()
+        -Rational::ONE
     };
     let dn = d_polynomial(capital_n);
     let mut lead = sign;
     for j in (capital_n + 1)..=k {
-        let dn_at = evaluate_polynomial(&dn, &Ratio::from_integer(-BigInt::from(j * j)));
-        lead *= Ratio::from_integer(BigInt::from(j.pow(4))) * dn_at.pow(5);
+        let dn_at = evaluate_polynomial(&dn, &Rational::from(-Integer::from(j * j)));
+        lead *= Rational::from(Integer::from(j).pow(4u64)) * dn_at.pow(5u64);
     }
     lead
 }
 
 fn mu_coefficient(k: usize) -> Rational {
     let bernoulli = bernoulli_rational(2 * k + 2);
-    let sign = if k % 2 == 0 { Rational::one() } else { -Rational::one() };
-    let numerator = BigInt::from((2 * k + 3) * (2 * k + 4) * (2 * k + 5));
-    sign * bernoulli * Ratio::new(numerator, BigInt::from(24))
+    let sign = if k % 2 == 0 { Rational::ONE } else { -Rational::ONE };
+    let numerator = Integer::from((2 * k + 3) * (2 * k + 4) * (2 * k + 5));
+    sign * bernoulli * Rational::from_integers(numerator, Integer::from(24))
 }
 
 fn bernoulli_rational(n: usize) -> Rational {
     if n == 0 {
-        return Rational::one();
+        return Rational::ONE;
     }
     if n == 1 {
-        return Ratio::new(-BigInt::one(), BigInt::from(2));
+        return Rational::from_integers(-Integer::ONE, Integer::from(2));
     }
     if n % 2 == 1 {
-        return Rational::zero();
+        return Rational::ZERO;
     }
-    let mut bernoulli = vec![Rational::zero(); n + 1];
-    bernoulli[0] = Rational::one();
+    let mut bernoulli = vec![Rational::ZERO; n + 1];
+    bernoulli[0] = Rational::ONE;
     for m in 1..=n {
-        let mut acc = Rational::zero();
+        let mut acc = Rational::ZERO;
         for k in 0..m {
             acc += binomial_rational(m + 1, k) * bernoulli[k].clone();
         }
-        bernoulli[m] = -acc / Rational::from_integer(BigInt::from(m + 1));
+        bernoulli[m] = -acc / Rational::from(Integer::from(m + 1));
     }
     bernoulli[n].clone()
 }
 
 fn binomial_rational(n: usize, k: usize) -> Rational {
     if k > n {
-        return Rational::zero();
+        return Rational::ZERO;
     }
-    let mut numerator = BigInt::one();
-    let mut denominator = BigInt::one();
+    let mut numerator = Integer::ONE;
+    let mut denominator = Integer::ONE;
     for index in 0..k {
-        numerator *= BigInt::from(n - index);
-        denominator *= BigInt::from(index + 1);
+        numerator *= Integer::from(n - index);
+        denominator *= Integer::from(index + 1);
     }
-    Ratio::new(numerator, denominator)
+    Rational::from_integers(numerator, denominator)
 }
 
 fn harmonic_zeta5_prefix(k: usize) -> Vec<Rational> {
-    let mut prefix = vec![Rational::zero(); k + 1];
+    let mut prefix = vec![Rational::ZERO; k + 1];
     for j in 1..=k {
-        prefix[j] = prefix[j - 1].clone() + Ratio::new(BigInt::one(), BigInt::from(j.pow(5)));
+        prefix[j] = prefix[j - 1].clone()
+            + Rational::from_integers(Integer::ONE, Integer::from(j).pow(5u64));
     }
     prefix
 }
@@ -167,12 +158,12 @@ fn base_values(capital_n: usize, k: usize) -> Vec<Rational> {
     let dn = d_polynomial(capital_n);
     let mut values = Vec::with_capacity(k - capital_n);
     for j in (capital_n + 1)..=k {
-        let num = evaluate_polynomial(&dn, &Ratio::from_integer(-BigInt::from(j * j))).pow(6);
-        let mut den = Rational::one();
+        let num = evaluate_polynomial(&dn, &Rational::from(-Integer::from(j * j))).pow(6u64);
+        let mut den = Rational::ONE;
         for t in 1..=k {
             if t != j {
-                let diff = BigInt::from(t * t) - BigInt::from(j * j);
-                den *= Ratio::from_integer(diff);
+                let diff = Integer::from(t * t) - Integer::from(j * j);
+                den *= Rational::from(diff);
             }
         }
         values.push(num / den);
@@ -182,7 +173,7 @@ fn base_values(capital_n: usize, k: usize) -> Vec<Rational> {
 
 fn poly_degree(poly: &[Rational]) -> isize {
     for index in (0..poly.len()).rev() {
-        if !poly[index].is_zero() {
+        if !is_zero(&poly[index]) {
             return index as isize;
         }
     }
@@ -190,16 +181,16 @@ fn poly_degree(poly: &[Rational]) -> isize {
 }
 
 fn poly_mul_monomial(poly: &[Rational], shift: usize) -> Vec<Rational> {
-    let mut out = vec![Rational::zero(); poly.len() + shift];
+    let mut out = vec![Rational::ZERO; poly.len() + shift];
     out[shift..].clone_from_slice(poly);
     out
 }
 
 fn poly_mul(left: &[Rational], right: &[Rational]) -> Vec<Rational> {
-    let mut out = vec![Rational::zero(); left.len() + right.len() - 1];
+    let mut out = vec![Rational::ZERO; left.len() + right.len() - 1];
     for (i, left_coeff) in left.iter().enumerate() {
         for (j, right_coeff) in right.iter().enumerate() {
-            out[i + j] += left_coeff * right_coeff;
+            out[i + j] += left_coeff.clone() * right_coeff.clone();
         }
     }
     out
@@ -207,7 +198,7 @@ fn poly_mul(left: &[Rational], right: &[Rational]) -> Vec<Rational> {
 
 fn poly_pow(base: &[Rational], exponent: usize) -> Vec<Rational> {
     if exponent == 0 {
-        return vec![Rational::one()];
+        return vec![Rational::ONE];
     }
     let mut acc = base.to_vec();
     for _ in 1..exponent {
@@ -221,15 +212,15 @@ fn poly_div(dividend: &[Rational], divisor: &[Rational]) -> Vec<Rational> {
     let divisor = trim_poly(divisor);
     let divisor_degree = poly_degree(&divisor);
     if divisor_degree < 0 {
-        return vec![Rational::zero()];
+        return vec![Rational::ZERO];
     }
     let dividend_degree = poly_degree(dividend);
     if dividend_degree < divisor_degree {
-        return vec![Rational::zero()];
+        return vec![Rational::ZERO];
     }
     let mut remainder = trim_poly(dividend);
     let mut quotient = vec![
-        Rational::zero();
+        Rational::ZERO;
         remainder.len().saturating_sub(divisor.len()) + 1
     ];
     let lead_divisor = divisor[divisor_degree as usize].clone();
@@ -244,7 +235,7 @@ fn poly_div(dividend: &[Rational], divisor: &[Rational]) -> Vec<Rational> {
         quotient[shift] += term.clone();
         let needed = shift + divisor.len();
         if remainder.len() < needed {
-            remainder.resize(needed, Rational::zero());
+            remainder.resize(needed, Rational::ZERO);
         }
         for (index, divisor_coeff) in divisor.iter().enumerate() {
             remainder[index + shift] -= term.clone() * divisor_coeff.clone();
@@ -254,26 +245,62 @@ fn poly_div(dividend: &[Rational], divisor: &[Rational]) -> Vec<Rational> {
     trim_poly(&quotient)
 }
 
-fn scale_matrix(matrix: &[Vec<Rational>], factor: &Rational) -> Vec<Vec<Rational>> {
-    matrix
-        .iter()
-        .map(|row| row.iter().map(|entry| entry * factor).collect())
-        .collect()
-}
-
-fn int_pow(base: BigInt, exponent: usize) -> Rational {
-    Ratio::from_integer(base.pow(exponent as u32))
+fn int_pow(base: Integer, exponent: usize) -> Rational {
+    Rational::from(base.pow(exponent as u64))
 }
 
 fn trim_poly(poly: &[Rational]) -> Vec<Rational> {
     let mut out = poly.to_vec();
-    while out.len() > 1 && out.last().is_some_and(Rational::is_zero) {
+    while out.len() > 1 && is_zero(out.last().expect("non-empty poly")) {
         out.pop();
     }
     if out.is_empty() {
-        out.push(Rational::zero());
+        out.push(Rational::ZERO);
     }
     out
+}
+
+#[cfg(all(test, feature = "offline-golden"))]
+mod offline_det_tests {
+    use super::*;
+    use hs_types::{bareiss_det, bareiss_det_rational};
+
+    #[test]
+    fn bareiss_rational_matches_generic_on_zeta5_a() {
+        let entries = zeta5_entries(1);
+        let a = zeta5_hankel_a(&entries);
+        assert_eq!(bareiss_det(&a), bareiss_det_rational(&a));
+    }
+
+    #[test]
+    fn delta_polynomial_matches_pencil_samples() {
+        let entries = zeta5_entries(1);
+        let a = zeta5_hankel_a(&entries);
+        let b = zeta5_hankel_b(&entries);
+        let delta = zeta5_delta_polynomial(&entries);
+        for point in 0..=entries.params.h {
+            let x = Rational::from(Integer::from(point));
+            let mut power = Rational::ONE;
+            let mut value = Rational::ZERO;
+            for coeff in &delta {
+                value += coeff.clone() * power.clone();
+                power *= x.clone();
+            }
+            let matrix = a
+                .iter()
+                .zip(&b)
+                .map(|(row_a, row_b)| {
+                    row_a
+                        .iter()
+                        .zip(row_b)
+                        .map(|(left, right)| left.clone() + x.clone() * right.clone())
+                        .collect()
+                })
+                .collect::<Vec<_>>();
+            let expected = bareiss_det_rational(&matrix);
+            assert_eq!(value, expected, "mismatch at x={point}");
+        }
+    }
 }
 
 #[cfg(test)]
@@ -283,23 +310,23 @@ mod poly_tests {
     #[test]
     fn poly_div_exact_divides_square_minus_one() {
         let dividend = vec![
-            Ratio::from_integer(-BigInt::one()),
-            Ratio::zero(),
-            Ratio::one(),
+            Rational::from(-Integer::ONE),
+            Rational::ZERO,
+            Rational::ONE,
         ];
-        let divisor = vec![Ratio::from_integer(-BigInt::one()), Ratio::one()];
+        let divisor = vec![Rational::from(-Integer::ONE), Rational::ONE];
         let quotient = poly_div(&dividend, &divisor);
-        assert_eq!(quotient, vec![Ratio::one(), Ratio::one()]);
+        assert_eq!(quotient, vec![Rational::ONE, Rational::ONE]);
     }
 
     #[test]
     fn d3_matches_python_reference() {
         let poly = d_polynomial(3);
         assert_eq!(poly.len(), 4);
-        assert_eq!(poly[0], Ratio::from_integer(BigInt::from(36)));
-        assert_eq!(poly[1], Ratio::from_integer(BigInt::from(49)));
-        assert_eq!(poly[2], Ratio::from_integer(BigInt::from(14)));
-        assert_eq!(poly[3], Ratio::one());
+        assert_eq!(poly[0], Rational::from(Integer::from(36)));
+        assert_eq!(poly[1], Rational::from(Integer::from(49)));
+        assert_eq!(poly[2], Rational::from(Integer::from(14)));
+        assert_eq!(poly[3], Rational::ONE);
     }
 
     #[test]
@@ -309,6 +336,6 @@ mod poly_tests {
         let dk = d_polynomial(params.k);
         let w = poly_pow(&dn, 6);
         let shifted = poly_mul_monomial(&w, 22);
-        assert_eq!(poly_div(&shifted, &dk), vec![Ratio::one()]);
+        assert_eq!(poly_div(&shifted, &dk), vec![Rational::ONE]);
     }
 }

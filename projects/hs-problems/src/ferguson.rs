@@ -1,8 +1,6 @@
 use crate::HsProblemsError;
 use hs_moments::zeta_moments;
-use hs_types::{ferguson_pair_at_shifted, RationalMomentSequence};
-use num_bigint::BigInt;
-use num_rational::Ratio;
+use hs_types::{Rational, RationalMomentSequence, ferguson_pair_at_shifted};
 
 /// One shifted Ferguson convergent for `ζ(k)`.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -12,9 +10,9 @@ pub struct ShiftedApproximant {
     /// Moment shift applied before Hankel construction.
     pub shift: usize,
     /// Numerator `P_n`.
-    pub p: Ratio<BigInt>,
+    pub p: Rational,
     /// Denominator `Q_n`.
-    pub q: Ratio<BigInt>,
+    pub q: Rational,
 }
 
 fn zeta_moments_for(order: u32, count: usize) -> RationalMomentSequence {

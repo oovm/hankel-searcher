@@ -1,7 +1,7 @@
 use hs_problems::zeta5_hankel::{
     zeta5_delta_degree, zeta5_delta_leading_coeff, zeta5_entries, zeta5_hankel_a, zeta5_hankel_b,
 };
-use num_traits::Zero;
+use hs_types::is_zero;
 
 #[test]
 fn entries_length_matches_paper_scaling() {
@@ -29,5 +29,5 @@ fn hankel_matrices_have_paper_dimensions_for_n1() {
 fn leading_coeff_formula_is_nonzero_for_n1() {
     let entries = zeta5_entries(1);
     assert_eq!(zeta5_delta_degree(&entries), entries.params.h);
-    assert!(!zeta5_delta_leading_coeff(&entries).is_zero());
+    assert!(!is_zero(&zeta5_delta_leading_coeff(&entries)));
 }

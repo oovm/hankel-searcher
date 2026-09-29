@@ -1,17 +1,20 @@
 use hs_problems::{export_zeta3_certificates, zeta3};
-use num_bigint::BigInt;
-use num_rational::Ratio;
+use hs_types::{Integer, Rational};
+use malachite::base::num::basic::traits::Zero;
 
 #[test]
 fn zeta3_n0_matches_ferguson_table() {
     let approx = zeta3::ferguson_approximant(0, 8).unwrap();
-    assert_eq!(approx.p / approx.q, Ratio::new(BigInt::from(8), BigInt::from(7)));
+    assert_eq!(approx.p / approx.q, Rational::from_integers(Integer::from(8), Integer::from(7)));
 }
 
 #[test]
 fn zeta3_n1_matches_ferguson_table() {
     let approx = zeta3::ferguson_approximant(1, 10).unwrap();
-    assert_eq!(approx.p / approx.q, Ratio::new(BigInt::from(4887), BigInt::from(4105)));
+    assert_eq!(
+        approx.p / approx.q,
+        Rational::from_integers(Integer::from(4887), Integer::from(4105))
+    );
 }
 
 #[test]

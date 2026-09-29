@@ -13,13 +13,11 @@ publish.workspace = true
 hs-types = { workspace = true }
 hs-moments = { workspace = true }
 hs-lean-helper = { workspace = true }
-num-bigint = { workspace = true }
-num-rational = { workspace = true }
-num-traits = { workspace = true }
-num-integer = { workspace = true }
+malachite = { workspace = true }
 thiserror = { workspace = true }
-bigdecimal = { workspace = true }
 libm = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
 
 [[bin]]
 name = "export-delta-certificates"
@@ -60,5 +58,5 @@ offline-golden = []
 
 [dev-dependencies]
 hs-checkpoint = { workspace = true }
-num-bigint = { workspace = true }
-num-rational = { workspace = true }
+hs-types = { workspace = true }
+malachite = { workspace = true }

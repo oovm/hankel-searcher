@@ -2,9 +2,8 @@
 //!
 //! Reference: `mo271/Zeta5` (`scripts/hankel.py`), with `K=40n`, `N=3n`, `h=37n`.
 
-use num_bigint::BigInt;
-use num_rational::Ratio;
-use num_traits::{One, Zero};
+use hs_types::{Integer, Rational};
+use malachite::base::num::basic::traits::{One, Zero};
 
 /// Paper scaling for index `n`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -30,31 +29,31 @@ pub fn zeta5_paper_params(n: usize) -> Zeta5PaperParams {
 }
 
 /// Coefficients in ascending order for `D_m(t) = ∏_{j=1}^m (t + j^2)`.
-pub fn d_polynomial(m: usize) -> Vec<Ratio<BigInt>> {
-    let mut poly = vec![Ratio::one()];
+pub fn d_polynomial(m: usize) -> Vec<Rational> {
+    let mut poly = vec![Rational::ONE];
     for j in 1..=m {
-        let j2 = Ratio::from_integer(BigInt::from(j * j));
+        let j2 = Rational::from(Integer::from(j * j));
         poly = multiply_by_linear(poly, j2);
     }
     poly
 }
 
-fn multiply_by_linear(poly: Vec<Ratio<BigInt>>, constant: Ratio<BigInt>) -> Vec<Ratio<BigInt>> {
-    let mut out = vec![Ratio::zero(); poly.len() + 1];
+fn multiply_by_linear(poly: Vec<Rational>, constant: Rational) -> Vec<Rational> {
+    let mut out = vec![Rational::ZERO; poly.len() + 1];
     for (index, coeff) in poly.iter().enumerate() {
-        out[index] += &constant * coeff;
+        out[index] += constant.clone() * coeff;
         out[index + 1] += coeff.clone();
     }
     out
 }
 
 /// Evaluate a polynomial given by ascending coefficients.
-pub fn evaluate_polynomial(poly: &[Ratio<BigInt>], point: &Ratio<BigInt>) -> Ratio<BigInt> {
-    let mut acc = Ratio::zero();
-    let mut power = Ratio::one();
+pub fn evaluate_polynomial(poly: &[Rational], point: &Rational) -> Rational {
+    let mut acc = Rational::ZERO;
+    let mut power = Rational::ONE;
     for coeff in poly {
-        acc += coeff * &power;
-        power *= point;
+        acc += coeff.clone() * power.clone();
+        power *= point.clone();
     }
     acc
 }
