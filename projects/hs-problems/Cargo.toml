@@ -62,6 +62,11 @@ name = "zeta3-hankel-golden"
 path = "src/bin/zeta3_hankel_golden.rs"
 required-features = ["offline-golden"]
 
+[[bin]]
+name = "polynomial-hankel-sweep"
+path = "src/bin/polynomial_hankel_sweep.rs"
+required-features = ["offline-golden"]
+
 [features]
 default = []
 offline-golden = []
