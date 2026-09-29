@@ -1,0 +1,28 @@
+[
+  {
+    "order": 2,
+    "n": 1,
+    "k": 40,
+    "capital_n": 2,
+    "q": 4,
+    "h": 38,
+    "log_primitive_at_zeta": -1457.5375719637802,
+    "log_primitive_per_n2": -1457.5375719637802,
+    "log_delta_at_zeta": -3769.136051635319,
+    "log_s_k": 107.38721190658543,
+    "max_primitive_coeff_bits": 5395
+  },
+  {
+    "order": 3,
+    "n": 1,
+    "k": 40,
+    "capital_n": 3,
+    "q": 4,
+    "h": 37,
+    "log_primitive_at_zeta": -1656.903843243063,
+    "log_primitive_per_n2": -1656.903843243063,
+    "log_delta_at_zeta": -3041.575163449837,
+    "log_s_k": 60.86140630704176,
+    "max_primitive_coeff_bits": 5151
+  }
+]
