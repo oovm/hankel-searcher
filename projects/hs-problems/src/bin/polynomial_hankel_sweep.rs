@@ -6,8 +6,7 @@
 //! ```
 
 use hs_problems::{
-    init_progress_tracing,
-    polynomial_hankel_sweep::{best_sweep_rows_by_order, sweep_polynomial_hankel, PolynomialHankelSweepConfig},
+    best_sweep_rows_by_order, init_progress_tracing, sweep_polynomial_hankel, PolynomialHankelSweepConfig,
 };
 use std::env;
 

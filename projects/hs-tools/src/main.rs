@@ -133,10 +133,11 @@ fn status(path: &PathBuf, target: &str) -> Result<(), String> {
     if let Some(observation) = &cp.polynomial_observed_best {
         println!("polynomial_observed_best.n: {}", observation.n);
         println!(
-            "polynomial_observed_best.scaling: K={} N={} h={}",
+            "polynomial_observed_best.scaling: K={} N={} h={} q={}",
             observation.k,
             observation.capital_n,
-            observation.h
+            observation.h,
+            observation.q
         );
         println!("polynomial_observed_best.log_s_k: {:.3}", observation.log_s_k);
         if let Some(log_primitive) = observation.log_primitive_at_zeta5 {

@@ -174,7 +174,7 @@ fn polynomial_hankel_contract_round_trips() {
     write_checkpoint(&path, &cp).unwrap();
     let loaded = read_checkpoint(&path).unwrap();
     assert_eq!(loaded.search.generator_id, POLYNOMIAL_HANKEL_GENERATOR);
-    assert!(!is_implemented_search_contract(POLYNOMIAL_HANKEL_GENERATOR, ZETA5_PAPER_PARAMETER_SPACE));
+    assert!(is_implemented_search_contract(POLYNOMIAL_HANKEL_GENERATOR, ZETA5_PAPER_PARAMETER_SPACE));
 }
 
 #[test]
@@ -189,6 +189,7 @@ fn polynomial_observed_best_with_energy_round_trips() {
         k: 40,
         capital_n: 3,
         h: 37,
+        q: 6,
         log_s_k: -204.319,
         leading_coeff: RationalData { num: "1".into(), den: "2".into() },
         log_delta_at_zeta5: Some(-1836.876),
@@ -217,6 +218,7 @@ fn polynomial_observed_best_round_trips() {
         k: 40,
         capital_n: 3,
         h: 37,
+        q: 6,
         log_s_k: -204.319,
         leading_coeff: RationalData { num: "1".into(), den: "2".into() },
         log_delta_at_zeta5: None,

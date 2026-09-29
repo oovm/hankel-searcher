@@ -252,6 +252,7 @@ fn record_polynomial_observation(
         k: params.k,
         capital_n: params.capital_n,
         h: params.h,
+        q: params.q,
         log_s_k,
         leading_coeff: RationalData::from_ratio(leading_coeff),
         log_delta_at_zeta5: energy.map(|report| report.log_delta_at_zeta),

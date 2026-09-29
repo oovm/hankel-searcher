@@ -74,6 +74,9 @@ pub struct PolynomialHankelObservation {
     pub k: usize,
     pub capital_n: usize,
     pub h: usize,
+    /// Vanishing exponent `q` on `D_N^q` (default paper value `6`).
+    #[serde(default = "default_polynomial_q")]
+    pub q: usize,
     /// `log S_K` paper normalization at this scaling.
     pub log_s_k: f64,
     /// Leading coefficient from paper (2.9), exact rational.
@@ -283,7 +286,14 @@ pub fn validate_checkpoint(cp: &Checkpoint) -> Result<(), CheckpointError> {
     Ok(())
 }
 
+fn default_polynomial_q() -> usize {
+    6
+}
+
 fn validate_polynomial_hankel_observation(observation: &PolynomialHankelObservation) -> Result<(), CheckpointError> {
+    if observation.q == 0 {
+        return Err(CheckpointError::Invalid("polynomial observation q must be positive".into()));
+    }
     if observation.kind != OBSERVATION_KIND_POLYNOMIAL_HANKEL {
         return Err(CheckpointError::Invalid("unsupported polynomial observation kind".into()));
     }
