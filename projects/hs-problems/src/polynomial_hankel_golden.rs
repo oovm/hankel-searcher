@@ -5,7 +5,7 @@ use crate::ZetaPolynomialEnergyReport;
 /// Tolerance for `log` field comparisons in offline golden runs.
 pub const LOG_TOLERANCE: f64 = 0.05;
 
-/// Expected energy logs at construction index `n=1` with paper scaling `K=40`, `N=3`, `h=37`.
+/// Expected energy logs at construction index `n=1` with offline N-q sweep optimum scaling.
 #[derive(Debug, Clone, Copy)]
 pub struct ZetaPolynomialGoldenN1 {
     /// `max |coeff P_K| bits` from primitive `Δ_K`.
@@ -53,26 +53,26 @@ impl ZetaPolynomialGoldenN1 {
     }
 }
 
-/// Golden expectations for `ζ(2)` at `n=1` (offline energy probe, 2026-09-29).
+/// Golden expectations for `ζ(2)` at `n=1` (`K=40`, `N=2`, `q=4`, `h=38`, offline N-q sweep best).
 pub fn zeta2_golden_n1() -> ZetaPolynomialGoldenN1 {
     ZetaPolynomialGoldenN1 {
-        max_primitive_coeff_bits: 6196,
-        log_s_k: -204.319,
-        log_delta_at_zeta: -2195.253,
-        log_f_k: -2399.572,
-        log_content_f_k: -1146.590,
-        log_primitive_at_zeta: -1252.983,
+        max_primitive_coeff_bits: 5395,
+        log_s_k: 107.387,
+        log_delta_at_zeta: -3769.136,
+        log_f_k: -3661.749,
+        log_content_f_k: -2240.255,
+        log_primitive_at_zeta: -1457.538,
     }
 }
 
-/// Golden expectations for `ζ(3)` at `n=1` (offline energy probe, 2026-09-29).
+/// Golden expectations for `ζ(3)` at `n=1` (`K=40`, `N=3`, `q=4`, `h=37`, offline N-q sweep best).
 pub fn zeta3_golden_n1() -> ZetaPolynomialGoldenN1 {
     ZetaPolynomialGoldenN1 {
-        max_primitive_coeff_bits: 5676,
-        log_s_k: -204.319,
-        log_delta_at_zeta: -2046.113,
-        log_f_k: -2250.432,
-        log_content_f_k: -659.174,
-        log_primitive_at_zeta: -1591.258,
+        max_primitive_coeff_bits: 5151,
+        log_s_k: 60.861,
+        log_delta_at_zeta: -3041.575,
+        log_f_k: -2980.714,
+        log_content_f_k: -1323.810,
+        log_primitive_at_zeta: -1656.904,
     }
 }

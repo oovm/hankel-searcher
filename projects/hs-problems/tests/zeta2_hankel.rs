@@ -2,18 +2,19 @@ use hs_problems::{zeta2_delta_degree, zeta2_delta_leading_coeff, zeta2_delta_pol
 use hs_types::is_zero;
 
 #[test]
-fn entries_length_matches_paper_scaling() {
+fn entries_length_matches_optimal_scaling() {
     let entries = zeta2_entries(1).expect("zeta2 entries");
     assert_eq!(entries.order, 2);
     assert_eq!(entries.params.k, 40);
-    assert_eq!(entries.params.capital_n, 3);
-    assert_eq!(entries.params.h, 37);
+    assert_eq!(entries.params.capital_n, 2);
+    assert_eq!(entries.params.q, 4);
+    assert_eq!(entries.params.h, 38);
     assert_eq!(entries.a.len(), 2 * entries.params.h - 1);
     assert_eq!(entries.b.len(), entries.a.len());
 }
 
 #[test]
-fn hankel_matrix_has_paper_dimensions_for_n1() {
+fn hankel_matrix_has_optimal_dimensions_for_n1() {
     let entries = zeta2_entries(1).expect("zeta2 entries");
     let h = entries.params.h;
     let a = zeta2_hankel_a(&entries);
@@ -29,10 +30,10 @@ fn leading_coeff_formula_is_nonzero_for_n1() {
 }
 
 #[test]
-fn log_s_k_matches_zeta5_normalization_at_n1() {
+fn log_s_k_matches_optimal_scaling_at_n1() {
     let entries = zeta2_entries(1).expect("zeta2 entries");
     let log_s = zeta2_log_s_k(&entries.params);
-    assert!((log_s + 204.319).abs() < 0.05, "log S_K should match paper scaling");
+    assert!((log_s - 107.387).abs() < 0.05, "log S_K should match optimal N=2n q=4 scaling");
 }
 
 #[test]

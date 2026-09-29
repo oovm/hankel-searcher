@@ -5,10 +5,10 @@ use hs_checkpoint::{
 use hs_problems::{
     best_sweep_rows_by_order, polynomial_hankel_log_s_k, polynomial_hankel_params, sweep_polynomial_hankel,
     PolynomialHankelSweepConfig, Zeta5PaperParams, ZetaPolynomialEnergyReport, zeta2_delta_degree,
-    zeta2_delta_leading_coeff, zeta2_delta_polynomial, zeta2_entries_with_params, zeta3_delta_degree,
-    zeta3_delta_leading_coeff, zeta3_delta_polynomial, zeta3_entries_with_params, zeta5_delta_degree,
-    zeta5_delta_leading_coeff, zeta5_delta_polynomial, zeta5_entries, zeta5_log_s_k, zeta5_paper_params,
-    zeta_polynomial_energy_report,
+    zeta2_delta_leading_coeff, zeta2_delta_polynomial, zeta2_entries_with_params, zeta2_optimal_params,
+    zeta3_delta_degree, zeta3_delta_leading_coeff, zeta3_delta_polynomial, zeta3_entries_with_params,
+    zeta3_optimal_params, zeta5_delta_degree, zeta5_delta_leading_coeff, zeta5_delta_polynomial, zeta5_entries,
+    zeta5_log_s_k, zeta5_paper_params, zeta_polynomial_energy_report,
 };
 use hs_types::{Rational, is_zero};
 use std::time::{Duration, Instant};
@@ -63,9 +63,9 @@ pub fn improve_polynomial(
         start_n = 1;
         cp.search.next_candidate = "1".into();
         cp.observed_best = None;
-    } else if cp.search.parameter_space_id != ZETA5_PAPER_PARAMETER_SPACE {
+    } else if cp.search.parameter_space_id != expected_polynomial_parameter_space(&cp.target) {
         println!(
-            "note: paper-scaling polynomial improve after `{}` resets cursor to n=1",
+            "note: polynomial improve after `{}` resets cursor to n=1",
             cp.search.parameter_space_id
         );
         start_n = 1;
@@ -81,7 +81,10 @@ pub fn improve_polynomial(
     let mut polynomial_observation_updated = false;
 
     println!("target: {}", cp.target);
-    println!("level: polynomial Hankel ({ZETA5_PAPER_PARAMETER_SPACE})");
+    println!(
+        "level: polynomial Hankel ({})",
+        polynomial_parameter_space_label(&cp.target)
+    );
     if full_delta {
         println!("mode: full Δ_K (exact rational, very expensive at large h)");
     } else {
@@ -106,7 +109,7 @@ pub fn improve_polynomial(
     }
 
     cp.search.generator_id = POLYNOMIAL_HANKEL_GENERATOR.into();
-    cp.search.parameter_space_id = ZETA5_PAPER_PARAMETER_SPACE.into();
+    cp.search.parameter_space_id = expected_polynomial_parameter_space(&cp.target).into();
     cp.search.next_candidate = current.to_string();
     cp.status = "draft".into();
     cp.updated_at = chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string();
@@ -118,6 +121,30 @@ pub fn improve_polynomial(
         full_delta,
         polynomial_observation_updated,
     })
+}
+
+fn expected_polynomial_parameter_space(target: &str) -> &'static str {
+    match target {
+        "zeta-2" | "zeta-3" => POLYNOMIAL_NQ_PARAMETER_SPACE,
+        _ => ZETA5_PAPER_PARAMETER_SPACE,
+    }
+}
+
+fn polynomial_parameter_space_label(target: &str) -> &'static str {
+    match target {
+        "zeta-2" => "zeta2 optimal K=40n N=2n q=4",
+        "zeta-3" => "zeta3 optimal K=40n N=3n q=4",
+        _ => ZETA5_PAPER_PARAMETER_SPACE,
+    }
+}
+
+fn default_polynomial_params(target: &str, n: usize) -> Result<Zeta5PaperParams, String> {
+    match target {
+        "zeta-2" => zeta2_optimal_params(n),
+        "zeta-3" => zeta3_optimal_params(n),
+        "zeta-5" => Ok(zeta5_paper_params(n)),
+        other => Err(format!("polynomial Hankel improve is not registered for `{other}`")),
+    }
 }
 
 /// Grid search over `(N,q)` at fixed `n` with full `Δ_K` energy (offline, expensive).
@@ -196,7 +223,8 @@ pub fn improve_polynomial_nq_sweep(
 }
 
 fn run_polynomial_step(target: &str, n: usize, full_delta: bool) -> Result<PolynomialStep, String> {
-    run_polynomial_step_with_params(target, zeta5_paper_params(n), full_delta)
+    let params = default_polynomial_params(target, n)?;
+    run_polynomial_step_with_params(target, params, full_delta)
 }
 
 fn run_polynomial_step_with_params(

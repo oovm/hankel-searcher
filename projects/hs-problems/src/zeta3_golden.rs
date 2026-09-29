@@ -12,18 +12,19 @@ use crate::{
 };
 use hs_types::is_zero;
 
-/// Expected outputs for `n=1`, `K=40`, `N=3`, `h=37`.
+/// Expected outputs for `n=1`, `K=40`, `N=3`, `q=4`, `h=37` (offline N-q sweep best).
 pub type Zeta3GoldenN1 = ZetaPolynomialGoldenN1;
 
-/// Fast golden gate: paper scaling, `log S_K`, and nonzero leading-coefficient formula.
+/// Fast golden gate: optimal scaling, `log S_K`, and nonzero leading-coefficient formula.
 pub fn zeta3_polynomial_golden_fast() -> Result<(), String> {
     let entries = zeta3_entries(1)?;
     let params = &entries.params;
-    if params.k != 40 || params.capital_n != 3 || params.h != 37 {
+    if params.k != 40 || params.capital_n != 3 || params.q != 4 || params.h != 37 {
         return Err(format!(
-            "paper scaling mismatch: K={} N={} h={}",
+            "optimal scaling mismatch: K={} N={} q={} h={}",
             params.k,
             params.capital_n,
+            params.q,
             params.h
         ));
     }
