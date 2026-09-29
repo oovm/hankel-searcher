@@ -6,6 +6,7 @@ mod error;
 mod export;
 mod ferguson;
 mod polynomial_hankel;
+mod polynomial_hankel_golden;
 mod progress;
 /// Whole-polynomial Hankel construction for `ζ(5)`.
 pub mod zeta5_polynomial;
@@ -56,8 +57,9 @@ pub use crate::zeta3_hankel::{
     Zeta3Entries, zeta3_delta_degree, zeta3_delta_leading_coeff, zeta3_delta_polynomial, zeta3_entries, zeta3_hankel_a,
     zeta3_hankel_b, zeta3_log_s_k,
 };
-pub use crate::zeta2_golden::{zeta2_polynomial_golden_fast, zeta2_polynomial_golden_full};
-pub use crate::zeta3_golden::{zeta3_polynomial_golden_fast, zeta3_polynomial_golden_full};
+pub use crate::polynomial_hankel_golden::{ZetaPolynomialGoldenN1, zeta2_golden_n1, zeta3_golden_n1};
+pub use crate::zeta2_golden::{Zeta2GoldenN1, zeta2_polynomial_golden_fast, zeta2_polynomial_golden_full};
+pub use crate::zeta3_golden::{Zeta3GoldenN1, zeta3_polynomial_golden_fast, zeta3_polynomial_golden_full};
 pub use crate::progress::{init_progress_tracing, trace_step};
 pub use crate::export::{
     export_catalan_certificates, export_delta_certificates, export_gamma_certificates, export_zeta2_certificates,
