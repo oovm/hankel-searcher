@@ -300,11 +300,14 @@ fn validate_polynomial_hankel_observation(observation: &PolynomialHankelObservat
     if observation.n == 0 {
         return Err(CheckpointError::Invalid("polynomial observation n must be positive".into()));
     }
-    if observation.k != 40 * observation.n
-        || observation.capital_n != 3 * observation.n
-        || observation.h != 37 * observation.n
-    {
-        return Err(CheckpointError::Invalid("polynomial observation scaling must match K=40n N=3n h=37n".into()));
+    if observation.k != 40 * observation.n {
+        return Err(CheckpointError::Invalid("polynomial observation scaling must match K=40n".into()));
+    }
+    if observation.capital_n >= observation.k {
+        return Err(CheckpointError::Invalid("polynomial observation requires N < K".into()));
+    }
+    if observation.h != observation.k - observation.capital_n {
+        return Err(CheckpointError::Invalid("polynomial observation requires h = K - N".into()));
     }
     observation.leading_coeff.ratio().map_err(CheckpointError::Invalid)?;
     let has_delta = observation.log_delta_at_zeta5.is_some();
