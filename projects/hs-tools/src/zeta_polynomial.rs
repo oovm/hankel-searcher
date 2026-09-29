@@ -55,12 +55,18 @@ pub fn improve_polynomial(
     }
 
     let mut start_n = cp.search.next_candidate.parse::<usize>().map_err(|e| e.to_string())?;
-    if cp.search.generator_id != POLYNOMIAL_HANKEL_GENERATOR
-        || cp.search.parameter_space_id != ZETA5_PAPER_PARAMETER_SPACE
-    {
+    if cp.search.generator_id != POLYNOMIAL_HANKEL_GENERATOR {
         println!(
-            "note: checkpoint cursor reset to n=1 for polynomial Hankel (was `{}` + `{}`)",
-            cp.search.generator_id, cp.search.parameter_space_id
+            "note: checkpoint cursor reset to n=1 for polynomial Hankel (was `{}`)",
+            cp.search.generator_id
+        );
+        start_n = 1;
+        cp.search.next_candidate = "1".into();
+        cp.observed_best = None;
+    } else if cp.search.parameter_space_id != ZETA5_PAPER_PARAMETER_SPACE {
+        println!(
+            "note: paper-scaling polynomial improve after `{}` resets cursor to n=1",
+            cp.search.parameter_space_id
         );
         start_n = 1;
         cp.search.next_candidate = "1".into();
