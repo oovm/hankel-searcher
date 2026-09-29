@@ -71,8 +71,8 @@ pub const SEARCH_CONTRACTS: &[SearchContract] = &[
     SearchContract {
         generator_id: POLYNOMIAL_HANKEL_GENERATOR,
         parameter_space_id: ZETA5_PAPER_PARAMETER_SPACE,
-        label: "Zeta5 whole-polynomial Hankel (paper scaling)",
-        implemented: false,
+        label: "whole-polynomial Hankel (paper scaling K=40n, N=3n, q=6)",
+        implemented: true,
     },
 ];
 

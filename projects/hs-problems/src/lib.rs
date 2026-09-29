@@ -7,6 +7,7 @@ mod export;
 mod ferguson;
 mod polynomial_hankel;
 mod polynomial_hankel_golden;
+mod polynomial_hankel_sweep;
 mod progress;
 /// Whole-polynomial Hankel construction for `ζ(5)`.
 pub mod zeta5_polynomial;
@@ -62,6 +63,9 @@ pub use crate::zeta3_hankel::{
     zeta3_hankel_b, zeta3_log_s_k,
 };
 pub use crate::polynomial_hankel_golden::{ZetaPolynomialGoldenN1, zeta2_golden_n1, zeta3_golden_n1};
+pub use crate::polynomial_hankel_sweep::{
+    PolynomialHankelSweepConfig, PolynomialHankelSweepRow, best_sweep_rows_by_order, sweep_polynomial_hankel,
+};
 pub use crate::zeta2_golden::{Zeta2GoldenN1, zeta2_polynomial_golden_fast, zeta2_polynomial_golden_full};
 pub use crate::zeta3_golden::{Zeta3GoldenN1, zeta3_polynomial_golden_fast, zeta3_polynomial_golden_full};
 pub use crate::progress::{init_progress_tracing, trace_step};
