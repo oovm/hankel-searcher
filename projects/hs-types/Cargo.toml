@@ -13,6 +13,7 @@ publish.workspace = true
 malachite = { workspace = true }
 thiserror = { workspace = true }
 faer = { workspace = true }
+tracing = { workspace = true }
 
 [features]
 default = []

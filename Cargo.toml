@@ -36,6 +36,8 @@ chrono = { version = "0.4", default-features = false, features = ["clock", "std"
 criterion = { version = "0.5.1", features = ["html_reports"] }
 faer = { version = "0.23.2", default-features = false, features = ["std", "linalg", "rayon"] }
 libm = "0.2.16"
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.20", features = ["env-filter", "fmt"] }
 
 [profile.release]
 lto = true

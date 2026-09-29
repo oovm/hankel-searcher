@@ -12,11 +12,7 @@ use crate::{
     zeta5_delta_leading_coeff, zeta5_delta_polynomial, zeta5_energy_report, zeta5_entries, zeta5_log_s_k,
     Zeta5EnergyReport,
 };
-use num_bigint::BigInt;
-use num_rational::Ratio;
-use num_traits::Zero;
-
-type Rational = Ratio<BigInt>;
+use hs_types::{is_zero, rational_from_str};
 
 /// Expected outputs for `n=1`, `K=40`, `N=3`, `h=37`.
 #[derive(Debug, Clone, Copy)]
@@ -102,7 +98,7 @@ pub fn zeta5_polynomial_golden_fast() -> Result<(), String> {
     Zeta5GoldenN1::default().assert_log_s_k(zeta5_log_s_k(params))?;
     assert_moment_golden(&entries)?;
     let lead = zeta5_delta_leading_coeff(&entries);
-    if lead.is_zero() {
+    if is_zero(&lead) {
         return Err("(2.9) leading coefficient formula is zero".into());
     }
     Ok(())
@@ -125,32 +121,34 @@ fn assert_moment_golden(entries: &crate::zeta5_hankel::Zeta5Entries) -> Result<(
         ),
     ];
     for (index, (numerator, denominator)) in GOLDEN_A.iter().enumerate() {
-        let expected = parse_golden_rational(numerator, denominator)?;
+        let expected = rational_from_str(numerator, denominator)?;
         if entries.a[index] != expected {
             return Err(format!("a[{index}] mismatch vs hankel.py golden"));
         }
-        if !entries.b[index].is_zero() {
+        if !is_zero(&entries.b[index]) {
             return Err(format!("b[{index}] should be zero in hankel.py golden"));
         }
     }
     Ok(())
 }
 
-fn parse_golden_rational(numerator: &str, denominator: &str) -> Result<Rational, String> {
-    let numer = BigInt::parse_bytes(numerator.as_bytes(), 10)
-        .ok_or_else(|| format!("invalid golden numerator `{numerator}`"))?;
-    let denom = BigInt::parse_bytes(denominator.as_bytes(), 10)
-        .ok_or_else(|| format!("invalid golden denominator `{denominator}`"))?;
-    Ok(Ratio::new(numer, denom))
-}
-
 /// Full offline golden: exact `Δ_K`, energy logs, and primitive coefficient bit width.
 ///
-/// **Do not** call from CI — exact `37×37` rational charpoly takes tens of minutes in release.
+/// **Do not** call from CI — evaluates `38` exact `37×37` pencil determinants offline.
 pub fn zeta5_polynomial_golden_full() -> Result<Zeta5EnergyReport, String> {
+    use std::time::Instant;
+    tracing::info!(phase = "golden_full", "fast gate");
     zeta5_polynomial_golden_fast()?;
+    tracing::info!(phase = "golden_full", "building entries");
+    let entries_started = Instant::now();
     let entries = zeta5_entries(1);
+    let entries_ms = entries_started.elapsed().as_millis();
+    tracing::info!(phase = "golden_full", entries_ms, h = entries.params.h, "computing Delta_K polynomial");
+    let delta_started = Instant::now();
     let delta = zeta5_delta_polynomial(&entries);
+    let delta_ms = delta_started.elapsed().as_millis();
+    eprintln!("n=1 timings: entries {entries_ms}ms det {delta_ms}ms");
+    tracing::info!(phase = "golden_full", delta_ms, coeffs = delta.len(), "Delta_K ready, checking (2.9)");
     let lead = zeta5_delta_leading_coeff(&entries);
     let degree = entries.params.h;
     if delta.len() != degree + 1 {
@@ -160,6 +158,16 @@ pub fn zeta5_polynomial_golden_full() -> Result<Zeta5EnergyReport, String> {
         return Err("(2.9) leading coefficient mismatch against Δ_K".into());
     }
     let energy = zeta5_energy_report(&entries.params, &delta)?;
+    tracing::info!(phase = "golden_full", "energy report ready, comparing golden constants");
+    eprintln!(
+        "energy: max_bits={} logS={:.3} logD={:.3} logF={:.3} logcontF={:.3} logP={:.3}",
+        energy.max_primitive_coeff_bits,
+        energy.log_s_k,
+        energy.log_delta_at_zeta5,
+        energy.log_f_k,
+        energy.log_content_f_k,
+        energy.log_primitive_at_zeta5,
+    );
     Zeta5GoldenN1::default().assert_energy(&energy)?;
     Ok(energy)
 }

@@ -19,10 +19,20 @@ pub fn det_linear_pencil(a: &[Vec<Rational>], b: &[Vec<Rational>]) -> Result<Vec
     let points: Vec<Rational> = (0..=n)
         .map(|index| Rational::from(Integer::from(index)))
         .collect();
-    let values = points
-        .iter()
-        .map(|point| bareiss_det_rational(&pencil_at(a, b, point)))
-        .collect::<Vec<_>>();
+    tracing::info!(matrix_size = n, samples = points.len(), "pencil determinant interpolation start");
+    let mut values = Vec::with_capacity(points.len());
+    for (sample, point) in points.iter().enumerate() {
+        values.push(bareiss_det_rational(&pencil_at(a, b, point)));
+        if sample == 0 || sample + 1 == points.len() || (sample + 1) % 5 == 0 {
+            tracing::info!(
+                phase = "pencil_det_sample",
+                sample = sample + 1,
+                samples = points.len(),
+                pct = (sample + 1).saturating_mul(100) / points.len(),
+            );
+        }
+    }
+    tracing::info!("pencil determinant Vandermonde interpolation");
     vandermonde_interpolate_ascending(&points, &values)
 }
 

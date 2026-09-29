@@ -379,6 +379,7 @@ fn check_polynomial_golden(target: &str, full_delta: bool) -> Result<(), String>
         return Err(format!("polynomial Hankel is not registered for `{target}`"));
     }
     if full_delta {
+        hs_problems::init_progress_tracing();
         eprintln!("warning: full Δ_K golden is offline only — expect tens of minutes, not for CI");
         println!("checking polynomial Hankel golden for {target} (n=1, full Δ_K vs mo271/Zeta5 hankel.py)");
         let energy = hs_problems::zeta5_polynomial_golden_full()?;

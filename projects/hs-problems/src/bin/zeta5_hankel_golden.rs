@@ -3,9 +3,10 @@
 //! Not for CI. Expect tens of minutes in release:
 //! `cargo run --release -p hs-problems --features offline-golden --bin zeta5-hankel-golden`
 
-use hs_problems::zeta5_polynomial_golden_full;
+use hs_problems::{init_progress_tracing, zeta5_polynomial_golden_full};
 
 fn main() {
+    init_progress_tracing();
     if let Err(error) = run() {
         eprintln!("zeta5-hankel-golden: {error}");
         std::process::exit(1);

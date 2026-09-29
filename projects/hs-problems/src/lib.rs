@@ -5,6 +5,7 @@
 mod error;
 mod export;
 mod ferguson;
+mod progress;
 /// Whole-polynomial Hankel construction for `ζ(5)`.
 pub mod zeta5_polynomial;
 /// Gram/Hankel determinant pipeline for `ζ(5)`.
@@ -30,9 +31,11 @@ pub use crate::zeta5_hankel::{
     zeta5_hankel_a, zeta5_hankel_b,
 };
 pub use crate::zeta5_energy::{
-    Zeta5DeltaPrimitive, Zeta5EnergyReport, zeta5_bigdecimal, zeta5_delta_primitive, zeta5_energy_report, zeta5_log_s_k,
+    Zeta5DeltaPrimitive, Zeta5EnergyReport, energy_eval_precision_bits, zeta5_delta_primitive, zeta5_energy_report,
+    zeta5_log_s_k, zeta_integer_float,
 };
 pub use crate::zeta5_golden::{Zeta5GoldenN1, zeta5_polynomial_golden_fast, zeta5_polynomial_golden_full};
+pub use crate::progress::{init_progress_tracing, trace_step};
 pub use crate::export::{
     export_catalan_certificates, export_delta_certificates, export_gamma_certificates, export_zeta2_certificates,
     export_zeta3_certificates, export_zeta5_certificates, export_zeta7_certificates,
