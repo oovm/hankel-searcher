@@ -4,10 +4,10 @@
 //! cargo run --release -p hs-problems --features offline-golden --bin zeta2-hankel-golden
 //! ```
 
-use hs_problems::{init_progress_tracing, zeta2_polynomial_golden_full};
+use hs_problems::{init_progress_logging, zeta2_polynomial_golden_full};
 
 fn main() {
-    init_progress_tracing();
+    init_progress_logging();
     match zeta2_polynomial_golden_full() {
         Ok(energy) => {
             println!("zeta2 polynomial Hankel golden n=1 (full): ok");

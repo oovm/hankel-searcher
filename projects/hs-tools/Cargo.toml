@@ -21,7 +21,6 @@ hs-problems = { workspace = true }
 hs-types = { workspace = true }
 malachite = { workspace = true }
 chrono = { workspace = true }
-tracing-subscriber = { workspace = true }
 
 [dev-dependencies]
 serde_json = { workspace = true }

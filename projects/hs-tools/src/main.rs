@@ -393,7 +393,7 @@ fn check_polynomial_golden(target: &str, full_delta: bool) -> Result<(), String>
         return Err(format!("polynomial Hankel is not registered for `{target}`"));
     }
     if full_delta {
-        hs_problems::init_progress_tracing();
+        hs_problems::init_progress_logging();
         eprintln!("warning: full Δ_K golden is offline only — expect tens of minutes, not for CI");
         println!("checking polynomial Hankel golden for {target} (n=1, full Δ_K energy)");
         let energy = match target {

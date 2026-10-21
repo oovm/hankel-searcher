@@ -68,7 +68,7 @@ pub use crate::polynomial_hankel_sweep::{
 };
 pub use crate::zeta2_golden::{Zeta2GoldenN1, zeta2_polynomial_golden_fast, zeta2_polynomial_golden_full};
 pub use crate::zeta3_golden::{Zeta3GoldenN1, zeta3_polynomial_golden_fast, zeta3_polynomial_golden_full};
-pub use crate::progress::{init_progress_tracing, trace_step};
+pub use crate::progress::{init_progress_logging, trace_step};
 pub use crate::export::{
     export_catalan_certificates, export_delta_certificates, export_gamma_certificates, export_zeta2_certificates,
     export_zeta3_certificates, export_zeta5_certificates, export_zeta7_certificates,

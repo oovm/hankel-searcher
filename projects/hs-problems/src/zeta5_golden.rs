@@ -9,8 +9,7 @@
 //! or `hs check zeta-5 --polynomial-golden --full-delta`.
 
 use crate::{
-    zeta5_delta_leading_coeff, zeta5_delta_polynomial, zeta5_energy_report, zeta5_entries, zeta5_log_s_k,
-    Zeta5EnergyReport,
+    Zeta5EnergyReport, zeta5_delta_leading_coeff, zeta5_delta_polynomial, zeta5_energy_report, zeta5_entries, zeta5_log_s_k,
 };
 use hs_types::{is_zero, rational_from_str};
 
@@ -84,12 +83,7 @@ pub fn zeta5_polynomial_golden_fast() -> Result<(), String> {
     let entries = zeta5_entries(n);
     let params = &entries.params;
     if params.k != 40 || params.capital_n != 3 || params.h != 37 {
-        return Err(format!(
-            "paper scaling mismatch: K={} N={} h={}",
-            params.k,
-            params.capital_n,
-            params.h
-        ));
+        return Err(format!("paper scaling mismatch: K={} N={} h={}", params.k, params.capital_n, params.h));
     }
     let e_len = 2 * params.h - 1;
     if entries.a.len() != e_len || entries.b.len() != e_len {
@@ -137,18 +131,32 @@ fn assert_moment_golden(entries: &crate::zeta5_hankel::Zeta5Entries) -> Result<(
 /// **Do not** call from CI — evaluates `38` exact `37×37` pencil determinants offline.
 pub fn zeta5_polynomial_golden_full() -> Result<Zeta5EnergyReport, String> {
     use std::time::Instant;
-    tracing::info!(phase = "golden_full", "fast gate");
+    logger::event!(Info, module_path!(), message = "fast gate", phase = "golden_full");
     zeta5_polynomial_golden_fast()?;
-    tracing::info!(phase = "golden_full", "building entries");
+    logger::event!(Info, module_path!(), message = "building entries", phase = "golden_full");
     let entries_started = Instant::now();
     let entries = zeta5_entries(1);
     let entries_ms = entries_started.elapsed().as_millis();
-    tracing::info!(phase = "golden_full", entries_ms, h = entries.params.h, "computing Delta_K polynomial");
+    logger::event!(
+        Info,
+        module_path!(),
+        message = "computing Delta_K polynomial",
+        phase = "golden_full",
+        entries_ms = entries_ms as u64,
+        h = entries.params.h,
+    );
     let delta_started = Instant::now();
     let delta = zeta5_delta_polynomial(&entries);
     let delta_ms = delta_started.elapsed().as_millis();
     eprintln!("n=1 timings: entries {entries_ms}ms det {delta_ms}ms");
-    tracing::info!(phase = "golden_full", delta_ms, coeffs = delta.len(), "Delta_K ready, checking (2.9)");
+    logger::event!(
+        Info,
+        module_path!(),
+        message = "Delta_K ready, checking (2.9)",
+        phase = "golden_full",
+        delta_ms = delta_ms as u64,
+        coeffs = delta.len(),
+    );
     let lead = zeta5_delta_leading_coeff(&entries);
     let degree = entries.params.h;
     if delta.len() != degree + 1 {
@@ -158,7 +166,7 @@ pub fn zeta5_polynomial_golden_full() -> Result<Zeta5EnergyReport, String> {
         return Err("(2.9) leading coefficient mismatch against Δ_K".into());
     }
     let energy = zeta5_energy_report(&entries.params, &delta)?;
-    tracing::info!(phase = "golden_full", "energy report ready, comparing golden constants");
+    logger::event!(Info, module_path!(), message = "energy report ready, comparing golden constants", phase = "golden_full");
     eprintln!(
         "energy: max_bits={} logS={:.3} logD={:.3} logF={:.3} logcontF={:.3} logP={:.3}",
         energy.max_primitive_coeff_bits,

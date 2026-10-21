@@ -6,12 +6,12 @@
 //! ```
 
 use hs_problems::{
-    best_sweep_rows_by_order, init_progress_tracing, sweep_polynomial_hankel, PolynomialHankelSweepConfig,
+    best_sweep_rows_by_order, init_progress_logging, sweep_polynomial_hankel, PolynomialHankelSweepConfig,
 };
 use std::env;
 
 fn main() {
-    init_progress_tracing();
+    init_progress_logging();
     let config = parse_config();
     println!(
         "polynomial Hankel sweep at n={}, K={}n, N={}..{}n, q={:?}, orders={:?}",

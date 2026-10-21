@@ -16,15 +16,21 @@ pub fn det_linear_pencil(a: &[Vec<Rational>], b: &[Vec<Rational>]) -> Result<Vec
         return Err("linear pencil requires matching square matrices".into());
     }
 
-    let points: Vec<Rational> = (0..=n)
-        .map(|index| Rational::from(Integer::from(index)))
-        .collect();
-    tracing::info!(matrix_size = n, samples = points.len(), "pencil determinant interpolation start");
+    let points: Vec<Rational> = (0..=n).map(|index| Rational::from(Integer::from(index))).collect();
+    logger::event!(
+        Info,
+        module_path!(),
+        message = "pencil determinant interpolation start",
+        matrix_size = n,
+        samples = points.len()
+    );
     let mut values = Vec::with_capacity(points.len());
     for (sample, point) in points.iter().enumerate() {
         values.push(bareiss_det_rational(&pencil_at(a, b, point)));
         if sample == 0 || sample + 1 == points.len() || (sample + 1) % 5 == 0 {
-            tracing::info!(
+            logger::event!(
+                Info,
+                module_path!(),
                 phase = "pencil_det_sample",
                 sample = sample + 1,
                 samples = points.len(),
@@ -32,7 +38,7 @@ pub fn det_linear_pencil(a: &[Vec<Rational>], b: &[Vec<Rational>]) -> Result<Vec
             );
         }
     }
-    tracing::info!("pencil determinant Vandermonde interpolation");
+    logger::event!(Info, module_path!(), message = "pencil determinant Vandermonde interpolation");
     vandermonde_interpolate_ascending(&points, &values)
 }
 
@@ -40,11 +46,7 @@ fn pencil_at(a: &[Vec<Rational>], b: &[Vec<Rational>], point: &Rational) -> Vec<
     a.iter()
         .zip(b)
         .map(|(row_a, row_b)| {
-            row_a
-                .iter()
-                .zip(row_b)
-                .map(|(left, right)| left.clone() + point.clone() * right.clone())
-                .collect()
+            row_a.iter().zip(row_b).map(|(left, right)| left.clone() + point.clone() * right.clone()).collect()
         })
         .collect()
 }

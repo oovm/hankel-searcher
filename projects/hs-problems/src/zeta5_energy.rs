@@ -100,25 +100,34 @@ pub fn zeta_polynomial_energy_report(
     if order < 2 {
         return Err("zeta order must be >= 2".into());
     }
-    tracing::info!(phase = "energy_report", order, "start");
+    logger::event!(Info, module_path!(), message = "start", phase = "energy_report", order = order);
     let primitive = zeta5_delta_primitive(delta);
     let max_bits = max_coeff_bits(&primitive.coefficients);
     let prec_bits = energy_eval_precision_bits(max_bits, params.k);
     let work_prec = prec_bits + 64;
-    tracing::info!(
+    logger::event!(
+        Info,
+        module_path!(),
+        message = "primitive content cleared",
         phase = "energy_report",
-        order,
+        order = order,
         max_coeff_bits = max_bits,
-        prec_bits,
-        work_prec,
-        "primitive content cleared"
+        prec_bits = prec_bits,
+        work_prec = work_prec,
     );
-    tracing::info!(phase = "zeta_borwein", order, prec_bits, "computing zeta(s)");
+    logger::event!(
+        Info,
+        module_path!(),
+        message = "computing zeta(s)",
+        phase = "zeta_borwein",
+        order = order,
+        prec_bits = prec_bits
+    );
     let zeta_value = zeta_at_precision(order, prec_bits)?;
-    tracing::info!(phase = "energy_report", order, "zeta(s) ready, evaluating Delta_K");
+    logger::event!(Info, module_path!(), message = "zeta(s) ready, evaluating Delta_K", phase = "energy_report", order = order);
     let log_s_k = polynomial_hankel_log_s_k(params);
     let delta_value = evaluate_rational_poly_float(delta, &zeta_value, work_prec)?;
-    tracing::info!(phase = "energy_report", order, "Delta_K evaluated, scaling to P_K");
+    logger::event!(Info, module_path!(), message = "Delta_K evaluated, scaling to P_K", phase = "energy_report", order = order);
     let content_scale = Float::from_rational_prec(
         Rational::from_integers(
             Integer::from(primitive.content_denominator.clone()),
@@ -218,21 +227,25 @@ pub fn zeta_integer_float(order: u32, prec_bits: u64) -> Result<Float, String> {
 fn zeta_at_precision(order: u32, prec_bits: u64) -> Result<Float, String> {
     let required_terms = zeta_series_required_terms_saturated(order, prec_bits);
     if required_terms <= ZETA_DIRECT_SUM_TERM_CAP && prec_bits < 4096 {
-        tracing::info!(
+        logger::event!(
+            Info,
+            module_path!(),
             phase = "zeta5",
             route = "direct_series",
-            order,
-            prec_bits,
+            order = order,
+            prec_bits = prec_bits,
             terms = required_terms,
         );
         zeta_series_float(order, required_terms, prec_bits)
     } else {
-        tracing::info!(
+        logger::event!(
+            Info,
+            module_path!(),
             phase = "zeta5",
             route = "borwein",
-            order,
-            prec_bits,
-            required_terms,
+            order = order,
+            prec_bits = prec_bits,
+            required_terms = required_terms,
             cap = ZETA_DIRECT_SUM_TERM_CAP,
         );
         borwein_zeta_float(order, prec_bits)
@@ -248,7 +261,15 @@ pub(crate) fn zeta_series_float(order: u32, terms: usize, prec_bits: u64) -> Res
         return Err("series terms must be positive".into());
     }
     let prec = prec_bits + 64;
-    tracing::info!(phase = "zeta5_direct", order, terms, prec, "partial sum start");
+    logger::event!(
+        Info,
+        module_path!(),
+        message = "partial sum start",
+        phase = "zeta5_direct",
+        order = order,
+        terms = terms,
+        prec = prec,
+    );
     let mut sum = float_at_unsigned(prec, 0);
     let progress_step = (terms / 20).max(1_000);
     for index in 1..=terms {
@@ -278,7 +299,16 @@ fn borwein_zeta_float(order: u32, prec_bits: u64) -> Result<Float, String> {
     }
     let prec = prec_bits + 64;
     let n = borwein_zeta_degree(prec_bits);
-    tracing::info!(phase = "zeta5_borwein", order, prec_bits, prec, borwein_n = n, "start");
+    logger::event!(
+        Info,
+        module_path!(),
+        message = "start",
+        phase = "zeta5_borwein",
+        order = order,
+        prec_bits = prec_bits,
+        prec = prec,
+        borwein_n = n,
+    );
     let d = borwein_d_table(n, prec);
     let dn = d[n].clone();
     let mut sum = float_at_unsigned(prec, 0);
@@ -295,7 +325,7 @@ fn borwein_zeta_float(order: u32, prec_bits: u64) -> Result<Float, String> {
     }
     let two = float_at_unsigned(prec, 2);
     let multiplier = float_at_unsigned(prec, 1) - float_at_unsigned(prec, 2) / two.pow(order as i64);
-    tracing::info!(phase = "zeta5_borwein", order, prec, "complete");
+    logger::event!(Info, module_path!(), message = "complete", phase = "zeta5_borwein", order = order, prec = prec);
     Ok(-sum / (dn * multiplier))
 }
 
