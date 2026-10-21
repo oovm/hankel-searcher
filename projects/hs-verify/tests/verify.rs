@@ -1,10 +1,10 @@
+use fs_tools::temp::create_folder;
 use hs_checkpoint::{
     Checkpoint, MuRecord, Objective, ProofRecord, ProofStatus, Search, default_checkpoint_path, read_checkpoint,
     write_checkpoint,
 };
 use hs_verify::{VerifyVerdict, verify_checkpoint};
 use std::fs;
-use tempfile::tempdir;
 
 fn sample_checkpoint(target: &str, proof_status: ProofStatus, proof: Option<ProofRecord>) -> Checkpoint {
     Checkpoint {
@@ -199,7 +199,7 @@ fn project_zeta3_checkpoint_has_no_proof() {
 
 #[test]
 fn round_trip_rational_fixture_checkpoint() {
-    let dir = tempdir().unwrap();
+    let dir = create_folder().unwrap();
     let path = dir.path().join("checkpoint.json");
     let proof = ProofRecord {
         kind: "rational_equality".into(),

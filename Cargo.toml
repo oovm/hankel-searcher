@@ -38,6 +38,7 @@ faer = { version = "0.23.2", default-features = false, features = ["std", "linal
 libm = "0.2.16"
 logger = { git = "https://github.com/oovm/rust-boost", branch = "dev" }
 console = { git = "https://github.com/oovm/rust-boost", branch = "dev" }
+fs-tools = { git = "https://github.com/oovm/rust-boost", branch = "dev" }
 
 [profile.release]
 lto = true

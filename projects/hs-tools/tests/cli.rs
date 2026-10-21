@@ -1,10 +1,10 @@
+use fs_tools::temp::create_folder_in;
 use hs_checkpoint::{
     FERGUSON_PARAMETER_GENERATOR, POLYNOMIAL_HANKEL_GENERATOR, ProofRecord, ProofStatus, RATIONAL_PARAMETER_SPACE,
     read_checkpoint, write_checkpoint,
 };
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
-use tempfile::tempdir_in;
 
 fn hs_bin() -> String {
     std::env::var("CARGO_BIN_EXE_hs").expect("CARGO_BIN_EXE_hs")
@@ -54,7 +54,7 @@ fn doctor_reports_all_checkpoint_targets() {
 
 #[test]
 fn check_rejects_tampered_observation() {
-    let dir = tempdir_in(repo_root()).unwrap();
+    let dir = create_folder_in(repo_root()).unwrap();
     let path = dir.path().join("checkpoint.json");
     let source = repo_root().join("projects/hs-problems/checkpoints/zeta-3/checkpoint.json");
     std::fs::copy(source, &path).expect("copy checkpoint");
@@ -73,7 +73,7 @@ fn check_rejects_tampered_observation() {
 
 #[test]
 fn verify_rejects_false_zeta3_rational_proof() {
-    let dir = tempdir_in(repo_root()).unwrap();
+    let dir = create_folder_in(repo_root()).unwrap();
     let path = dir.path().join("checkpoint.json");
     let source = repo_root().join("projects/hs-problems/checkpoints/zeta-3/checkpoint.json");
     std::fs::copy(source, &path).expect("copy checkpoint");
@@ -103,7 +103,7 @@ fn verify_rejects_false_zeta3_rational_proof() {
 
 #[test]
 fn verify_accepts_fixture_rational_proof_record() {
-    let dir = tempdir_in(repo_root()).unwrap();
+    let dir = create_folder_in(repo_root()).unwrap();
     let path = dir.path().join("checkpoint.json");
     let mut cp = read_checkpoint(
         &repo_root().join("projects/hs-problems/checkpoints/zeta-3/checkpoint.json"),
@@ -203,7 +203,7 @@ fn check_validates_zeta5_observation() {
 
 #[test]
 fn improve_runs_parameter_search_contract() {
-    let dir = tempdir_in(repo_root()).unwrap();
+    let dir = create_folder_in(repo_root()).unwrap();
     let path = dir.path().join("checkpoint.json");
     let source = repo_root().join("projects/hs-problems/checkpoints/zeta-3/checkpoint.json");
     std::fs::copy(source, &path).expect("copy checkpoint");
@@ -232,7 +232,7 @@ fn improve_runs_parameter_search_contract() {
 
 #[test]
 fn improve_records_workload_benchmark() {
-    let dir = tempdir_in(repo_root()).unwrap();
+    let dir = create_folder_in(repo_root()).unwrap();
     let path = dir.path().join("checkpoint.json");
     let source = repo_root().join("projects/hs-problems/checkpoints/zeta-3/checkpoint.json");
     std::fs::copy(source, &path).expect("copy checkpoint");
@@ -273,7 +273,7 @@ fn improve_polynomial_rejects_unregistered_target() {
 
 #[test]
 fn status_shows_polynomial_observed_best_after_improve() {
-    let dir = tempdir_in(repo_root()).unwrap();
+    let dir = create_folder_in(repo_root()).unwrap();
     let path = dir.path().join("checkpoint.json");
     let source = repo_root().join("projects/hs-problems/checkpoints/zeta-5/checkpoint.json");
     std::fs::copy(source, &path).expect("copy checkpoint");
@@ -298,7 +298,7 @@ fn status_shows_polynomial_observed_best_after_improve() {
 
 #[test]
 fn improve_polynomial_records_observation() {
-    let dir = tempdir_in(repo_root()).unwrap();
+    let dir = create_folder_in(repo_root()).unwrap();
     let path = dir.path().join("checkpoint.json");
     let source = repo_root().join("projects/hs-problems/checkpoints/zeta-5/checkpoint.json");
     std::fs::copy(source, &path).expect("copy checkpoint");
@@ -359,7 +359,7 @@ fn targets_mentions_polynomial_improve_for_zeta5() {
 
 #[test]
 fn improve_polynomial_skips_write_when_write_on_improvement_and_no_update() {
-    let dir = tempdir_in(repo_root()).unwrap();
+    let dir = create_folder_in(repo_root()).unwrap();
     let path = dir.path().join("checkpoint.json");
     let source = repo_root().join("projects/hs-problems/checkpoints/zeta-5/checkpoint.json");
     std::fs::copy(source, &path).expect("copy checkpoint");

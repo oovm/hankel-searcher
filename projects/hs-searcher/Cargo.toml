@@ -14,4 +14,3 @@ hs-checkpoint = { workspace = true }
 [dev-dependencies]
 hs-types = { workspace = true }
 malachite = { workspace = true }
-tempfile = "3.23.0"

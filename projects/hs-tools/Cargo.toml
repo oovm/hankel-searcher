@@ -24,4 +24,4 @@ chrono = { workspace = true }
 
 [dev-dependencies]
 serde_json = { workspace = true }
-tempfile = "3.23.0"
+fs-tools = { workspace = true }
